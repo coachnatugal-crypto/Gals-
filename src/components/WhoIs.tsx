@@ -46,7 +46,7 @@ export function WhoIs() {
 
   return (
     <section
-      className={`relative overflow-visible bg-gals-blue-deep pb-14 pt-24 text-white md:pb-28 md:pt-28 ${
+      className={`relative overflow-x-clip bg-gals-blue-deep pb-14 pt-24 text-white md:overflow-visible md:pb-28 md:pt-28 ${
         focused ? "z-[100]" : "z-0"
       }`}
     >
@@ -82,7 +82,7 @@ export function WhoIs() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-5 md:grid-cols-2 md:gap-16 md:px-8">
         {/* ——— MOBILE: video enmarcado ——— */}
-        <div className="relative z-[2] mx-auto w-full max-w-[520px] md:hidden">
+        <div className="relative z-[2] mx-auto w-full max-w-[520px] overflow-x-clip px-1 md:hidden">
           <motion.p
             className={`pointer-events-none mb-2 font-script text-4xl text-white drop-shadow ${
               focused ? "opacity-30" : ""
@@ -95,14 +95,15 @@ export function WhoIs() {
             who is
           </motion.p>
 
-          <motion.div
-            className="relative mx-auto w-full"
-            initial={{ opacity: 0, y: 28, rotate: -10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            animate={{ rotate: focused ? 0 : -6, scale: focused ? 1.14 : 1 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <div className="overflow-hidden px-3 py-4">
+            <motion.div
+              className="relative mx-auto w-full origin-center"
+              initial={{ opacity: 0, y: 28, rotate: -10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ rotate: focused ? 0 : -4, scale: focused ? 1.06 : 1 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
             <div
               className={`relative bg-white p-2.5 pb-10 sm:p-3 sm:pb-12 ${
                 focused
@@ -189,10 +190,11 @@ export function WhoIs() {
               </p>
             </div>
           </motion.div>
+          </div>
 
-          <div className="pointer-events-none mt-3 flex justify-end px-1">
+          <div className="pointer-events-none mt-3 flex justify-end overflow-hidden pr-1">
             <motion.p
-              className={`font-script text-5xl text-white drop-shadow ${
+              className={`font-script text-4xl text-white drop-shadow sm:text-5xl ${
                 focused ? "opacity-30" : ""
               }`}
               initial={{ opacity: 0, x: 16 }}

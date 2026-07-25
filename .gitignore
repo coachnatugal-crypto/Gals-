@@ -44,3 +44,6 @@ next-env.d.ts
 public/media/video/Gals 2.mp4
 public/media/video/hero-original.mp4
 public/media/video/hero-compressed.mp4
+
+.vercel
+.env*

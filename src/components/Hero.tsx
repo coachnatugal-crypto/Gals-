@@ -84,17 +84,17 @@ export function Hero() {
 export function HeroIntro() {
   return (
     <section id="comunidad" className="relative overflow-hidden bg-gals-cream">
-      <div className="relative overflow-visible pb-6 pt-16 md:pb-8 md:pt-24">
+      <div className="relative overflow-x-clip pb-6 pt-16 md:overflow-visible md:pb-8 md:pt-24">
         <ImageSticker
           src={STICKER_ASSETS.tapete}
-          className="left-[2%] top-10 hidden sm:block md:left-[6%] lg:left-[10%]"
+          className="left-[2%] top-10 hidden md:block md:left-[6%] lg:left-[10%]"
           size={130}
           rotate={-28}
           float
         />
         <ImageSticker
           src={STICKER_ASSETS.pesas}
-          className="right-[2%] top-14 hidden sm:block md:right-[7%] lg:right-[11%]"
+          className="right-[2%] top-14 hidden md:block md:right-[7%] lg:right-[11%]"
           size={112}
           rotate={18}
           float
@@ -115,9 +115,9 @@ export function HeroIntro() {
 
         <div className="relative z-20 mx-auto flex max-w-5xl flex-col items-center px-5 md:px-8">
           <motion.div
-            className="relative w-full max-w-xl"
-            initial={{ opacity: 0, y: 50, rotate: -10 }}
-            whileInView={{ opacity: 1, y: 0, rotate: -5 }}
+            className="relative w-full max-w-xl origin-center"
+            initial={{ opacity: 0, y: 50, rotate: -6 }}
+            whileInView={{ opacity: 1, y: 0, rotate: -3 }}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             whileHover={{ rotate: -2, scale: 1.02 }}

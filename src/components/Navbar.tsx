@@ -25,13 +25,13 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-[60] w-full max-w-[100vw] overflow-x-clip transition-all duration-300 ${
         scrolled
           ? "bg-gals-cream/95 py-2 shadow-[0_1px_0_rgba(26,42,53,0.06)] backdrop-blur-md"
           : "bg-gals-cream py-3 md:bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 md:px-8">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
         <a
           href="#inicio"
           className="relative z-50 flex h-10 w-28 shrink-0 items-center overflow-hidden sm:h-12 sm:w-36 lg:h-12 lg:w-40"
@@ -88,22 +88,22 @@ export function Navbar() {
         <button
           type="button"
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
-          className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-1.5 text-gals-blue-deep lg:hidden"
+          className="relative z-50 -mr-1 flex h-11 w-11 shrink-0 flex-col items-center justify-center gap-[5px] text-gals-blue-deep lg:hidden"
           onClick={() => setOpen((v) => !v)}
         >
           <span
-            className={`h-0.5 w-6 rounded-full bg-current transition-transform ${
-              open ? "translate-y-2 rotate-45" : ""
+            className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-transform ${
+              open ? "translate-y-[7.5px] rotate-45" : ""
             }`}
           />
           <span
-            className={`h-0.5 w-6 rounded-full bg-current transition-opacity ${
+            className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-opacity ${
               open ? "opacity-0" : ""
             }`}
           />
           <span
-            className={`h-0.5 w-6 rounded-full bg-current transition-transform ${
-              open ? "-translate-y-2 -rotate-45" : ""
+            className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-transform ${
+              open ? "-translate-y-[7.5px] -rotate-45" : ""
             }`}
           />
         </button>

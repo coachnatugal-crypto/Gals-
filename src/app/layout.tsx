@@ -52,7 +52,7 @@ export default function RootLayout({
       lang="es"
       className={`${poppins.variable} ${archivoBlack.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-gals-cream font-sans text-gals-ink">
+      <body className="min-h-full max-w-[100vw] overflow-x-clip bg-gals-cream font-sans text-gals-ink">
         {children}
         <BeweChat />
       </body>
