@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+:root {
+  /* Azul-morado claro (periwinkle) — color predominante de marca */
+  --gals-blue: #8799c4;
+  --gals-blue-mid: #6b7fb0;
+  --gals-blue-deep: #556894;
+  --gals-blue-soft: #eef1f8;
+  --gals-cream: #f5f6fb;
+  --gals-green: #6fad86;
+  --gals-green-soft: #eaf5ee;
+  --gals-silver: #c5ccd4;
+  --gals-silver-soft: #f0f3f6;
+  --gals-ink: #1a2a35;
+  --gals-muted: #5c6b78;
+  --gals-white: #ffffff;
+  --gals-mist: #f5f6fb;
+  --background: var(--gals-cream);
+  --foreground: var(--gals-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-gals-blue: var(--gals-blue);
+  --color-gals-blue-mid: var(--gals-blue-mid);
+  --color-gals-blue-deep: var(--gals-blue-deep);
+  --color-gals-blue-soft: var(--gals-blue-soft);
+  --color-gals-cream: var(--gals-cream);
+  --color-gals-green: var(--gals-green);
+  --color-gals-green-soft: var(--gals-green-soft);
+  --color-gals-silver: var(--gals-silver);
+  --color-gals-silver-soft: var(--gals-silver-soft);
+  --color-gals-ink: var(--gals-ink);
+  --color-gals-muted: var(--gals-muted);
+  --color-gals-mist: var(--gals-mist);
+  --font-sans: var(--font-poppins);
+  --font-display: var(--font-display);
+  --font-script: var(--font-script);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins), system-ui, sans-serif;
+  /* Los stickers sobresalen de las secciones: evita scroll horizontal */
+  overflow-x: clip;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--gals-blue) 40%, white);
+  color: var(--gals-ink);
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-poppins), sans-serif;
+}
+
+.font-script {
+  font-family: var(--font-script), cursive;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--float-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-12px) rotate(var(--float-rot, 0deg));
+  }
+}
+
+.animate-float {
+  animation: float-soft 5.5s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+@keyframes float-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-3deg);
+  }
+  25% {
+    transform: translate(6px, -10px) rotate(-1.5deg);
+  }
+  50% {
+    transform: translate(-4px, -4px) rotate(-4deg);
+  }
+  75% {
+    transform: translate(3px, -12px) rotate(-2deg);
+  }
+}
+
+.animate-float-drift {
+  animation: float-drift 5.5s ease-in-out infinite;
+}
