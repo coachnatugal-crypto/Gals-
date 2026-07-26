@@ -6,7 +6,6 @@ export const EMAIL = "coach.natugal@gmail.com";
 export const PHONE_DISPLAY = "+57 318 786 9587";
 export const ADDRESS = "Calle 97 #10-28, Chicó Reservado, Bogotá";
 export const INSTAGRAM = "https://www.instagram.com/galstudio___";
-export const CURRENT_SITE = "https://www.bewellclubnataliagalvis.com";
 
 export const NAV_LINKS = [
   { href: "#inicio", label: "Inicio" },
@@ -15,71 +14,6 @@ export const NAV_LINKS = [
   { href: "#planes", label: "Planes" },
   { href: "#horario", label: "Horario" },
   { href: "#experiencias", label: "Experiencias" },
-] as const;
-
-/** Mock visual — luego se reemplaza con widget Bewe */
-export const SCHEDULE_RANGE = "20 julio 2026 - 26 julio 2026";
-
-export const SCHEDULE_DAYS = [
-  {
-    dateLabel: "Viernes, 24 de julio de 2026",
-    classes: [
-      {
-        start: "06:10",
-        end: "07:05",
-        name: "Clases Pilates",
-        instructor: "Maria Arango",
-        capacity: "1/9",
-      },
-      {
-        start: "07:10",
-        end: "08:05",
-        name: "Clases Pilates",
-        instructor: "Maria Arango",
-        capacity: "0/9",
-      },
-      {
-        start: "08:10",
-        end: "09:05",
-        name: "Clases Pilates",
-        instructor: "Maria Arango",
-        capacity: "0/9",
-      },
-      {
-        start: "09:15",
-        end: "10:10",
-        name: "Clases Pilates",
-        instructor: "Maria Arango",
-        capacity: "0/9",
-      },
-      {
-        start: "17:30",
-        end: "18:25",
-        name: "80.000 Semana",
-        instructor: "Natalia Galvis",
-        capacity: "0/9",
-      },
-      {
-        start: "18:30",
-        end: "19:25",
-        name: "Clases Pilates",
-        instructor: "Natalia Galvis",
-        capacity: "0/9",
-      },
-    ],
-  },
-  {
-    dateLabel: "Sábado, 25 de julio de 2026",
-    classes: [
-      {
-        start: "09:15",
-        end: "10:10",
-        name: "Clases Pilates",
-        instructor: "Natalia Galvis",
-        capacity: "0/9",
-      },
-    ],
-  },
 ] as const;
 
 /** Valores de su home actual */
