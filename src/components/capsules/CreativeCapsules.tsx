@@ -53,9 +53,12 @@ export function PolaroidStack({
     "/media/capsules/whois-2.jpg",
     "/media/capsules/community-1.jpg",
   ],
+  intervalMs = 2500,
 }: {
   captions?: string[];
   images?: string[];
+  /** Tiempo entre cada foto (ms). Más bajo = más rápido. */
+  intervalMs?: number;
 }) {
   const [active, setActive] = useState(0);
   const count = images.length;
@@ -64,9 +67,9 @@ export function PolaroidStack({
     if (count < 2) return;
     const id = window.setInterval(() => {
       setActive((prev) => (prev + 1) % count);
-    }, 6000);
+    }, intervalMs);
     return () => window.clearInterval(id);
-  }, [count]);
+  }, [count, intervalMs]);
 
   // Frente → medio → fondo
   const layers = [
@@ -103,7 +106,7 @@ export function PolaroidStack({
               rotate: layer.rot,
               scale: isFront ? 1 : 0.98,
             }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             whileHover={
               isFront
                 ? { y: layer.y - 6, rotate: layer.rot + 2, scale: 1.02 }
@@ -163,7 +166,7 @@ export function CreativeCapsule({
 }: {
   title: string;
   script: string;
-  badge: string;
+  badge?: string;
   accent?: keyof typeof accentMap;
   className?: string;
   href?: string;
@@ -228,13 +231,17 @@ export function CreativeCapsule({
             {title}
           </h3>
         </div>
-        <div
-          className={`max-w-[230px] rounded-2xl px-4 py-3 text-xs font-semibold leading-snug ${
-            isTop ? "" : "mt-5"
-          } ${a.badge}`}
-        >
-          {badge}
-        </div>
+        {badge ? (
+          <div
+            className={`max-w-[230px] rounded-2xl px-4 py-3 text-xs font-semibold leading-snug ${
+              isTop ? "" : "mt-5"
+            } ${a.badge}`}
+          >
+            {badge}
+          </div>
+        ) : (
+          <div className={isTop ? "" : "mt-5"} />
+        )}
       </div>
     </motion.a>
   );

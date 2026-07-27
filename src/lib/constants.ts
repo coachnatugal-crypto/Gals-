@@ -1,3 +1,39 @@
+/** Hero video (Cloudinary). */
+export const HERO_VIDEO_URL =
+  "https://res.cloudinary.com/fvermexb/video/upload/v1785107937/hero-cloudinary_mz6ooi.mp4";
+
+/**
+ * Historias reales (Cloudinary).
+ * Videos: .mov HEVC → forzar f_mp4 (H.264) para Chrome/Android.
+ * Posters: archivos locales en /public (siempre visibles aunque falle Cloudinary).
+ */
+export const REAL_STORIES_VIDEOS = [
+  {
+    id: "natalia-1",
+    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785108085/Natalia_testimonio_1_figeww.mov",
+    poster: "/media/stories/natalia.jpg",
+    label: "Natalia",
+  },
+  {
+    id: "testimonio-1",
+    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785108041/Testimonio_1_1_vnsmes.mov",
+    poster: "/media/stories/testimonio.jpg",
+    label: "Testimonio",
+  },
+  {
+    id: "img-0687",
+    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785108969/IMG_0687_vjknfd.mov",
+    poster: "/media/stories/img0687.jpg",
+    label: "GAL'S",
+  },
+  {
+    id: "testimonio-2",
+    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785110367/copy_9EB341DF-FC93-4C1A-AEE9-2D07454EE3AD_j10lex.mov",
+    poster: "/media/stories/testimonio-2.jpg",
+    label: "Testimonio",
+  },
+] as const;
+
 export const WHATSAPP_NUMBER = "573187869587";
 export const WHATSAPP_MESSAGE =
   "Hola GAL'S ✨ Quiero saber más sobre las clases / membresías. ¿Me ayudan?";
@@ -70,57 +106,67 @@ export const PLANS = [
   {
     id: "semana",
     name: "Semana GAL'S",
-    tag: "Entrada · una vez por persona",
-    classes: "5 clases · 7 días",
+    tag: "Tu primer paso · solo nuevas alumnas",
+    classes: "5 clases en 7 días",
     price: "$80.000",
     description:
-      "La puerta de entrada al sistema. Probás todas las disciplinas antes de comprometerte. Cupos limitados cada mes — no es una promoción, es el inicio.",
+      "Cupos limitados este mes. Solo para nuevas alumnas.",
+    bullets: [
+      "Prueba todas las disciplinas: pilates, hot pilates, barre y meditación",
+      "Una vez por persona",
+    ],
     featured: false,
-    cta: "Quiero la Semana GAL'S",
-  },
-  {
-    id: "puente",
-    name: "Pack Puente",
-    tag: "Después de la Semana",
-    classes: "5 clases · 30 días",
-    price: "$220.000",
-    description:
-      "Para quien terminó la Semana y aún no está lista para la membresía. Una sola opción, sin complicaciones.",
-    featured: false,
-    cta: "Elegir Pack Puente",
+    cta: "Quiero mi Semana GAL'S",
   },
   {
     id: "ritual",
-    name: "Ritual",
-    tag: "Membresía · ¿dónde me muevo?",
-    classes: "8 clases / mes · $47.500 c/u",
-    price: "$380.000",
-    description:
-      "Tu espacio dos veces a la semana. Todas las disciplinas, renovación automática, kit digital de Natalia, comunidad WhatsApp y 10% en eventos.",
+    name: "Membresía Ritual",
+    tag: "¿Dónde me muevo?",
+    classes: "8 clases / mes",
+    price: "$380.000/mes",
+    description: "Tu espacio dos veces a la semana.",
+    bullets: [
+      "Acceso a todas las disciplinas: pilates, hot pilates, barre y yin yoga",
+      "Renovación automática",
+      "Kit de bienvenida digital de Natalia (rutina de mat pilates, secuencia matutina, audio de meditación, guía antiinflamatoria de 3 días)",
+      "Acceso a la comunidad de WhatsApp GAL'S",
+      "10% de descuento en eventos y experiencias",
+    ],
     featured: false,
-    cta: "Quiero Ritual",
+    cta: "Quiero este plan",
   },
   {
     id: "transformacion",
-    name: "Transformación",
+    name: "Membresía Transformación",
     tag: "La más elegida",
-    classes: "12 clases / mes · $43.333 c/u",
-    price: "$520.000",
-    description:
-      "Todo Ritual + guía mensual de Natalia, sesión de preguntas, collab rotativo (nutrición · psicología · hábitos) y 15% en eventos. El proceso no para al salir del studio.",
+    classes: "12 clases / mes",
+    price: "$520.000/mes",
+    description: "El proceso no para al salir del studio.",
+    bullets: [
+      "Guía nueva de Natalia cada mes (movimiento, alimentación, hábitos o bienestar emocional)",
+      "Sesión grupal de preguntas con Natalia: respuestas en audio, una vez al mes",
+      "15% de descuento en eventos y experiencias",
+    ],
     featured: true,
-    cta: "Quiero Transformación",
+    cta: "Quiero este plan",
   },
   {
     id: "ilimitada",
-    name: "Ilimitada",
+    name: "Membresía Ilimitada",
     tag: "Premium · círculo íntimo",
-    classes: "Clases sin tope · máx. 20 cupos en el plan",
-    price: "$680.000",
-    description:
-      "Clases ilimitadas dentro de un círculo reducido (máximo 20). Todo Transformación + sesión dominical 9am con Natalia, plan de movimiento en casa, nutrición personalizada, 20% en eventos y prioridad total de reserva.",
+    classes: "Clases ilimitadas",
+    price: "$680.000/mes",
+    description: "Círculo reducido · máximo 20 cupos",
+    bullets: [
+      "Sesión semanal con Natalia (grupo de máximo 20): liderazgo femenino, espiritualidad, propósito y bienestar emocional",
+      "Plan de movimiento en casa diseñado por Natalia cada mes",
+      "Collab mensual rotativo: nutricionista funcional, psicóloga especialista en bienestar, coach de hábitos y propósito",
+      "Plan nutricional personalizado con la nutricionista del círculo GAL'S, revisado cada mes",
+      "20% de descuento en todos los eventos y experiencias",
+      "GAL'S VIP en la comunidad: sé la primera en enterarte de todo aquí en GAL'S",
+    ],
     featured: false,
-    cta: "Quiero Ilimitada",
+    cta: "Quiero mis clases ilimitadas",
   },
 ] as const;
 
@@ -129,12 +175,16 @@ export const COACHES = [
     name: "Gal Nati Galvis",
     role: "Pilates & Sculpt · Yin Yoga",
     photo: "/media/coaches/nati.jpg",
+    video:
+      "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785112103/copy_EDB62C71-3157-4D92-BB29-D5564522F384_vtxu2u.mov",
     bio: "Guía prácticas que integran fuerza, conciencia y profundidad. Combina Pilates y Sculpt para activar, y Yin Yoga para abrir espacio, liberar y conectar hacia adentro. Su enfoque nace de su propio camino.",
   },
   {
     name: "Gal María Arango",
     role: "Pilates & Sculpt",
     photo: "/media/coaches/mari.jpg",
+    video:
+      "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785110258/copy_F2971244-59F0-4FD7-97DB-305BB55F420E_eucbvx.mov",
     bio: "Crea clases donde el cuerpo se activa, se fortalece y se reta desde el movimiento consciente. Ritmo, energía y respiración para construir fuerza, control y confianza en ti misma.",
   },
   {
@@ -142,6 +192,8 @@ export const COACHES = [
     role: "Vinyasa",
     note: "Clases 2 veces al mes",
     photo: "/media/coaches/natiramos.jpg",
+    video:
+      "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785112024/copy_5ABA9B2C-F893-4C14-884C-888A1744F78C_lcaxxw.mov",
     bio: "Guía prácticas de Vinyasa donde el movimiento fluye con la respiración: una experiencia dinámica que activa, fortalece y conecta. Habitar cada movimiento con intención y ritmo propio.",
   },
 ] as const;
@@ -155,18 +207,33 @@ export const COMMUNITY_BENEFITS = [
 
 export const TESTIMONIALS = [
   {
+    author: "Ana María Duque",
     quote:
-      "Sales con más claridad, más energía y una sensación real de bienestar.",
-    author: "Alumna GAL'S",
+      "Vengo derecho de dejar a mi hija en el colegio. Es la única hora del día pero es mi hora favorita.",
   },
   {
+    author: "Camila Restrepo",
     quote:
-      "Un espacio donde te sientes acompañada, sostenida y parte de algo.",
-    author: "Alumna GAL'S",
+      "Mi esposo me regaló la Semana GAL's de cumpleaños. Ya llevo 3 membresías seguidas, ahora se la compré a mi mamá.",
   },
   {
+    author: "Daniela Torres",
     quote:
-      "Aquí el movimiento se convierte en una herramienta para reconectar, soltar y volver a ti.",
-    author: "Alumna GAL'S",
+      "Hice pilates en otros 2 lugares antes. Acá es la primera vez que la instructora se acuerda de mi nombre sin preguntarlo.",
+  },
+  {
+    author: "Isabella Cárdenas",
+    quote:
+      "Tenía una lesión de espalda de hace años. Le pregunté a Natalia antes de empezar y me armó ejercicios distintos solo para mí.",
+  },
+  {
+    author: "Paula Jaramillo",
+    quote:
+      "Tengo 52 años y pensé que esto era para gente más joven. Nadie me hizo sentir fuera de lugar ni una sola clase.",
+  },
+  {
+    author: "Jessica Tamara",
+    quote:
+      "Los cambios en mi cuerpo han sido increíbles, me siento en un lugar súper completo.",
   },
 ] as const;

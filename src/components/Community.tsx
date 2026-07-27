@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PolaroidStack } from "@/components/capsules/CreativeCapsules";
 import {
@@ -59,8 +59,18 @@ export function Community() {
     setIndex((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
   const next = () => setIndex((i) => (i + 1) % TESTIMONIALS.length);
 
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % TESTIMONIALS.length);
+    }, 4500);
+    return () => window.clearInterval(id);
+  }, []);
+
   return (
-    <section className="relative overflow-visible bg-white pb-16 pt-0 md:pb-20">
+    <section
+      id="comunidad"
+      className="relative overflow-visible bg-white pb-16 pt-0 md:pb-20"
+    >
       <CommunityMarquee />
 
       <div className="relative z-20 mx-auto mt-10 grid max-w-6xl items-center gap-14 px-5 md:mt-12 md:grid-cols-2 md:px-8">
@@ -75,12 +85,13 @@ export function Community() {
           <PolaroidStack
             images={COMMUNITY_IMAGES}
             captions={COMMUNITY_CAPTIONS}
+            intervalMs={2500}
           />
-          <p className="mt-6 font-script text-4xl text-gals-blue-deep md:text-5xl">
-            únete a la
+          <p className="mt-6 font-display text-3xl tracking-tight text-gals-ink uppercase md:text-4xl">
+            Ellas son GAL&apos;S
           </p>
-          <p className="font-display text-3xl tracking-tight text-gals-ink uppercase md:text-4xl">
-            comunidad GAL&apos;S
+          <p className="mt-2 font-script text-2xl text-gals-blue-deep md:text-3xl">
+            Para nosotras tu siempre eres lo más importante
           </p>
           <a
             href={WHATSAPP_URL}
@@ -92,10 +103,10 @@ export function Community() {
           </a>
         </div>
 
-        <div className="relative space-y-8">
+        <div className="relative">
           <ImageSticker
             src={STICKER_ASSETS.matchaTea}
-            className="-right-3 top-0 hidden sm:block sm:-right-6"
+            className="-right-3 -top-4 hidden sm:block sm:-right-6"
             size={64}
             rotate={12}
             float
@@ -103,28 +114,7 @@ export function Community() {
           />
 
           <motion.div
-            className="relative rounded-2xl border border-gals-silver/40 bg-white p-6 shadow-[0_16px_40px_rgba(85,104,148,0.1)]"
-            initial={{ opacity: 0, y: 24, rotate: 2 }}
-            whileInView={{ opacity: 1, y: 0, rotate: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-xs text-gals-muted">
-              Recordatorio · GAL&apos;S Studio
-            </p>
-            <p className="mt-2 font-display text-xl tracking-tight text-gals-ink uppercase">
-              Reminder
-            </p>
-            <p className="mt-3 text-gals-muted leading-relaxed">
-              Para nosotros tú siempre eres lo más{" "}
-              <span className="bg-gals-blue/30 px-1 font-semibold text-gals-ink">
-                importante.
-              </span>
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="relative rounded-2xl border-2 border-gals-blue-deep bg-gals-blue-soft p-6 md:p-8"
+            className="relative rounded-2xl border-2 border-gals-blue-deep bg-gals-blue-soft px-8 py-10 text-center md:px-10 md:py-12"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -133,7 +123,7 @@ export function Community() {
               type="button"
               aria-label="Anterior"
               onClick={prev}
-              className="absolute top-1/2 -left-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-gals-blue-deep text-white shadow-md"
+              className="absolute top-1/2 -left-3 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-gals-blue-deep text-lg text-white shadow-md transition-transform hover:scale-105 md:-left-4"
             >
               ‹
             </button>
@@ -141,34 +131,35 @@ export function Community() {
               type="button"
               aria-label="Siguiente"
               onClick={next}
-              className="absolute top-1/2 -right-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-gals-blue-deep text-white shadow-md"
+              className="absolute top-1/2 -right-3 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-gals-blue-deep text-lg text-white shadow-md transition-transform hover:scale-105 md:-right-4"
             >
               ›
             </button>
 
             <AnimatePresence mode="wait">
               <motion.blockquote
-                key={item.quote}
-                initial={{ opacity: 0, x: 16 }}
+                key={item.author}
+                className="min-h-[160px] md:min-h-[180px]"
+                initial={{ opacity: 0, x: 18 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -16 }}
-                transition={{ duration: 0.3 }}
+                exit={{ opacity: 0, x: -18 }}
+                transition={{ duration: 0.28 }}
               >
-                <p className="font-display text-lg tracking-tight text-gals-ink uppercase">
+                <p className="font-display text-xl tracking-tight text-gals-ink uppercase md:text-2xl">
                   {item.author}
                 </p>
-                <p className="mt-3 leading-relaxed text-gals-ink/80 italic">
-                  &ldquo;{item.quote}&rdquo;
+                <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-gals-ink/80 md:text-lg">
+                  {item.quote}
                 </p>
               </motion.blockquote>
             </AnimatePresence>
 
-            <div className="mt-6 flex justify-center gap-2">
-              {TESTIMONIALS.map((_, i) => (
+            <div className="mt-8 flex justify-center gap-2.5">
+              {TESTIMONIALS.map((t, i) => (
                 <button
-                  key={i}
+                  key={t.author}
                   type="button"
-                  aria-label={`Testimonio ${i + 1}`}
+                  aria-label={`Testimonio de ${t.author}`}
                   onClick={() => setIndex(i)}
                   className={`h-2.5 w-2.5 rounded-full transition-colors ${
                     i === index ? "bg-gals-blue-deep" : "bg-gals-blue/40"

@@ -8,6 +8,7 @@ import {
   StarSticker,
   STICKER_ASSETS,
 } from "@/components/capsules/Stickers";
+import { WHATSAPP_URL } from "@/lib/constants";
 
 export function License() {
   return (
@@ -31,7 +32,7 @@ export function License() {
           Nuestra experiencia
         </motion.h2>
         <p className="mt-2 font-script text-3xl text-gals-blue-soft">
-          lo que se vive en GAL&apos;S
+          GAL&apos;S Studio, desde 2021
         </p>
 
         <motion.div
@@ -71,16 +72,16 @@ export function License() {
             <p className="font-display text-xs tracking-[0.14em] text-gals-ink uppercase">
               GAL&apos;S Studio
             </p>
-            <p className="text-xs font-medium text-gals-muted">2024 — NOW</p>
+            <p className="text-xs font-medium text-gals-muted">2021 — NOW</p>
           </div>
 
           <div className="mt-5 flex flex-col gap-5 sm:mt-6 sm:flex-row sm:items-stretch sm:gap-6">
             <Image
-              src="/media/coaches/IMG_7674.jpg"
-              alt="Nati Galvis · GAL'S Studio"
+              src="/media/capsules/_DSC4460.jpg"
+              alt="GAL'S Studio"
               width={360}
               height={480}
-              className="mx-auto h-56 w-44 rounded-xl border-2 border-gals-ink object-cover sm:mx-0 sm:h-64 sm:w-48 md:h-72 md:w-52"
+              className="mx-auto h-52 w-40 rounded-xl border-2 border-gals-ink object-cover object-top sm:mx-0 sm:h-60 sm:w-44 md:h-64 md:w-48"
             />
             <div className="flex flex-1 flex-col justify-between gap-4 text-center sm:text-left">
               <div>
@@ -100,23 +101,23 @@ export function License() {
                     Tenemos
                   </p>
                   <p className="font-script text-2xl leading-tight text-gals-blue-deep md:text-[1.65rem]">
-                    paz interior, fuerza y comunidad
+                    +4 años transformando cuerpos y mentes
                   </p>
                 </li>
                 <li>
                   <p className="text-[11px] font-semibold tracking-[0.12em] text-gals-ink uppercase">
-                    Ofrecemos
+                    Hemos acompañado
                   </p>
                   <p className="font-script text-2xl leading-tight text-gals-blue-deep md:text-[1.65rem]">
-                    pilates · sculpt · yoga · experiencias
+                    a +100 mujeres
                   </p>
                 </li>
                 <li className="flex flex-wrap items-center gap-2">
                   <span className="text-[11px] font-semibold tracking-[0.12em] text-gals-ink uppercase">
-                    Meta
+                    Cupos
                   </span>
                   <span className="rounded bg-gals-blue px-2.5 py-1 text-sm font-bold text-white">
-                    VOLVER A TI
+                    LIMITADOS CADA MES
                   </span>
                 </li>
               </ul>
@@ -127,10 +128,25 @@ export function License() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gals-blue-deep font-display text-[8px] tracking-wide text-white uppercase">
               gal&apos;s
             </div>
-            <p className="font-script text-2xl text-gals-ink">Nati Galvis</p>
+            <p className="font-script text-2xl text-gals-ink">
+              Natalia Galvis 🩶
+            </p>
             <StarSticker size={20} />
           </div>
         </motion.div>
+
+        <motion.a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-12 inline-flex rounded-full bg-white px-10 py-4 font-display text-sm tracking-[0.14em] text-gals-blue-deep uppercase transition-transform hover:scale-[1.03]"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.15 }}
+        >
+          Quiero unirme
+        </motion.a>
       </div>
 
       <ImageSticker

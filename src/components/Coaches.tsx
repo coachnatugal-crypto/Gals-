@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { COACHES } from "@/lib/constants";
 import { FadeIn, Stagger, StaggerItem } from "@/components/motion/FadeIn";
 import {
@@ -7,6 +8,105 @@ import {
   MoonSticker,
   STICKER_ASSETS,
 } from "@/components/capsules/Stickers";
+
+function CoachMedia({
+  name,
+  photo,
+  video,
+}: {
+  name: string;
+  photo?: string;
+  video?: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const toggle = () => {
+    const el = videoRef.current;
+    if (!el || !video) return;
+    if (el.paused) {
+      void el.play().catch(() => setPlaying(false));
+      setPlaying(true);
+    } else {
+      el.pause();
+      setPlaying(false);
+    }
+  };
+
+  if (!photo && !video) {
+    return (
+      <div className="mb-6 flex aspect-[4/5] items-end overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-gals-blue-soft via-white to-gals-green-soft p-6">
+        <span className="text-sm font-medium tracking-[0.2em] text-gals-blue-deep/40 uppercase">
+          Foto próximamente
+        </span>
+      </div>
+    );
+  }
+
+  if (!video) {
+    return (
+      <div className="mb-6 aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-gals-blue-soft via-white to-gals-green-soft">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt={name}
+          className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-6 aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-gals-blue-deep">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={playing ? `Pausar video de ${name}` : `Ver video de ${name}`}
+        className="relative block h-full w-full cursor-pointer overflow-hidden"
+      >
+        {photo ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={photo}
+            alt={name}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+              playing ? "opacity-0" : "opacity-100"
+            }`}
+          />
+        ) : null}
+
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 h-full w-full object-cover ${
+            playing ? "opacity-100" : "opacity-0"
+          }`}
+          playsInline
+          loop
+          preload="metadata"
+          poster={photo}
+          onEnded={() => setPlaying(false)}
+          onPause={() => setPlaying(false)}
+          onPlay={() => setPlaying(true)}
+        >
+          <source src={video} type="video/mp4" />
+        </video>
+
+        {!playing && (
+          <span
+            className="absolute inset-0 flex items-center justify-center bg-black/25"
+            aria-hidden
+          >
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 text-gals-blue-deep shadow-md">
+              <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6 fill-current">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+          </span>
+        )}
+      </button>
+    </div>
+  );
+}
 
 export function Coaches() {
   return (
@@ -35,6 +135,7 @@ export function Coaches() {
         <Stagger className="mt-14 grid gap-6 md:grid-cols-3" stagger={0.1}>
           {COACHES.map((coach) => {
             const photo = "photo" in coach ? coach.photo : undefined;
+            const video = "video" in coach ? coach.video : undefined;
             const stickers =
               photo?.includes("nati.jpg") && !photo.includes("natiramos")
                 ? "matcha"
@@ -97,22 +198,7 @@ export function Coaches() {
                     />
                   ) : null}
 
-                  <div className="mb-6 aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-gals-blue-soft via-white to-gals-green-soft">
-                    {photo ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={photo}
-                        alt={coach.name}
-                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="flex h-full items-end p-6">
-                        <span className="text-sm font-medium tracking-[0.2em] text-gals-blue-deep/40 uppercase">
-                          Foto próximamente
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <CoachMedia name={coach.name} photo={photo} video={video} />
                   <h3 className="text-xl font-semibold text-gals-ink">
                     {coach.name}
                   </h3>

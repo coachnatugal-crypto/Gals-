@@ -42,7 +42,7 @@ export function Navbar() {
             width={320}
             height={128}
             priority
-            className={`h-full w-full scale-[2.2] object-contain sm:scale-[2.3] lg:scale-[2.35] ${
+            className={`h-full w-full scale-[3.1] object-contain sm:scale-[3.2] lg:scale-[3.25] ${
               scrolled ? "" : "md:brightness-0 md:invert"
             }`}
           />
@@ -118,13 +118,13 @@ export function Navbar() {
             className="fixed inset-0 z-40 bg-gals-cream lg:hidden"
           >
             <nav className="flex h-full flex-col items-center justify-center gap-7 px-6">
-              <div className="mb-4 flex h-14 w-40 items-center justify-center overflow-hidden">
+              <div className="mb-6 flex h-20 w-56 items-center justify-center overflow-hidden sm:h-24 sm:w-64">
                 <Image
                   src="/brand/logos/logo.png"
                   alt="GAL'S Studio"
                   width={320}
                   height={128}
-                  className="h-full w-full scale-[2.3] object-contain"
+                  className="h-full w-full scale-[2.45] object-contain"
                 />
               </div>
               {NAV_LINKS.map((link, i) => (

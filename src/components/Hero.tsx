@@ -8,7 +8,7 @@ import {
   StarSticker,
   STICKER_ASSETS,
 } from "@/components/capsules/Stickers";
-import { WHATSAPP_URL } from "@/lib/constants";
+import { HERO_VIDEO_URL, WHATSAPP_URL } from "@/lib/constants";
 
 /** Video full-bleed superior — solo escritorio. En mobile el video vive en WhoIs. */
 export function Hero() {
@@ -39,7 +39,7 @@ export function Hero() {
           preload="metadata"
           aria-label="Video GAL'S Studio"
         >
-          <source src="/media/video/hero.mp4" type="video/mp4" />
+          <source src={HERO_VIDEO_URL} type="video/mp4" />
         </video>
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
@@ -155,7 +155,7 @@ export function HeroIntro() {
 
                 <div className="absolute inset-x-0 top-6 z-10 px-4 text-center">
                   <p className="font-script text-2xl text-gals-blue-soft drop-shadow md:text-3xl">
-                    hello bb
+                    hello girl
                   </p>
                 </div>
 

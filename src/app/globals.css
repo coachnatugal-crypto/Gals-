@@ -126,3 +126,162 @@ body {
 .animate-float-drift {
   animation: float-drift 5.5s ease-in-out infinite;
 }
+
+/* ——— Historias reales (reels) ———
+   Estilos propios: evita colapso de altura cuando img/video van en absolute. */
+.story-reels-section {
+  position: relative;
+  background: var(--gals-blue-soft);
+  padding: 5rem 0;
+}
+
+.story-reels-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.story-reels-track-wrap {
+  margin-top: 2.5rem;
+  overflow: hidden;
+}
+
+.story-reels-track {
+  display: flex;
+  width: max-content;
+  gap: 1.25rem;
+  padding: 0.25rem 0 1rem;
+  animation: story-reels-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.story-reels-track-wrap.is-paused .story-reels-track,
+.story-reels-track-wrap:hover .story-reels-track {
+  animation-play-state: paused;
+}
+
+@keyframes story-reels-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* 3 copias → mover 1/3 del ancho total */
+    transform: translateX(-33.333%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-reels-track {
+    animation: none;
+    overflow-x: auto;
+    max-width: 100%;
+    scroll-snap-type: x mandatory;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .story-reels-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .story-reels-track-wrap {
+    overflow-x: auto;
+  }
+}
+
+.story-reel {
+  flex: 0 0 auto;
+  width: min(72vw, 260px);
+  scroll-snap-align: center;
+}
+
+.story-reel__frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 1.6rem;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--gals-blue-deep);
+  box-shadow: 0 18px 44px rgba(85, 104, 148, 0.22);
+  aspect-ratio: 9 / 16;
+}
+
+.story-reel__poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-reel__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+}
+
+.story-reel__play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.story-reel__play-btn {
+  display: flex;
+  width: 3.5rem;
+  height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--gals-blue-deep);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.story-reel__play-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 2px;
+  fill: currentColor;
+}
+
+.story-reel__label {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-family: var(--font-display), var(--font-poppins), sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gals-blue-deep);
+}
+
+@media (min-width: 640px) {
+  .story-reel {
+    width: 260px;
+  }
+}
+
+@media (min-width: 768px) {
+  .story-reels-section {
+    padding: 7rem 0;
+  }
+
+  .story-reels-inner {
+    padding: 0 2rem;
+  }
+
+  .story-reels-track {
+    animation-duration: 36s;
+  }
+}

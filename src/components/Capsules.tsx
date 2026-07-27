@@ -42,20 +42,20 @@ export function Capsules() {
             let&apos;s go! ✦
           </motion.p>
           <motion.h2
-            className="mt-3 font-display text-4xl leading-none tracking-tight text-gals-blue-deep uppercase md:text-6xl"
+            className="mt-3 font-display text-3xl leading-tight tracking-tight text-gals-blue-deep uppercase sm:text-4xl md:text-5xl lg:text-6xl"
             initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            De lo que estamos
+            Hay un lugar para ti 🩶
           </motion.h2>
           <motion.p
-            className="mt-1 font-script text-5xl text-gals-blue md:text-6xl"
-            initial={{ opacity: 0, rotate: -4 }}
-            whileInView={{ opacity: 1, rotate: -2 }}
+            className="mx-auto mt-4 max-w-xl text-lg text-gals-muted md:text-xl"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            hechos ;)
+            Todas empezamos distinto. Encuentra tu punto de partida.
           </motion.p>
 
           <motion.div
@@ -77,7 +77,7 @@ export function Capsules() {
           >
             <p className="min-w-0 flex-1 text-left text-sm text-gals-ink md:text-base">
               <span className="rounded-sm bg-gals-blue/25 px-1 py-0.5">
-                clases &amp; membresía gal&apos;s
+                Elige el camino que se ajusta a ti hoy.
               </span>
             </p>
             <span
@@ -102,68 +102,51 @@ export function Capsules() {
               size={26}
             />
           </motion.div>
-
-          <p className="mx-auto mt-5 max-w-md text-gals-blue-deep">
-            Tenemos algo para ti, bb. Da click y elige tu experiencia.
-          </p>
         </div>
 
         <div className="relative mt-12 grid gap-5">
           <CreativeCapsule
-            title="TRANSFORMACIÓN"
-            script="la más elegida"
-            badge="12 clases · $520.000/mes · Natalia + expertas te acompañan"
+            title="PILATES"
+            script="Fortalece desde adentro."
             accent="deep"
-            href="#planes"
+            href="#horario"
             className="min-h-[300px] md:min-h-[340px]"
-            image="/media/capsules/_DSC4367.png"
+            image="/media/capsules/pilates.jpg"
           />
           <div className="grid gap-5 md:grid-cols-2">
             <CreativeCapsule
-              title="RITUAL"
-              script="¿dónde me muevo?"
-              badge="8 clases · $380.000/mes · kit + comunidad + 10% eventos"
+              title="BARRE"
+              script="Tonifica sin exigencia."
               accent="blue"
-              href="#planes"
+              href="#horario"
               image="/media/capsules/IMG_4387.jpg"
             />
             <CreativeCapsule
-              title="ILIMITADA"
-              script="clases sin tope"
-              badge="Sin límite de clases · $680.000/mes · círculo íntimo (máx. 20)"
+              title="YIN YOGA"
+              script="Tu pausa en medio del ruido."
               accent="green"
-              href="#planes"
-              image="/media/community/WhatsApp Image 2026-07-23 at 11.09.59 AM (2).jpeg"
+              href="#horario"
+              image="/media/capsules/IMG_6986.jpg"
             />
           </div>
           <div className="relative grid gap-5 md:grid-cols-2">
             <CreativeCapsule
-              title="PILATES + SCULPT"
-              script="fuerza con conciencia"
-              badge="Dinámica, potente y presente. ¡La más pedida!"
+              title="SCULPT"
+              script="Suda, siente, transforma."
               accent="blue"
-              href="#planes"
-              image="/media/capsules/pilates.jpg"
+              href="#horario"
+              image="/media/capsules/_DSC4460.jpg"
               textPosition="top"
             />
             <CreativeCapsule
-              title="SEMANA GAL'S"
-              script="tu puerta de entrada"
-              badge="5 clases en 7 días · $80.000 · cupos limitados"
-              accent="blue"
-              href="#planes"
-              image="/media/capsules/IMG_6986.jpg"
+              title="EXPERIENCIAS GAL'S"
+              script="Nutrición, mentalidad y comunidad en un solo espacio."
+              accent="deep"
+              href="#experiencias"
+              image="/media/capsules/IMG_7077.jpg"
+              textPosition="top"
             />
           </div>
-          <CreativeCapsule
-            title="PACK PUENTE"
-            script="después de la semana"
-            badge="5 clases · 30 días · $220.000"
-            accent="silver"
-            href="#planes"
-            image="/media/capsules/IMG_7077.jpg"
-            textPosition="top"
-          />
         </div>
       </div>
     </section>
