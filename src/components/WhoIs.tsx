@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MoonSticker, StarSticker } from "@/components/capsules/Stickers";
+import { ImageSticker, MoonSticker, StarSticker, STICKER_ASSETS } from "@/components/capsules/Stickers";
 import { HERO_VIDEO_URL } from "@/lib/constants";
 
 export function WhoIs() {
@@ -46,7 +46,7 @@ export function WhoIs() {
 
   return (
     <section
-      className={`relative overflow-x-clip bg-gals-blue-deep pb-14 pt-24 text-white md:overflow-visible md:pb-28 md:pt-28 ${
+      className={`relative overflow-x-clip bg-gals-blue-deep pb-0 pt-16 text-white md:overflow-visible md:pb-20 md:pt-24 ${
         focused ? "z-[100]" : "z-0"
       }`}
     >
@@ -80,12 +80,12 @@ export function WhoIs() {
         )}
       </AnimatePresence>
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-5 md:grid-cols-2 md:gap-16 md:px-8">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-2 px-5 md:grid-cols-2 md:gap-12 md:px-8">
         {/* ——— MOBILE: video enmarcado ——— */}
         <div className="relative z-[2] mx-auto w-full max-w-[560px] px-0 md:hidden">
-          <div className="relative py-1">
+          <div className="relative pb-8 pt-2">
             <motion.p
-              className={`pointer-events-none absolute left-1 top-0 z-10 font-script text-4xl text-white drop-shadow ${
+              className={`pointer-events-none relative z-20 mb-1 pl-1 font-script text-[2.65rem] leading-none text-gals-cream [text-shadow:0_1px_0_rgba(40,50,80,0.55),0_3px_14px_rgba(0,0,0,0.35)] ${
                 focused ? "opacity-30" : ""
               }`}
               initial={{ opacity: 0, y: -12 }}
@@ -96,9 +96,9 @@ export function WhoIs() {
               who is
             </motion.p>
 
-            <div className="overflow-visible px-2 py-7">
+            <div className="overflow-visible px-2 pb-2 pt-1">
               <motion.div
-                className="relative mx-auto w-full max-w-none origin-center"
+                className="relative z-0 mx-auto w-full max-w-none origin-center"
                 initial={{ opacity: 0, y: 28, rotate: -10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 animate={{
@@ -197,7 +197,7 @@ export function WhoIs() {
             </div>
 
             <motion.p
-              className={`pointer-events-none absolute bottom-0 right-1 z-10 font-script text-4xl text-white drop-shadow sm:text-5xl ${
+              className={`pointer-events-none relative z-20 mt-2 pr-1 text-right font-script text-[2.75rem] leading-none text-gals-cream [text-shadow:0_1px_0_rgba(40,50,80,0.55),0_3px_14px_rgba(0,0,0,0.35)] sm:text-5xl ${
                 focused ? "opacity-30" : ""
               }`}
               initial={{ opacity: 0, x: 16 }}
@@ -215,10 +215,20 @@ export function WhoIs() {
           <motion.div
             className="absolute top-0 left-0 h-[64%] w-[78%] overflow-hidden rounded-[2rem] shadow-xl md:rounded-[2.4rem]"
             initial={{ opacity: 0, rotate: -8, y: 30 }}
-            whileInView={{ opacity: 1, rotate: 4, y: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            whileHover={{ rotate: 6, scale: 1.03 }}
+            animate={{
+              y: [0, -14, -4, -18, 0],
+              x: [0, 6, -3, 5, 0],
+              rotate: [4, 6, 3, 7, 4],
+            }}
+            transition={{
+              opacity: { duration: 0.7 },
+              y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+              x: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+              rotate: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+            }}
+            whileHover={{ scale: 1.03 }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -230,10 +240,35 @@ export function WhoIs() {
           <motion.div
             className="absolute right-0 bottom-12 h-[68%] w-[80%] overflow-hidden rounded-[2rem] shadow-2xl md:rounded-[2.4rem]"
             initial={{ opacity: 0, rotate: 10, y: 40 }}
-            whileInView={{ opacity: 1, rotate: -8, y: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.75, delay: 0.12 }}
-            whileHover={{ rotate: -10, scale: 1.03 }}
+            animate={{
+              y: [0, -10, -18, -6, 0],
+              x: [0, -5, 4, -7, 0],
+              rotate: [-8, -6, -10, -5, -8],
+            }}
+            transition={{
+              opacity: { duration: 0.75, delay: 0.12 },
+              y: {
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.4,
+              },
+              x: {
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.4,
+              },
+              rotate: {
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.4,
+              },
+            }}
+            whileHover={{ scale: 1.03 }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -263,54 +298,63 @@ export function WhoIs() {
         </div>
 
         {/* ——— Copy (compartido) ——— */}
-        <div className={focused ? "relative z-0" : "relative"}>
-          <motion.p
-            className="text-sm font-medium tracking-[0.25em] text-white/60 uppercase"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            Sobre nosotros
-          </motion.p>
-          <motion.h2
-            className="mt-4 font-display text-3xl leading-tight tracking-tight sm:text-4xl md:text-5xl"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.08 }}
-          >
-            ¡Tu cuerpo lleva tiempo pidiendo un lugar así!
-          </motion.h2>
-          <motion.p
-            className="mt-5 text-lg leading-relaxed text-white/90 md:text-xl"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-          >
-            Pilates, barre y yin yoga en el corazón del Chicó.
-          </motion.p>
-          <motion.p
-            className="mt-4 text-base leading-relaxed text-white/75 md:text-lg"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.22 }}
-          >
-            Únete a la comunidad de mujeres que entrenan, vuelven a sí mismas y
-            construyen su mejor versión con GAL&apos;S.
-          </motion.p>
-          <motion.a
-            href="#capsulas"
-            className="mt-8 inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-gals-blue-deep transition-transform hover:scale-[1.03]"
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
-            Explorar gals
-          </motion.a>
+        <div
+          className={`relative z-10 pt-1 md:pt-2 ${
+            focused ? "z-0" : ""
+          }`}
+        >
+          <div className="mx-auto flex max-w-xl flex-col items-center text-center md:mx-0 md:max-w-2xl md:items-start md:text-left">
+            <motion.h2
+              className="font-display text-[2.4rem] leading-[1.02] tracking-tight sm:text-5xl md:text-6xl"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.08 }}
+            >
+              Un lugar para
+              <br /> volver a ti
+            </motion.h2>
+            <motion.p
+              className="mt-3 max-w-[22rem] text-lg leading-snug text-white/90 sm:max-w-lg sm:text-xl md:mt-4 md:text-2xl"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15 }}
+            >
+              Pilates, barre y yin yoga. Comunidad de mujeres que se mueven y
+              vuelven a sí mismas con GAL&apos;S.
+            </motion.p>
+            <motion.a
+              href="#capsulas"
+              className="relative z-20 mt-5 inline-flex rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-gals-blue-deep shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-transform hover:scale-[1.03] sm:mt-6 sm:px-8 md:mt-7"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.22 }}
+            >
+              Explorar GAL&apos;S
+            </motion.a>
+          </div>
+
+          {/* Espacio para hongos abajo a la derecha */}
+          <div className="h-16 sm:h-20 md:h-16" aria-hidden />
         </div>
+      </div>
+
+      {/* Hongos al borde derecho, al lado del botón */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-1/2 z-[1] h-[140px] w-screen max-w-[100vw] -translate-x-1/2 sm:h-[160px]"
+        aria-hidden
+      >
+        <ImageSticker
+          src={STICKER_ASSETS.hongos}
+          className="right-0 bottom-0 [&_img]:object-bottom"
+          size={88}
+          height={140}
+          rotate={0}
+          blend={false}
+          objectPosition="right"
+        />
       </div>
     </section>
   );

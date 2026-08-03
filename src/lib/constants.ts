@@ -38,18 +38,29 @@ export const WHATSAPP_NUMBER = "573187869587";
 export const WHATSAPP_MESSAGE =
   "Hola GAL'S ✨ Quiero saber más sobre las clases / membresías. ¿Me ayudan?";
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+/** Comunidad de WhatsApp (grupo) */
+export const WHATSAPP_COMMUNITY_URL =
+  "https://chat.whatsapp.com/H7EELRoEQvG34ac0NHuhOq";
 export const EMAIL = "coach.natugal@gmail.com";
 export const PHONE_DISPLAY = "+57 318 786 9587";
 export const ADDRESS = "Calle 97 #10-28, Chicó Reservado, Bogotá";
 export const INSTAGRAM = "https://www.instagram.com/galstudio___";
 
+/**
+ * Portal operativo del studio (perfil, registro, reservas / horario).
+ * Misma plataforma que la web antigua; en UI solo decimos “Mi espacio” / “Reservar”.
+ */
+export const MEMBER_SPACE_URL = "https://web.bewe.co/be-well-club";
+export const BOOKING_URL = MEMBER_SPACE_URL;
+
 export const NAV_LINKS = [
-  { href: "#inicio", label: "Inicio" },
-  { href: "#comunidad", label: "Comunidad" },
-  { href: "#capsulas", label: "Programas" },
-  { href: "#planes", label: "Planes" },
-  { href: "#horario", label: "Horario" },
-  { href: "#experiencias", label: "Experiencias" },
+  { href: "/#inicio", label: "Inicio" },
+  { href: "/programa", label: "En casa" },
+  { href: "/alimentacion", label: "Alimentación" },
+  { href: "/#capsulas", label: "Programas" },
+  { href: "/#planes", label: "Planes" },
+  { href: "/#horario", label: "Horario" },
+  { href: "/#experiencias", label: "Experiencias" },
 ] as const;
 
 /** Valores de su home actual */
@@ -66,9 +77,9 @@ export const VALUES = [
 export const ECOSYSTEM = [
   {
     id: "pilates",
-    title: "Pilates & Hot Pilates",
+    title: "Pilates",
     description:
-      "Fuerza, control y presencia. Acceso a todas las disciplinas dentro de tu membresía — el movimiento consciente como hábito.",
+      "Fuerza, control y presencia. Acceso a todas las disciplinas dentro de tu membresía: el movimiento consciente como hábito.",
   },
   {
     id: "barre",
@@ -92,7 +103,7 @@ export const ECOSYSTEM = [
     id: "kit",
     title: "Kit digital Natalia",
     description:
-      "Bienvenida a toda membresía: rutinas de mat, secuencia matutina, audio de meditación y guía anti-inflamatoria 3 días.",
+      "Incluido en Transformación e Ilimitada: rutinas de mat, secuencia matutina, audio de meditación y guía anti-inflamatoria 3 días.",
   },
   {
     id: "comunidad",
@@ -112,7 +123,7 @@ export const PLANS = [
     description:
       "Cupos limitados este mes. Solo para nuevas alumnas.",
     bullets: [
-      "Prueba todas las disciplinas: pilates, hot pilates, barre y meditación",
+      "Tus clases son una mezcla de pilates, barre y yin yoga",
       "Una vez por persona",
     ],
     featured: false,
@@ -126,9 +137,8 @@ export const PLANS = [
     price: "$380.000/mes",
     description: "Tu espacio dos veces a la semana.",
     bullets: [
-      "Acceso a todas las disciplinas: pilates, hot pilates, barre y yin yoga",
+      "Clases que mezclan pilates, barre y yin yoga",
       "Renovación automática",
-      "Kit de bienvenida digital de Natalia (rutina de mat pilates, secuencia matutina, audio de meditación, guía antiinflamatoria de 3 días)",
       "Acceso a la comunidad de WhatsApp GAL'S",
       "10% de descuento en eventos y experiencias",
     ],
@@ -143,6 +153,8 @@ export const PLANS = [
     price: "$520.000/mes",
     description: "El proceso no para al salir del studio.",
     bullets: [
+      "Clases que mezclan pilates, barre y yin yoga",
+      "Kit de bienvenida digital de Natalia (rutina de mat pilates, secuencia matutina, audio de meditación, guía antiinflamatoria de 3 días)",
       "Guía nueva de Natalia cada mes (movimiento, alimentación, hábitos o bienestar emocional)",
       "Sesión grupal de preguntas con Natalia: respuestas en audio, una vez al mes",
       "15% de descuento en eventos y experiencias",
@@ -156,9 +168,11 @@ export const PLANS = [
     tag: "Premium · círculo íntimo",
     classes: "Clases ilimitadas",
     price: "$680.000/mes",
-    description: "Círculo reducido · máximo 20 cupos",
+    description: "Círculo íntimo",
     bullets: [
-      "Sesión semanal con Natalia (grupo de máximo 20): liderazgo femenino, espiritualidad, propósito y bienestar emocional",
+      "Clases que mezclan pilates, barre y yin yoga",
+      "Kit de bienvenida digital de Natalia (rutina de mat pilates, secuencia matutina, audio de meditación, guía antiinflamatoria de 3 días)",
+      "Sesión semanal (MXLR): podcast de mindset",
       "Plan de movimiento en casa diseñado por Natalia cada mes",
       "Collab mensual rotativo: nutricionista funcional, psicóloga especialista en bienestar, coach de hábitos y propósito",
       "Plan nutricional personalizado con la nutricionista del círculo GAL'S, revisado cada mes",

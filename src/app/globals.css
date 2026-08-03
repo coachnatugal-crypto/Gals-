@@ -94,6 +94,28 @@ body {
   animation: float-soft 5.5s ease-in-out infinite;
 }
 
+@keyframes plate-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.plate-spin {
+  animation: plate-spin 28s linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plate-spin {
+    animation: none;
+  }
+}
+
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
@@ -105,6 +127,12 @@ body {
 
 .animate-spin-slow {
   animation: spin-slow 18s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow {
+    animation: none;
+  }
 }
 
 @keyframes float-drift {
@@ -132,7 +160,7 @@ body {
 .story-reels-section {
   position: relative;
   background: var(--gals-blue-soft);
-  padding: 5rem 0;
+  padding: 3.25rem 0 2rem;
 }
 
 .story-reels-inner {
@@ -274,7 +302,7 @@ body {
 
 @media (min-width: 768px) {
   .story-reels-section {
-    padding: 7rem 0;
+    padding: 5rem 0 3rem;
   }
 
   .story-reels-inner {

@@ -71,6 +71,15 @@ export function FinalCta() {
         rotate={-12}
         float
       />
+      <ImageSticker
+        src={STICKER_ASSETS.flor}
+        className="bottom-16 left-[6%] z-10 md:left-[10%]"
+        size={44}
+        rotate={12}
+        float
+        delay={0.12}
+        blend={false}
+      />
       <MoonSticker
         className="absolute top-14 right-[10%] z-[2] hidden md:block"
         size={32}
@@ -119,7 +128,7 @@ export function FinalCta() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          Te enseño paso a paso mis secretos para volver a ti — movimiento,
+          Te enseño paso a paso mis secretos para volver a ti: movimiento,
           energía y comunidad
         </motion.h2>
 

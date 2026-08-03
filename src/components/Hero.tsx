@@ -236,9 +236,19 @@ export function HeroIntro() {
             <motion.div
               className="absolute top-0 left-0 h-[64%] w-[78%] overflow-hidden rounded-[2rem] shadow-xl"
               initial={{ opacity: 0, rotate: -8, y: 30 }}
-              whileInView={{ opacity: 1, rotate: 4, y: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.7 }}
+              animate={{
+                y: [0, -12, -3, -16, 0],
+                x: [0, 5, -2, 4, 0],
+                rotate: [4, 6, 3, 7, 4],
+              }}
+              transition={{
+                opacity: { duration: 0.7 },
+                y: { duration: 6.5, repeat: Infinity, ease: "easeInOut" },
+                x: { duration: 6.5, repeat: Infinity, ease: "easeInOut" },
+                rotate: { duration: 6.5, repeat: Infinity, ease: "easeInOut" },
+              }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -250,9 +260,34 @@ export function HeroIntro() {
             <motion.div
               className="absolute right-0 bottom-6 h-[68%] w-[80%] overflow-hidden rounded-[2rem] shadow-2xl"
               initial={{ opacity: 0, rotate: 10, y: 40 }}
-              whileInView={{ opacity: 1, rotate: -8, y: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.75, delay: 0.12 }}
+              animate={{
+                y: [0, -8, -16, -5, 0],
+                x: [0, -4, 3, -6, 0],
+                rotate: [-8, -6, -10, -5, -8],
+              }}
+              transition={{
+                opacity: { duration: 0.75, delay: 0.12 },
+                y: {
+                  duration: 7.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.35,
+                },
+                x: {
+                  duration: 7.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.35,
+                },
+                rotate: {
+                  duration: 7.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.35,
+                },
+              }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

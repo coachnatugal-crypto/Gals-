@@ -8,7 +8,7 @@ import {
   StarSticker,
   STICKER_ASSETS,
 } from "@/components/capsules/Stickers";
-import { TESTIMONIALS, VALUES, WHATSAPP_URL } from "@/lib/constants";
+import { TESTIMONIALS, VALUES, WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 
 const COMMUNITY_IMAGES = [
   "/media/community/WhatsApp Image 2026-07-23 at 11.09.58 AM.jpeg",
@@ -85,7 +85,7 @@ export function Community() {
           <PolaroidStack
             images={COMMUNITY_IMAGES}
             captions={COMMUNITY_CAPTIONS}
-            intervalMs={2500}
+            intervalMs={1500}
           />
           <p className="mt-6 font-display text-3xl tracking-tight text-gals-ink uppercase md:text-4xl">
             Ellas son GAL&apos;S
@@ -94,7 +94,7 @@ export function Community() {
             Para nosotras tu siempre eres lo más importante
           </p>
           <a
-            href={WHATSAPP_URL}
+            href={WHATSAPP_COMMUNITY_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 inline-flex rounded-full bg-gals-blue px-7 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"

@@ -8,7 +8,7 @@ import {
   StarSticker,
   STICKER_ASSETS,
 } from "@/components/capsules/Stickers";
-import { WHATSAPP_URL } from "@/lib/constants";
+import { BEWE_SUBS_CLASS } from "@/lib/bewe";
 
 export function License() {
   return (
@@ -135,18 +135,16 @@ export function License() {
           </div>
         </motion.div>
 
-        <motion.a
-          href={WHATSAPP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-12 inline-flex rounded-full bg-white px-10 py-4 font-display text-sm tracking-[0.14em] text-gals-blue-deep uppercase transition-transform hover:scale-[1.03]"
+        <motion.button
+          type="button"
+          className={`${BEWE_SUBS_CLASS} mt-12 inline-flex rounded-full bg-white px-10 py-4 font-display text-sm tracking-[0.14em] text-gals-blue-deep uppercase transition-transform hover:scale-[1.03]`}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.15 }}
         >
           Quiero unirme
-        </motion.a>
+        </motion.button>
       </div>
 
       <ImageSticker

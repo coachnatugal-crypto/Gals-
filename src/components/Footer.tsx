@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { INSTAGRAM, NAV_LINKS, WHATSAPP_URL } from "@/lib/constants";
+import { INSTAGRAM, NAV_LINKS, WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 
 export function Footer() {
   return (
@@ -7,7 +7,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-5 md:flex-row md:items-start md:justify-between md:px-8">
         <div>
           <a
-            href="#inicio"
+            href="/"
             className="flex h-16 w-52 items-center overflow-hidden sm:h-20 sm:w-64"
           >
             <Image
@@ -35,12 +35,12 @@ export function Footer() {
             </a>
           ))}
           <a
-            href={WHATSAPP_URL}
+            href={WHATSAPP_COMMUNITY_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="transition-opacity hover:opacity-60"
           >
-            WhatsApp
+            Comunidad WhatsApp
           </a>
           <a
             href={INSTAGRAM}

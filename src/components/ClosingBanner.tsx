@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { StarSticker } from "@/components/capsules/Stickers";
-import { WHATSAPP_URL } from "@/lib/constants";
+import { BEWE_PACKS_CLASS } from "@/lib/bewe";
 
 /** Banner de cierre con franjas + despedida cálida. Va antes del footer. */
 export function ClosingBanner() {
@@ -40,18 +40,16 @@ export function ClosingBanner() {
             para conectar con tu versión más elevada.
           </motion.p>
 
-          <motion.a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-10 inline-flex rounded-full bg-gals-blue-soft px-9 py-4 font-display text-sm tracking-[0.14em] text-gals-blue-deep uppercase shadow-[0_12px_32px_rgba(0,0,0,0.22)] transition-transform hover:scale-[1.03] md:text-base"
+          <motion.button
+            type="button"
+            className={`${BEWE_PACKS_CLASS} mt-10 inline-flex rounded-full bg-gals-blue-soft px-9 py-4 font-display text-sm tracking-[0.14em] text-gals-blue-deep uppercase shadow-[0_12px_32px_rgba(0,0,0,0.22)] transition-transform hover:scale-[1.03] md:text-base`}
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.18 }}
           >
             Reserva tu Semana GAL&apos;S
-          </motion.a>
+          </motion.button>
         </div>
       </div>
 

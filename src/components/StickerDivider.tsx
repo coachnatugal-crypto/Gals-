@@ -4,13 +4,15 @@ import { motion } from "framer-motion";
 import { ImageSticker, STICKER_ASSETS } from "@/components/capsules/Stickers";
 
 const ROW = [
-  { src: STICKER_ASSETS.tapete, size: 120, rotate: -18 },
-  { src: STICKER_ASSETS.bola, size: 100, rotate: 10 },
-  { src: STICKER_ASSETS.matchaTea, size: 96, rotate: -12 },
-  { src: STICKER_ASSETS.pesas, size: 112, rotate: 14 },
-  { src: STICKER_ASSETS.camara, size: 92, rotate: -10 },
-  { src: STICKER_ASSETS.matcha, size: 96, rotate: 12 },
-  { src: STICKER_ASSETS.pesa, size: 100, rotate: -14 },
+  { src: STICKER_ASSETS.tapete, size: 120, rotate: -18, blend: true },
+  { src: STICKER_ASSETS.flor, size: 72, rotate: 8, blend: false },
+  { src: STICKER_ASSETS.bola, size: 100, rotate: 10, blend: true },
+  { src: STICKER_ASSETS.matchaTea, size: 96, rotate: -12, blend: true },
+  { src: STICKER_ASSETS.pesas, size: 112, rotate: 14, blend: true },
+  { src: STICKER_ASSETS.flor, size: 64, rotate: -16, blend: false },
+  { src: STICKER_ASSETS.camara, size: 92, rotate: -10, blend: true },
+  { src: STICKER_ASSETS.matcha, size: 96, rotate: 12, blend: true },
+  { src: STICKER_ASSETS.pesa, size: 100, rotate: -14, blend: true },
 ];
 
 /** Línea de stickers como separador entre secciones — solo desktop. */
@@ -24,7 +26,7 @@ export function StickerDivider() {
 
       {ROW.map((item, index) => (
         <motion.div
-          key={item.src}
+          key={`${item.src}-${index}`}
           className="relative shrink-0"
           style={{ width: item.size, height: item.size }}
           initial={{ opacity: 0, y: 14 }}
@@ -39,6 +41,7 @@ export function StickerDivider() {
             rotate={item.rotate}
             float
             delay={index * 0.12}
+            blend={item.blend}
           />
         </motion.div>
       ))}

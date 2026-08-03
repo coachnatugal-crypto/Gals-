@@ -286,6 +286,8 @@ export const STICKER_ASSETS = {
   matcha: "/media/stickers/matcha.png",
   matchaTea: "/media/stickers/matcha-tea.png",
   camara: "/media/stickers/camara.png",
+  flor: "/media/stickers/flor.png",
+  hongos: "/media/stickers/hongos.png",
 } as const;
 
 /**
@@ -302,6 +304,8 @@ export function ImageSticker({
   float = false,
   delay = 0,
   blend = true,
+  objectPosition = "center",
+  height,
 }: {
   src: string;
   alt?: string;
@@ -311,11 +315,15 @@ export function ImageSticker({
   float?: boolean;
   delay?: number;
   blend?: boolean;
+  objectPosition?: "center" | "left" | "right";
+  /** Alto opcional (para stickers verticales como hongos). */
+  height?: number;
 }) {
+  const h = height ?? size;
   return (
     <motion.div
       className={`pointer-events-none absolute z-[2] select-none ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: h }}
       initial={{ scale: 0, rotate: rotate - 18, opacity: 0 }}
       whileInView={{ scale: 1, rotate, opacity: 1 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -343,8 +351,12 @@ export function ImageSticker({
         alt={alt}
         draggable={false}
         className={`h-full w-full object-contain drop-shadow-[0_14px_28px_rgba(26,42,53,0.28)] ${
-          blend ? "mix-blend-screen" : ""
-        }`}
+          objectPosition === "right"
+            ? "object-right"
+            : objectPosition === "left"
+              ? "object-left"
+              : "object-center"
+        } ${blend ? "mix-blend-screen" : ""}`}
       />
     </motion.div>
   );

@@ -12,21 +12,30 @@ import { StickerDivider } from "@/components/StickerDivider";
 import { StudioStories } from "@/components/StudioStories";
 import { RealStories } from "@/components/RealStories";
 import { ClosingBanner } from "@/components/ClosingBanner";
+import { CommunityWelcomePopup } from "@/components/CommunityWelcomePopup";
+import { UniverseBanner } from "@/components/UniverseBanner";
+import { FreePrograms } from "@/components/FreePrograms";
 
 export default function HomePage() {
   return (
     <>
+      <CommunityWelcomePopup />
       <Hero />
       <div className="hidden md:block">
         <CommunityMarquee />
       </div>
       <WhoIs />
+      <FreePrograms />
+      <div className="md:hidden">
+        <CommunityMarquee />
+      </div>
       <HeroIntro />
       <StickerDivider />
       <Capsules />
       <RealStories />
       <StudioStories />
       <Community />
+      <UniverseBanner />
       <License />
       <Plans />
       <Schedule />

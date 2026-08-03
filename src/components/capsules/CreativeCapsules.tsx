@@ -53,7 +53,7 @@ export function PolaroidStack({
     "/media/capsules/whois-2.jpg",
     "/media/capsules/community-1.jpg",
   ],
-  intervalMs = 2500,
+  intervalMs = 1600,
 }: {
   captions?: string[];
   images?: string[];
@@ -71,11 +71,11 @@ export function PolaroidStack({
     return () => window.clearInterval(id);
   }, [count, intervalMs]);
 
-  // Frente → medio → fondo
+  // Frente → medio → fondo (offsets más marcados = se siente el shuffle)
   const layers = [
-    { rot: -2, x: 0, y: 0 },
-    { rot: 5, x: 8, y: -4 },
-    { rot: -8, x: -10, y: 8 },
+    { rot: -3, x: 0, y: 0, scale: 1, opacity: 1 },
+    { rot: 7, x: 14, y: -6, scale: 0.96, opacity: 0.95 },
+    { rot: -10, x: -16, y: 12, scale: 0.92, opacity: 0.88 },
   ];
 
   return (
@@ -84,7 +84,7 @@ export function PolaroidStack({
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.35 }}
-      transition={{ duration: 0.7 }}
+      transition={{ duration: 0.55 }}
     >
       {images.map((src, imageIndex) => {
         // 0 = frente, 1 = medio, 2 = fondo
@@ -98,18 +98,29 @@ export function PolaroidStack({
         return (
           <motion.div
             key={src}
-            className="absolute inset-0 bg-gals-blue-soft p-3 pb-12 shadow-[0_16px_40px_rgba(85,104,148,0.2)]"
+            className="absolute inset-0 bg-gals-blue-soft p-3 pb-12 shadow-[0_16px_40px_rgba(85,104,148,0.22)] will-change-transform"
             style={{ zIndex: z }}
             animate={{
               x: layer.x,
               y: layer.y,
               rotate: layer.rot,
-              scale: isFront ? 1 : 0.98,
+              scale: layer.scale,
+              opacity: layer.opacity,
             }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              type: "spring",
+              stiffness: 380,
+              damping: 22,
+              mass: 0.7,
+            }}
             whileHover={
               isFront
-                ? { y: layer.y - 6, rotate: layer.rot + 2, scale: 1.02 }
+                ? {
+                    y: layer.y - 10,
+                    rotate: layer.rot + 3,
+                    scale: 1.04,
+                    transition: { type: "spring", stiffness: 420, damping: 18 },
+                  }
                 : undefined
             }
           >

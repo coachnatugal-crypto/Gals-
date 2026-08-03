@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import { FadeIn } from "@/components/motion/FadeIn";
-import { REAL_STORIES_VIDEOS, WHATSAPP_URL } from "@/lib/constants";
+import { ImageSticker, STICKER_ASSETS } from "@/components/capsules/Stickers";
+import { REAL_STORIES_VIDEOS } from "@/lib/constants";
+import { BEWE_PACKS_CLASS } from "@/lib/bewe";
 
 function StoryReel({
   src,
@@ -125,13 +127,10 @@ export function RealStories() {
   };
 
   return (
-    <section id="historias" className="story-reels-section">
+    <section id="historias" className="story-reels-section overflow-x-clip">
       <div className="story-reels-inner">
         <FadeIn className="text-center">
-          <p className="text-sm font-medium tracking-[0.25em] text-gals-blue uppercase">
-            Testimonios
-          </p>
-          <h2 className="mt-3 font-display text-3xl tracking-tight text-gals-blue-deep uppercase sm:text-4xl md:text-5xl">
+          <h2 className="font-display text-3xl tracking-tight text-gals-blue-deep uppercase sm:text-4xl md:text-5xl">
             Historias reales GAL&apos;S
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-base text-gals-muted md:text-lg">
@@ -159,17 +158,25 @@ export function RealStories() {
           </div>
         </div>
 
-        <FadeIn delay={0.1} className="mt-10 text-center md:mt-12">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex rounded-full bg-gals-blue-deep px-9 py-4 font-display text-sm tracking-[0.14em] text-white uppercase transition-transform hover:scale-[1.03] md:text-base"
+        <FadeIn delay={0.1} className="mt-6 text-center md:mt-8">
+          <button
+            type="button"
+            className={`${BEWE_PACKS_CLASS} inline-flex rounded-full bg-gals-blue-deep px-9 py-4 font-display text-sm tracking-[0.14em] text-white uppercase transition-transform hover:scale-[1.03] md:text-base`}
           >
             Reserva tu Semana GAL&apos;S
-          </a>
+          </button>
         </FadeIn>
       </div>
+
+      <ImageSticker
+        src={STICKER_ASSETS.flor}
+        className="right-1 bottom-[-0.35rem] z-[2] sm:right-4 sm:bottom-0 md:right-10"
+        size={52}
+        rotate={14}
+        float
+        delay={0.1}
+        blend={false}
+      />
     </section>
   );
 }

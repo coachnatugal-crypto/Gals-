@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Caveat, Poppins } from "next/font/google";
 import "./globals.css";
-import { BeweChat } from "@/components/BeweChat";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -54,7 +53,6 @@ export default function RootLayout({
     >
       <body className="min-h-full max-w-[100vw] overflow-x-clip bg-gals-cream font-sans text-gals-ink">
         {children}
-        <BeweChat />
       </body>
     </html>
   );

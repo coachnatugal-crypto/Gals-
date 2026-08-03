@@ -55,7 +55,8 @@ export function Capsules() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            Todas empezamos distinto. Encuentra tu punto de partida.
+            Elige tu camino a través de una combinación de pilates, barre y yin
+            yoga.
           </motion.p>
 
           <motion.div
@@ -109,7 +110,7 @@ export function Capsules() {
             title="PILATES"
             script="Fortalece desde adentro."
             accent="deep"
-            href="#horario"
+            href="#planes"
             className="min-h-[300px] md:min-h-[340px]"
             image="/media/capsules/pilates.jpg"
           />
@@ -118,14 +119,14 @@ export function Capsules() {
               title="BARRE"
               script="Tonifica sin exigencia."
               accent="blue"
-              href="#horario"
+              href="#planes"
               image="/media/capsules/IMG_4387.jpg"
             />
             <CreativeCapsule
               title="YIN YOGA"
               script="Tu pausa en medio del ruido."
               accent="green"
-              href="#horario"
+              href="#planes"
               image="/media/capsules/IMG_6986.jpg"
             />
           </div>
@@ -134,7 +135,7 @@ export function Capsules() {
               title="SCULPT"
               script="Suda, siente, transforma."
               accent="blue"
-              href="#horario"
+              href="#planes"
               image="/media/capsules/_DSC4460.jpg"
               textPosition="top"
             />

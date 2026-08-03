@@ -1,6 +1,7 @@
 "use client";
 
-import { ECOSYSTEM, WHATSAPP_URL } from "@/lib/constants";
+import { ECOSYSTEM } from "@/lib/constants";
+import { BEWE_SUBS_CLASS } from "@/lib/bewe";
 import { FadeIn, Stagger, StaggerItem } from "@/components/motion/FadeIn";
 
 export function Ecosystem() {
@@ -42,14 +43,12 @@ export function Ecosystem() {
         </Stagger>
 
         <FadeIn className="mt-12 text-center" delay={0.1}>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex rounded-full bg-gals-blue px-8 py-3.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
+          <button
+            type="button"
+            className={`${BEWE_SUBS_CLASS} inline-flex rounded-full bg-gals-blue px-8 py-3.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03]`}
           >
             Quiero unirme
-          </a>
+          </button>
         </FadeIn>
       </div>
     </section>

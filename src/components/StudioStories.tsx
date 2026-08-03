@@ -14,7 +14,7 @@ const PILLARS = [
     image: "/media/capsules/pilates.jpg",
     title: "Moverte con conciencia",
     accent: "a tu ritmo",
-    body: "Reconectar con tu cuerpo a través del pilates, el barre y el yin yoga, sin exigencia ni comparación — sintiendo cada movimiento.",
+    body: "Reconectar con tu cuerpo a través del pilates, el barre y el yin yoga, sin exigencia ni comparación, sintiendo cada movimiento.",
     rotate: -4,
     sticker: "tapete" as const,
   },
@@ -141,16 +141,6 @@ function PillarRow({
         <p className="mx-auto mt-4 max-w-sm text-base leading-relaxed text-gals-blue-soft/85 md:mx-0 md:max-w-md md:text-lg">
           {pillar.body}
         </p>
-        <motion.div
-          className={`mt-5 h-px w-16 bg-gals-blue-soft/40 ${
-            flip ? "mx-auto md:ml-auto md:mr-0" : "mx-auto md:mx-0"
-          }`}
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.25, duration: 0.5 }}
-          style={{ originX: flip ? 1 : 0 }}
-        />
       </div>
     </motion.article>
   );
@@ -163,7 +153,7 @@ export function StudioStories() {
   return (
     <section
       id="vivir-gals"
-      className="relative overflow-x-clip bg-gals-blue-deep py-20 text-white md:py-28"
+      className="relative overflow-x-clip bg-gals-blue-deep py-14 text-white md:py-24"
     >
       {/* Atmósfera: no fondo plano */}
       <div

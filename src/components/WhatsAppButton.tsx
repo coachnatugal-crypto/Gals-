@@ -1,15 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { WHATSAPP_URL } from "@/lib/constants";
+import { WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 
 export function WhatsAppButton() {
   return (
     <motion.a
-      href={WHATSAPP_URL}
+      href={WHATSAPP_COMMUNITY_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Escribir por WhatsApp"
+      aria-label="Unirme a la comunidad de WhatsApp"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1, duration: 0.4 }}
