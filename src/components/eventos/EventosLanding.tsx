@@ -401,8 +401,8 @@ export function EventosLanding() {
         >
           <source src={EVENTOS_HERO_VIDEO} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-gals-blue-deep/55 via-gals-blue-mid/50 to-gals-cream" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(26,42,53,0.25)_100%)]" />
+        {/* Solo un velo suave abajo para leer el texto — sin tinte azul */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-gals-cream" />
 
         <MiniHeader featured={featured} />
 
