@@ -304,7 +304,7 @@ function AudioPlayerCard({
   const ref = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(audio.durationSeconds);
+  const [duration, setDuration] = useState<number>(audio.durationSeconds);
   const [current, setCurrent] = useState(0);
   const rotate = index % 2 === 0 ? -2.8 : 3.2;
   const wave = [10, 18, 12, 22, 14, 26, 11, 20, 13, 24, 9, 19];
