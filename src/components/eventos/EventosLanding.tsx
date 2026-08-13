@@ -26,6 +26,7 @@ const fadeUp = {
 type RegisterTarget = {
   eventId: string;
   title: string;
+  description?: string;
   beweAfter: GalsEvent["beweAfter"];
   cta: string;
   source: string;
@@ -141,7 +142,7 @@ function RegisterModal({
     <AnimatePresence>
       {target ? (
         <motion.div
-          className="fixed inset-0 z-[95] flex items-end justify-center bg-gals-ink/50 p-4 backdrop-blur-[2px] sm:items-center"
+          className="fixed inset-0 z-[95] flex items-end justify-center bg-gals-blue-deep/55 p-4 backdrop-blur-[3px] sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -182,6 +183,11 @@ function RegisterModal({
             <p className="mt-2 text-sm text-gals-muted">
               Déjanos tus datos y continuamos tu reserva.
             </p>
+            {target.description ? (
+              <p className="mt-3 text-sm leading-relaxed text-gals-ink">
+                {target.description}
+              </p>
+            ) : null}
             <div className="mt-5">
               <EventRegisterForm
                 eventId={target.eventId}
@@ -289,7 +295,7 @@ function WhyPills() {
   return (
     <section
       id="por-que"
-      className="relative overflow-hidden bg-gals-mist py-14 md:py-20"
+      className="relative overflow-hidden bg-[#b7c4e0] py-14 md:py-20"
     >
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-5 md:px-8">
         <motion.p
@@ -404,9 +410,9 @@ function MosaicCard({
   return (
     <motion.article
       id={event.id}
-      className={`group relative overflow-hidden ${
+      className={`group relative overflow-hidden rounded-[1.25rem] ${
         tall
-          ? "min-h-[320px] sm:min-h-full"
+          ? "min-h-[320px] sm:min-h-[360px]"
           : "min-h-[240px] sm:min-h-[280px]"
       }`}
       {...fadeUp}
@@ -425,9 +431,7 @@ function MosaicCard({
         }`}
       />
 
-      <div
-        className="absolute inset-x-0 bottom-0 p-5 sm:p-6"
-      >
+      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
         <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
           {event.kind === "free" ? "Gratis" : "Con inversión"} ·{" "}
           {event.dateLabel}
@@ -437,7 +441,9 @@ function MosaicCard({
           {event.title}
         </h3>
         {withHongos ? (
-          <p className="mt-2 line-clamp-2 text-sm text-white/80">{event.subhead}</p>
+          <p className="mt-2 line-clamp-2 text-sm text-white/80">
+            {event.subhead}
+          </p>
         ) : null}
         {event.showPrice && event.price ? (
           <p className="mt-1 font-display text-lg text-gals-blue-soft">
@@ -449,7 +455,7 @@ function MosaicCard({
           onClick={onRegister}
           className="mt-4 rounded-full bg-gals-cream px-4 py-2 text-[11px] font-bold tracking-wide text-gals-blue-deep uppercase"
         >
-          {withHongos ? `${event.cta} →` : "Reservar →"}
+          Reservar cupo →
         </button>
       </div>
     </motion.article>
@@ -468,10 +474,6 @@ function AgendaMosaic({
   onRegister: (e: GalsEvent, source: string) => void;
 }) {
   const rest = [...others, ...free];
-  const a = rest[0];
-  const b = rest[1];
-  const c = rest[2];
-  const more = rest.slice(3);
 
   return (
     <section id="agenda" className="relative scroll-mt-16 bg-gals-cream">
@@ -507,47 +509,26 @@ function AgendaMosaic({
       </div>
 
       <div className="relative px-4 py-8 sm:px-5 md:px-8 md:py-12">
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-3 sm:gap-4 md:grid-cols-12">
-          {a ? (
-            <div className="overflow-hidden rounded-[1.25rem] md:col-span-7">
-              <MosaicCard
-                event={a}
-                variant="wide"
-                onRegister={() => onRegister(a, "mosaic")}
-              />
-            </div>
-          ) : null}
-          {b ? (
-            <div className="overflow-hidden rounded-[1.25rem] md:col-span-5">
-              <MosaicCard
-                event={b}
-                variant="type"
-                onRegister={() => onRegister(b, "mosaic")}
-              />
-            </div>
-          ) : null}
-          {c ? (
-            <div className="overflow-hidden rounded-[1.25rem] md:col-span-5">
-              <MosaicCard
-                event={c}
-                variant="tall"
-                onRegister={() => onRegister(c, "mosaic")}
-              />
-            </div>
-          ) : null}
-          {more.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 md:col-span-7">
-              {more.map((e) => (
-                <div key={e.id} className="overflow-hidden rounded-[1.25rem]">
-                  <MosaicCard
-                    event={e}
-                    variant="wide"
-                    onRegister={() => onRegister(e, "mosaic")}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : null}
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-4 sm:gap-5 md:grid-cols-12">
+          {rest.map((e, i) => {
+            const span =
+              i % 3 === 0
+                ? "md:col-span-7"
+                : i % 3 === 1
+                  ? "md:col-span-5"
+                  : "md:col-span-5";
+            const variant: "wide" | "tall" | "type" =
+              i % 3 === 1 ? "type" : i % 3 === 2 ? "tall" : "wide";
+            return (
+              <div key={e.id} className={span}>
+                <MosaicCard
+                  event={e}
+                  variant={variant}
+                  onRegister={() => onRegister(e, "mosaic")}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -642,6 +623,10 @@ export function EventosLanding() {
     setRegister({
       eventId: event.id,
       title: event.title,
+      description:
+        event.signupPitch?.trim() ||
+        event.concept?.trim() ||
+        event.subhead,
       beweAfter: event.beweAfter,
       cta: event.cta,
       source,
@@ -681,8 +666,8 @@ export function EventosLanding() {
         >
           <source src={EVENTOS_HERO_VIDEO} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-gals-cream" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_20%,rgba(26,42,53,0.45)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-gals-blue-deep/45 to-[#b7c4e0]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_25%,rgba(85,104,148,0.35)_100%)]" />
 
         <MiniHeader onRegister={() => openFor(liveEvent, "header")} />
 

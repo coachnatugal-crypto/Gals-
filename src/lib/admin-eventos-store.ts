@@ -5,8 +5,8 @@ import {
   type GalsEvent,
 } from "@/lib/eventos";
 
-export const ADMIN_EVENTS_KEY = "gals-admin-events-v3";
-export const ADMIN_REGS_KEY = "gals-admin-regs-v3";
+export const ADMIN_EVENTS_KEY = "gals-admin-events-v4";
+export const ADMIN_REGS_KEY = "gals-admin-regs-v4";
 
 export type AdminRegistration = {
   id: string;
@@ -24,58 +24,9 @@ export type AdminEventDraft = Omit<GalsEvent, "why" | "stats" | "afterEvent"> & 
   published: boolean;
 };
 
+/** Catálogo real del proyecto (no inventa eventos). */
 export function seedEvents(): GalsEvent[] {
   return [...PAID_EVENTS, ...FREE_EVENTS].map((e) => ({ ...e }));
-}
-
-export function seedRegistrations(events: GalsEvent[]): AdminRegistration[] {
-  const samples: Omit<AdminRegistration, "id">[] = [
-    {
-      eventId: events[0]?.id ?? "back-to-routine",
-      name: "Camila Rojas",
-      whatsapp: "+57 300 111 2233",
-      source: "hero",
-      status: "confirmado",
-      createdAt: "2026-07-28T14:20:00-05:00",
-    },
-    {
-      eventId: events[0]?.id ?? "back-to-routine",
-      name: "Valentina Díaz",
-      whatsapp: "+57 310 555 8899",
-      source: "featured",
-      status: "nuevo",
-      createdAt: "2026-07-30T09:12:00-05:00",
-    },
-    {
-      eventId: events[1]?.id ?? "pilates-sculpt-color-lab",
-      name: "Laura Méndez",
-      whatsapp: "+57 320 444 1212",
-      source: "paid-list",
-      status: "nuevo",
-      createdAt: "2026-07-29T18:40:00-05:00",
-    },
-    {
-      eventId: events[2]?.id ?? "girls-talk-hormonas",
-      name: "Sofía Herrera",
-      whatsapp: "+57 301 777 3344",
-      source: "free-list",
-      status: "confirmado",
-      createdAt: "2026-07-31T11:05:00-05:00",
-    },
-    {
-      eventId: events.find((e) => e.kind === "free")?.id ?? "blue-pilates-party",
-      name: "Andrea López",
-      whatsapp: "+57 315 222 6677",
-      source: "cierre",
-      status: "cancelado",
-      createdAt: "2026-07-27T16:00:00-05:00",
-    },
-  ];
-
-  return samples.map((s, i) => ({
-    ...s,
-    id: `reg-seed-${i + 1}`,
-  }));
 }
 
 export function loadJson<T>(key: string, fallback: T): T {
@@ -142,10 +93,10 @@ export function emptyDraft(kind: EventKind = "paid"): AdminEventDraft {
     startsAt: "",
     cta: kind === "free" ? "Reservar mi cupo gratis" : "Reservar mi cupo",
     beweAfter: kind === "free" ? "form" : "packs",
-    price: kind === "free" ? "Gratis" : "$80.000",
+    price: kind === "free" ? "Gratis" : "",
     showPrice: true,
-    whyText: "🧘 Clase de Pilates\n👯 Comunidad Real",
-    capacity: 20,
+    whyText: "",
+    capacity: undefined,
     published: true,
   };
 }
@@ -156,7 +107,7 @@ export function eventToDraft(event: GalsEvent): AdminEventDraft {
     price: event.price ?? (event.kind === "free" ? "Gratis" : ""),
     showPrice: event.showPrice ?? false,
     whyText: whyToText(event.why),
-    capacity: 20,
+    capacity: undefined,
     published: true,
   };
 }
