@@ -99,7 +99,7 @@ function CountdownBlocks({ iso }: { iso: string }) {
       {cells.map((cell, i) => (
         <motion.div
           key={cell.l}
-          className="rounded-2xl border border-white/25 bg-white/10 px-2 py-3 text-center backdrop-blur-sm sm:py-4"
+          className="rounded-2xl border border-white/35 bg-black/45 px-2 py-3 text-center shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md sm:py-4"
           initial={{ opacity: 0, y: 16, scale: 0.92 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
@@ -350,11 +350,11 @@ function FeaturedExperience({
           alt=""
           className="absolute inset-0 h-full w-full scale-105 object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-gals-ink/92 via-gals-ink/60 to-gals-ink/25" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gals-cream via-transparent to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-gals-ink/95 via-gals-ink/72 to-gals-ink/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gals-ink/90 via-gals-ink/40 to-black/35" />
         {isPaid ? (
           <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(197,204,212,0.22),transparent_55%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(197,204,212,0.12),transparent_55%)]"
             aria-hidden
           />
         ) : null}
@@ -362,14 +362,14 @@ function FeaturedExperience({
         <div className="relative z-10 mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-14 pt-20 sm:px-5 md:min-h-[88svh] md:px-8 md:pb-20">
           <motion.div
             {...fadeUp}
-            className="max-w-2xl"
+            className="max-w-2xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.55)]"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
             {isPaid ? (
-              <span className="inline-flex items-center rounded-full border border-white/35 bg-white/15 px-3.5 py-1 text-[10px] font-bold tracking-[0.18em] text-gals-cream uppercase backdrop-blur-sm">
+              <span className="inline-flex items-center rounded-full border border-white/40 bg-black/40 px-3.5 py-1 text-[10px] font-bold tracking-[0.18em] text-gals-cream uppercase backdrop-blur-md">
                 Destacada
               </span>
             ) : null}
@@ -387,7 +387,7 @@ function FeaturedExperience({
             <p className="mt-3 font-script text-2xl text-gals-cream md:text-3xl">
               {event.headline}
             </p>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-white/85">
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-white">
               {event.subhead}
             </p>
             {event.showPrice && event.price ? (
@@ -398,7 +398,7 @@ function FeaturedExperience({
 
             {isPaid && event.startsAt ? (
               <div className="mt-8 max-w-md">
-                <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
+                <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white uppercase">
                   Empieza en
                 </p>
                 <CountdownBlocks iso={event.startsAt} />
@@ -415,7 +415,7 @@ function FeaturedExperience({
               </button>
               <a
                 href="#agenda"
-                className="rounded-full border border-white/40 px-6 py-3.5 text-sm font-semibold tracking-wide text-white uppercase backdrop-blur-sm"
+                className="rounded-full border border-white/70 bg-black/40 px-6 py-3.5 text-sm font-semibold tracking-wide text-white uppercase backdrop-blur-md"
               >
                 Ver agenda
               </a>
@@ -444,13 +444,11 @@ function MosaicCard({
     <motion.article
       id={event.id}
       className={`group relative overflow-hidden rounded-[1.25rem] ${
-        tall
-          ? "min-h-[320px] sm:min-h-[360px]"
-          : "min-h-[240px] sm:min-h-[280px]"
-      } ${
         isPaid
-          ? "shadow-[0_18px_50px_rgba(85,104,148,0.28)] ring-2 ring-gals-blue-deep/25"
-          : ""
+          ? "min-h-[460px] shadow-[0_18px_50px_rgba(85,104,148,0.28)] ring-2 ring-gals-blue-deep/25 sm:min-h-[520px] md:min-h-[560px]"
+          : tall
+            ? "min-h-[320px] sm:min-h-[360px]"
+            : "min-h-[240px] sm:min-h-[280px]"
       }`}
       {...fadeUp}
     >
@@ -458,12 +456,14 @@ function MosaicCard({
       <img
         src={event.image}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+          isPaid ? "object-[center_12%]" : "object-center"
+        }`}
       />
       <div
         className={`absolute inset-0 ${
           isPaid
-            ? "bg-gradient-to-t from-gals-ink/95 via-gals-ink/45 to-gals-ink/20"
+            ? "bg-gradient-to-t from-gals-ink/96 via-gals-ink/55 to-gals-ink/25"
             : withHongos
               ? "bg-gradient-to-t from-gals-blue-deep/95 via-gals-blue-deep/55 to-gals-ink/30"
               : "bg-gradient-to-t from-gals-ink/90 via-gals-ink/35 to-transparent"
@@ -476,28 +476,55 @@ function MosaicCard({
         </span>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-        <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
+      <div
+        className={`absolute inset-x-0 bottom-0 p-5 sm:p-6 ${
+          isPaid ? "md:p-8" : ""
+        }`}
+      >
+        <p className="text-[10px] font-semibold tracking-[0.14em] text-white/75 uppercase">
           {event.dateLabel}
           {event.timeLabel ? ` · ${event.timeLabel}` : ""}
         </p>
         <h3
           className={`mt-1 font-display uppercase text-white ${
-            isPaid ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
+            isPaid
+              ? "text-2xl leading-tight sm:text-3xl md:text-4xl"
+              : "text-xl sm:text-2xl"
           }`}
         >
           {event.title}
         </h3>
-        {withHongos || isPaid ? (
+        {isPaid ? (
+          <>
+            <p className="mt-2 font-script text-xl text-gals-cream sm:text-2xl">
+              {event.headline}
+            </p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90 sm:text-[15px]">
+              {event.subhead}
+            </p>
+            {event.why?.length ? (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {event.why.slice(0, 3).map((w) => (
+                  <li
+                    key={w.label}
+                    className="rounded-full border border-white/25 bg-black/25 px-2.5 py-1 text-[10px] font-medium tracking-wide text-white/90 uppercase backdrop-blur-sm"
+                  >
+                    {w.emoji} {w.label}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : withHongos ? (
           <p className="mt-2 line-clamp-2 text-sm text-white/80">
             {event.subhead}
           </p>
         ) : null}
         {event.showPrice && event.price ? (
           <p
-            className={`mt-1 font-display ${
+            className={`mt-3 font-display ${
               isPaid
-                ? "text-xl text-gals-cream sm:text-2xl"
+                ? "text-2xl text-gals-cream sm:text-3xl"
                 : "text-lg text-gals-blue-soft"
             }`}
           >
@@ -509,7 +536,7 @@ function MosaicCard({
           onClick={onRegister}
           className={`mt-4 rounded-full px-4 py-2 text-[11px] font-bold tracking-wide uppercase ${
             isPaid
-              ? "bg-gals-cream text-gals-blue-deep shadow-md"
+              ? "bg-gals-cream px-5 py-2.5 text-gals-blue-deep shadow-md"
               : "bg-gals-cream text-gals-blue-deep"
           }`}
         >
@@ -569,14 +596,21 @@ function AgendaMosaic({
       <div className="relative px-4 py-8 sm:px-5 md:px-8 md:py-12">
         <div className="relative z-10 mx-auto grid max-w-6xl gap-4 sm:gap-5 md:grid-cols-12">
           {rest.map((e, i) => {
-            const span =
-              i % 3 === 0
+            const isPaid = e.kind === "paid";
+            const span = isPaid
+              ? "md:col-span-12"
+              : i % 3 === 0
                 ? "md:col-span-7"
                 : i % 3 === 1
                   ? "md:col-span-5"
                   : "md:col-span-5";
-            const variant: "wide" | "tall" | "type" =
-              i % 3 === 1 ? "type" : i % 3 === 2 ? "tall" : "wide";
+            const variant: "wide" | "tall" | "type" = isPaid
+              ? "tall"
+              : i % 3 === 1
+                ? "type"
+                : i % 3 === 2
+                  ? "tall"
+                  : "wide";
             return (
               <div key={e.id} className={span}>
                 <MosaicCard
@@ -679,7 +713,6 @@ export function EventosLanding() {
     featured?.kind === "paid"
       ? featured
       : paidEvents[0] ?? liveEvent;
-  const otherPaid = paidEvents.filter((e) => e.id !== featured?.id);
   const [register, setRegister] = useState<RegisterTarget | null>(null);
 
   const openFor = (event: GalsEvent, source: string) => {
@@ -729,15 +762,16 @@ export function EventosLanding() {
         >
           <source src={EVENTOS_HERO_VIDEO} type="video/mp4" />
         </video>
-        {/* Oscurecido suave solo para leer el texto; azul solo abajo para el fade */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/25 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#b7c4e0] sm:h-28 md:h-32" />
+        {/* Contraste para leer texto; azul solo abajo */}
+        <div className="absolute inset-0 bg-gals-ink/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gals-ink/85 via-gals-ink/45 to-black/35" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#b7c4e0] sm:h-24 md:h-28" />
 
         <MiniHeader onRegister={() => openFor(countdownEvent, "header")} />
 
         <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-6xl flex-col justify-end px-4 pb-20 pt-8 sm:px-5 md:px-8 md:pb-24">
           <motion.p
-            className="font-script text-xl text-gals-cream sm:text-2xl md:text-3xl"
+            className="font-script text-xl text-gals-cream drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)] sm:text-2xl md:text-3xl"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -746,7 +780,7 @@ export function EventosLanding() {
           </motion.p>
 
           <motion.h1
-            className="mt-3 max-w-3xl font-display text-[1.85rem] leading-[1.05] tracking-tight text-white uppercase drop-shadow sm:text-5xl md:text-6xl lg:text-7xl"
+            className="mt-3 max-w-3xl font-display text-[1.85rem] leading-[1.05] tracking-tight text-white uppercase drop-shadow-[0_3px_18px_rgba(0,0,0,0.7)] sm:text-5xl md:text-6xl lg:text-7xl"
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.65 }}
@@ -756,7 +790,7 @@ export function EventosLanding() {
           </motion.h1>
 
           <motion.p
-            className="mt-5 max-w-lg text-sm leading-relaxed text-white/90 sm:text-base md:text-lg"
+            className="mt-5 max-w-lg text-sm leading-relaxed text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)] sm:text-base md:text-lg"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.28 }}
@@ -779,7 +813,7 @@ export function EventosLanding() {
             </a>
             <a
               href="#agenda"
-              className="rounded-full border border-white/50 bg-white/10 px-6 py-3.5 text-sm font-semibold tracking-wide text-white uppercase backdrop-blur-sm"
+              className="rounded-full border border-white/70 bg-black/35 px-6 py-3.5 text-sm font-semibold tracking-wide text-white uppercase shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-md"
             >
               Ver agenda
             </a>
@@ -792,7 +826,7 @@ export function EventosLanding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
             >
-              <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
+              <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
                 {countdownEvent.title} · {countdownEvent.dateLabel}
                 {countdownEvent.timeLabel
                   ? ` · ${countdownEvent.timeLabel}`
@@ -808,7 +842,7 @@ export function EventosLanding() {
 
       <AgendaMosaic
         featured={featured}
-        others={otherPaid}
+        others={paidEvents}
         free={freeEvents}
         onRegister={openFor}
       />

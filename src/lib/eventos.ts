@@ -61,7 +61,7 @@ export const FREE_EVENTS: GalsEvent[] = [
     concept:
       "Llevar la experiencia GAL'S fuera del estudio (parque cercano). Incluye clase de pilates, meditación guiada, café/té y presentación de la filosofía GAL'S.",
     signupPitch:
-      "Una mañana afuera para volver a sentirte en tu cuerpo: pilates, meditación y café con mujeres que están en la misma. Cupo gratis — guárdalo antes de que se llene.",
+      "Una mañana afuera para volver a sentirte en tu cuerpo: pilates, meditación y café con mujeres que están en la misma. Cupo gratis, guárdalo antes de que se llene.",
     image: "/media/capsules/pilates.jpg",
     startsAt: "2026-08-07T10:00:00-05:00",
     why: [
@@ -88,8 +88,8 @@ export const FREE_EVENTS: GalsEvent[] = [
     concept:
       "Edición especial con dress code azul/blanco, playlist especial y contenido para redes.",
     signupPitch:
-      "La party más GAL'S del mes: viste de azul/blanco, muévete con playlist buena y sal con fotos que sí quieres publicar. Es gratis — solo falta tu nombre en la lista.",
-    image: "/media/eventos/blue-pilates-party.jpg",
+      "La party más GAL'S del mes: viste de azul/blanco, muévete con playlist buena y sal con fotos que sí quieres publicar. Es gratis, solo falta tu nombre en la lista.",
+    image: "/media/eventos/girls-talk-hormonas.jpg",
     startsAt: "2026-08-17T10:00:00-05:00",
     why: [
       { emoji: "💙", label: "Dress code azul/blanco" },
@@ -179,10 +179,11 @@ export const PAID_EVENTS: GalsEvent[] = [
     timeLabel: "9:30AM",
     place: `GAL'S Studio · ${ADDRESS}`,
     headline: "Entiende por fin tu cuerpo y tu ciclo",
-    subhead: "Conversación con invitada especial (nutricionista/ginecóloga)",
+    subhead:
+      "Disfruta de nuestra charla con una invitada especial: nutrición y salud ginecológica para volver a escucharte con calma",
     signupPitch:
       "Si entrenas igual todo el mes y no entiendes por qué un día te sientes imparable y otro no: aquí lo vas a clarificar. Habla con una experta, haz tus preguntas y sal con una forma real de moverte según tu ciclo.",
-    image: "/media/eventos/girls-talk-hormonas.jpg",
+    image: "/media/eventos/blue-pilates-party.jpg",
     startsAt: "2026-08-29T09:30:00-05:00",
     why: [
       { emoji: "🩸", label: "Tu Ciclo Hormonal" },
