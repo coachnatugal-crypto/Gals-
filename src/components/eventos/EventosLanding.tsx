@@ -5,19 +5,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { EventRegisterForm } from "@/components/eventos/EventRegisterForm";
 import {
   EVENTOS_HERO_VIDEO,
-  FREE_EVENTS,
-  PAID_EVENTS,
+  getActiveFreeEvents,
+  getActivePaidEvents,
+  getFeaturedEvent,
+  getNextLiveEvent,
   PARA_TI_SI,
   type GalsEvent,
 } from "@/lib/eventos";
-import { BEWE_FORM_CLASS, BEWE_PACKS_CLASS } from "@/lib/bewe";
+import { BEWE_FORM_CLASS } from "@/lib/bewe";
 import { ADDRESS } from "@/lib/constants";
-import {
-  FlowerSticker,
-  StarSticker,
-  STICKER_ASSETS,
-  ImageSticker,
-} from "@/components/capsules/Stickers";
+import { STICKER_ASSETS } from "@/components/capsules/Stickers";
 
 const fadeUp = {
   initial: { opacity: 0, y: 28 },
@@ -26,16 +23,52 @@ const fadeUp = {
   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
 };
 
+type RegisterTarget = {
+  eventId: string;
+  title: string;
+  beweAfter: GalsEvent["beweAfter"];
+  cta: string;
+  source: string;
+};
+
+/**
+ * Hongo al borde derecho, base apoyada en la línea superior de la imagen de abajo.
+ */
+function EdgeHongoBleed({ side = "right" }: { side?: "left" | "right" }) {
+  const sideClass = side === "right" ? "right-0" : "left-0";
+
+  return (
+    <div
+      className={`pointer-events-none absolute bottom-0 z-[5] h-[170px] w-[120px] sm:h-[220px] sm:w-[155px] md:h-[270px] md:w-[185px] ${sideClass}`}
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={STICKER_ASSETS.hongos}
+        alt=""
+        draggable={false}
+        className={`h-full w-full object-contain object-bottom ${
+          side === "right" ? "object-right" : "object-left"
+        }`}
+      />
+    </div>
+  );
+}
+
 function useCountdown(iso?: string) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState<number | null>(null);
+
   useEffect(() => {
+    setNow(Date.now());
     if (!iso) return;
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, [iso]);
 
-  if (!iso) return null;
-  const diff = Math.max(0, new Date(iso).getTime() - now);
+  if (!iso || now === null) return null;
+  const end = new Date(iso).getTime();
+  if (Number.isNaN(end)) return null;
+  const diff = Math.max(0, end - now);
   return {
     days: Math.floor(diff / 86400000),
     hours: Math.floor((diff % 86400000) / 3600000),
@@ -46,28 +79,40 @@ function useCountdown(iso?: string) {
 
 function CountdownBlocks({ iso }: { iso: string }) {
   const c = useCountdown(iso);
-  if (!c) return null;
-  const cells = [
-    { v: c.days, l: "Días" },
-    { v: c.hours, l: "Horas" },
-    { v: c.mins, l: "Min" },
-    { v: c.secs, l: "Seg" },
-  ];
+  const cells = c
+    ? [
+        { v: c.days, l: "Días" },
+        { v: c.hours, l: "Horas" },
+        { v: c.mins, l: "Min" },
+        { v: c.secs, l: "Seg" },
+      ]
+    : [
+        { v: null, l: "Días" },
+        { v: null, l: "Horas" },
+        { v: null, l: "Min" },
+        { v: null, l: "Seg" },
+      ];
+
   return (
     <div className="grid grid-cols-4 gap-2 sm:gap-3">
       {cells.map((cell, i) => (
         <motion.div
           key={cell.l}
-          className="rounded-2xl border border-gals-blue-deep/15 bg-white px-2 py-3 text-center shadow-[0_8px_24px_rgba(85,104,148,0.1)] sm:py-4"
+          className="rounded-2xl border border-white/25 bg-white/10 px-2 py-3 text-center backdrop-blur-sm sm:py-4"
           initial={{ opacity: 0, y: 16, scale: 0.92 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.08 * i, type: "spring", stiffness: 260, damping: 18 }}
+          transition={{
+            delay: 0.08 * i,
+            type: "spring",
+            stiffness: 260,
+            damping: 18,
+          }}
         >
-          <p className="font-display text-2xl tracking-tight text-gals-blue-deep sm:text-3xl">
-            {String(cell.v).padStart(2, "0")}
+          <p className="font-display text-2xl tracking-tight text-white tabular-nums sm:text-3xl">
+            {cell.v === null ? "--" : String(cell.v).padStart(2, "0")}
           </p>
-          <p className="mt-1 text-[10px] tracking-[0.14em] text-gals-muted uppercase">
+          <p className="mt-1 text-[10px] tracking-[0.14em] text-white/70 uppercase">
             {cell.l}
           </p>
         </motion.div>
@@ -76,38 +121,157 @@ function CountdownBlocks({ iso }: { iso: string }) {
   );
 }
 
-function MiniHeader({ featured }: { featured: GalsEvent }) {
+function RegisterModal({
+  target,
+  onClose,
+}: {
+  target: RegisterTarget | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!target) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [target]);
+
+  return (
+    <AnimatePresence>
+      {target ? (
+        <motion.div
+          className="fixed inset-0 z-[95] flex items-end justify-center bg-gals-ink/50 p-4 backdrop-blur-[2px] sm:items-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="Cerrar"
+            onClick={onClose}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal
+            aria-labelledby="registro-modal-title"
+            className="relative z-[1] w-full max-w-md overflow-hidden rounded-[1.6rem] border border-gals-blue-deep/10 bg-gals-cream p-5 shadow-2xl sm:p-7"
+            initial={{ y: 40, opacity: 0, scale: 0.96 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 24, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 280, damping: 24 }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-gals-blue-soft text-gals-blue-deep"
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+            <p className="font-script text-2xl text-gals-blue-deep">
+              Tu cupo te espera
+            </p>
+            <h2
+              id="registro-modal-title"
+              className="mt-1 pr-8 font-display text-xl tracking-tight text-gals-ink uppercase"
+            >
+              {target.title}
+            </h2>
+            <p className="mt-2 text-sm text-gals-muted">
+              Déjanos tus datos y continuamos tu reserva.
+            </p>
+            <div className="mt-5">
+              <EventRegisterForm
+                eventId={target.eventId}
+                beweAfter={target.beweAfter}
+                cta={target.cta}
+                source={target.source}
+                variant="light"
+              />
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function MiniHeader({ onRegister }: { onRegister: () => void }) {
   return (
     <motion.header
-      className="relative z-30 flex items-center justify-between gap-4 px-5 py-4 md:px-8"
+      className="relative z-30 flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 md:px-8"
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div>
-        <p className="text-[10px] font-semibold tracking-[0.22em] text-white/80 uppercase drop-shadow">
-          GAL&apos;S Studio
-        </p>
-        <p className="font-display text-sm tracking-tight text-white uppercase drop-shadow sm:text-base">
-          Experiencias <span className="text-gals-blue-soft">2026</span>
+      <div className="min-w-0">
+        <p className="truncate text-[11px] font-semibold tracking-[0.14em] text-white uppercase drop-shadow sm:text-sm">
+          GAL&apos;S Studio · Eventos{" "}
+          <span className="text-gals-blue-soft">2026</span>
         </p>
       </div>
-      <div className="flex items-center gap-2 sm:gap-3">
-        <span className="hidden rounded-full border border-white/40 bg-white/15 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-white uppercase backdrop-blur-sm sm:inline-flex">
-          {featured.dateLabel} · {featured.timeLabel ?? ""}
-        </span>
+      <div className="flex shrink-0 items-center gap-2">
         <a
-          href="#registro"
-          className="rounded-full bg-gals-cream px-4 py-2 text-[11px] font-bold tracking-[0.1em] text-gals-blue-deep uppercase shadow-md transition-transform hover:scale-105 sm:px-5"
+          href="#agenda"
+          className="hidden rounded-full border border-white/40 bg-white/15 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-white uppercase backdrop-blur-sm sm:inline-flex"
         >
-          Registro
+          Agenda
         </a>
+        <button
+          type="button"
+          onClick={onRegister}
+          className="rounded-full bg-gals-cream px-3.5 py-2 text-[10px] font-bold tracking-[0.08em] text-gals-blue-deep uppercase shadow-md transition-transform hover:scale-105 sm:px-5 sm:text-[11px]"
+        >
+          Reservar
+        </button>
       </div>
     </motion.header>
   );
 }
 
-function WhyGrid() {
+function WhyCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="w-[min(78vw,320px)] shrink-0 rounded-2xl border border-gals-silver/30 bg-white/90 p-5 shadow-[0_8px_24px_rgba(85,104,148,0.08)] backdrop-blur-sm sm:w-[340px]">
+      <p className="font-display text-lg tracking-tight text-gals-blue-deep uppercase">
+        {title}
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-gals-muted">{body}</p>
+    </div>
+  );
+}
+
+function WhyMarqueeRow({
+  items,
+  direction,
+}: {
+  items: { title: string; body: string }[];
+  direction: "left" | "right";
+}) {
+  const loop = [...items, ...items];
+  return (
+    <div className="overflow-hidden">
+      <div
+        className={`flex w-max gap-4 ${
+          direction === "right"
+            ? "animate-marquee-slow-reverse"
+            : "animate-marquee-slow"
+        }`}
+      >
+        {loop.map((item, i) => (
+          <WhyCard
+            key={`${item.title}-${i}`}
+            title={item.title}
+            body={item.body}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WhyPills() {
   const items = PARA_TI_SI.slice(0, 6).map((text, i) => {
     const titles = [
       "Retomar tu ritmo",
@@ -119,209 +283,293 @@ function WhyGrid() {
     ];
     return { title: titles[i] ?? "GAL'S", body: text };
   });
+  const topRow = items.slice(0, 3);
+  const bottomRow = items.slice(3, 6);
 
   return (
-    <section id="por-que" className="relative bg-gals-cream px-5 py-16 md:px-8 md:py-24">
-      <StarSticker
-        className="absolute top-10 right-[8%] hidden opacity-70 md:block"
-        size={28}
-        color="var(--gals-blue)"
-        float
-      />
-      <div className="mx-auto max-w-5xl">
+    <section
+      id="por-que"
+      className="relative overflow-hidden bg-gals-mist py-14 md:py-20"
+    >
+      <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-5 md:px-8">
         <motion.p
-          className="text-center text-xs font-semibold tracking-[0.25em] text-gals-blue-deep uppercase"
+          className="text-center font-script text-2xl text-gals-blue-deep md:text-3xl"
           {...fadeUp}
         >
-          La experiencia
+          esto es para ti si…
         </motion.p>
         <motion.h2
-          className="mt-3 text-center font-display text-3xl tracking-tight text-gals-ink uppercase sm:text-4xl md:text-5xl"
+          className="mt-2 text-center font-display text-3xl tracking-tight text-gals-ink uppercase sm:text-4xl md:text-5xl"
           {...fadeUp}
         >
-          <span className="text-gals-blue-deep">Por qué</span> asistir
+          Vives más que una clase
         </motion.h2>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item, i) => (
-            <motion.div
-              key={item.title}
-              className="rounded-2xl border border-gals-silver/40 bg-white p-5 shadow-[0_10px_30px_rgba(85,104,148,0.08)]"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ delay: i * 0.06, duration: 0.5 }}
-              whileHover={{ y: -4, scale: 1.01 }}
-            >
-              <p className="font-display text-lg tracking-tight text-gals-blue-deep uppercase">
-                {item.title}
+      </div>
+
+      <motion.div
+        className="relative z-10 mt-10 space-y-4"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.55 }}
+      >
+        <WhyMarqueeRow items={topRow} direction="right" />
+        <WhyMarqueeRow items={bottomRow} direction="left" />
+      </motion.div>
+    </section>
+  );
+}
+
+function FeaturedExperience({
+  event,
+  onRegister,
+}: {
+  event: GalsEvent;
+  onRegister: () => void;
+}) {
+  return (
+    <section id={event.id} className="relative scroll-mt-16">
+      <div className="relative min-h-[78svh] overflow-hidden md:min-h-[85svh]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={event.image}
+          alt=""
+          className="absolute inset-0 h-full w-full scale-105 object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gals-ink/90 via-gals-ink/55 to-gals-ink/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gals-cream via-transparent to-black/20" />
+
+        <div className="relative z-10 mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-14 pt-20 sm:px-5 md:min-h-[85svh] md:px-8 md:pb-20">
+          <motion.div
+            {...fadeUp}
+            className="max-w-2xl"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="text-xs font-semibold tracking-[0.2em] text-gals-blue-soft uppercase">
+              Destacado · {event.dateLabel}
+              {event.timeLabel ? ` · ${event.timeLabel}` : ""}
+            </p>
+            <h2 className="mt-3 font-display text-4xl tracking-tight text-white uppercase sm:text-5xl md:text-6xl lg:text-7xl">
+              {event.title}
+            </h2>
+            <p className="mt-3 font-script text-2xl text-gals-cream md:text-3xl">
+              {event.headline}
+            </p>
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-white/85">
+              {event.subhead}
+            </p>
+            {event.showPrice && event.price ? (
+              <p className="mt-4 font-display text-3xl text-gals-cream sm:text-4xl">
+                {event.price}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-gals-muted">
-                {item.body}
-              </p>
-            </motion.div>
-          ))}
+            ) : null}
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={onRegister}
+                className="rounded-full bg-gals-cream px-7 py-3.5 text-sm font-bold tracking-wide text-gals-blue-deep uppercase shadow-lg transition-transform hover:scale-[1.02]"
+              >
+                {event.cta}
+              </button>
+              <a
+                href="#agenda"
+                className="rounded-full border border-white/40 px-6 py-3.5 text-sm font-semibold tracking-wide text-white uppercase backdrop-blur-sm"
+              >
+                Ver agenda
+              </a>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
   );
 }
 
-function EventBlock({
+function MosaicCard({
   event,
-  featured = false,
+  onRegister,
+  variant,
 }: {
   event: GalsEvent;
-  featured?: boolean;
+  onRegister: () => void;
+  variant: "wide" | "tall" | "type";
 }) {
+  const tall = variant === "tall";
+  const withHongos = variant === "type";
+
   return (
     <motion.article
       id={event.id}
-      className={`overflow-hidden rounded-[1.5rem] border shadow-[0_16px_48px_rgba(85,104,148,0.12)] ${
-        featured
-          ? "border-gals-blue-deep/25 bg-gals-blue-deep text-white"
-          : "border-gals-silver/40 bg-white text-gals-ink"
+      className={`group relative overflow-hidden ${
+        tall
+          ? "min-h-[320px] sm:min-h-full"
+          : "min-h-[240px] sm:min-h-[280px]"
       }`}
       {...fadeUp}
-      whileHover={{ y: -3 }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={event.image}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+      />
       <div
-        className={`grid ${featured ? "lg:grid-cols-2" : "md:grid-cols-[0.9fr_1.1fr]"}`}
+        className={`absolute inset-0 ${
+          withHongos
+            ? "bg-gradient-to-t from-gals-blue-deep/95 via-gals-blue-deep/55 to-gals-ink/30"
+            : "bg-gradient-to-t from-gals-ink/90 via-gals-ink/35 to-transparent"
+        }`}
+      />
+
+      <div
+        className="absolute inset-x-0 bottom-0 p-5 sm:p-6"
       >
-        <div className="relative min-h-[220px] overflow-hidden sm:min-h-[280px]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={event.image}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-          />
-          <div
-            className={`absolute inset-0 ${
-              featured
-                ? "bg-gradient-to-t from-gals-blue-deep via-gals-blue-deep/40 to-transparent"
-                : "bg-gradient-to-t from-gals-ink/70 via-transparent to-transparent"
-            }`}
-          />
-          <div className="absolute bottom-4 left-4 right-4">
-            <span
-              className={`rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.14em] uppercase ${
-                featured
-                  ? "bg-gals-cream text-gals-blue-deep"
-                  : "bg-gals-blue-deep text-white"
-              }`}
-            >
-              {event.eyebrow}
-            </span>
-            <p className="mt-2 font-display text-xl text-white uppercase sm:text-2xl">
-              {event.title}
-            </p>
-          </div>
-        </div>
-        <div className="p-5 sm:p-7">
-          <p
-            className={`text-xs font-semibold tracking-[0.16em] uppercase ${
-              featured ? "text-white/70" : "text-gals-blue-deep"
-            }`}
-          >
-            {event.dateLabel}
-            {event.timeLabel ? ` · ${event.timeLabel}` : ""} · 📍 {event.place}
+        <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
+          {event.kind === "free" ? "Gratis" : "Con inversión"} ·{" "}
+          {event.dateLabel}
+          {event.timeLabel ? ` · ${event.timeLabel}` : ""}
+        </p>
+        <h3 className="mt-1 font-display text-xl uppercase text-white sm:text-2xl">
+          {event.title}
+        </h3>
+        {withHongos ? (
+          <p className="mt-2 line-clamp-2 text-sm text-white/80">{event.subhead}</p>
+        ) : null}
+        {event.showPrice && event.price ? (
+          <p className="mt-1 font-display text-lg text-gals-blue-soft">
+            {event.price}
           </p>
-          <h3
-            className={`mt-2 font-display text-2xl tracking-tight uppercase ${
-              featured ? "text-white" : "text-gals-blue-deep"
-            }`}
-          >
-            {event.headline}
-          </h3>
-          <p
-            className={`mt-2 text-sm leading-relaxed ${
-              featured ? "text-white/80" : "text-gals-muted"
-            }`}
-          >
-            {event.subhead}
-          </p>
-          {event.concept ? (
-            <p
-              className={`mt-2 text-sm ${
-                featured ? "text-white/65" : "text-gals-ink/75"
-              }`}
-            >
-              {event.concept}
-            </p>
-          ) : null}
-
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-            {event.why.map((w) => (
-              <li
-                key={w.label}
-                className={`flex gap-2 rounded-xl px-3 py-2 text-sm ${
-                  featured
-                    ? "bg-white/10 text-white/90"
-                    : "bg-gals-blue-soft/70 text-gals-ink"
-                }`}
-              >
-                <span aria-hidden>{w.emoji}</span>
-                <span>{w.label}</span>
-              </li>
-            ))}
-          </ul>
-
-          {event.afterEvent ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {event.afterEvent.map((p) => (
-                <button
-                  key={p.name}
-                  type="button"
-                  className={`${BEWE_PACKS_CLASS} rounded-full bg-gals-cream px-3 py-1.5 text-xs font-semibold text-gals-blue-deep`}
-                >
-                  {p.name} · {p.price}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="mt-5">
-            <EventRegisterForm
-              eventId={event.id}
-              beweAfter={event.beweAfter}
-              cta={event.cta}
-              source={event.kind}
-              variant={featured ? "dark" : "light"}
-            />
-          </div>
-        </div>
+        ) : null}
+        <button
+          type="button"
+          onClick={onRegister}
+          className="mt-4 rounded-full bg-gals-cream px-4 py-2 text-[11px] font-bold tracking-wide text-gals-blue-deep uppercase"
+        >
+          {withHongos ? `${event.cta} →` : "Reservar →"}
+        </button>
       </div>
     </motion.article>
   );
 }
 
-function ExitPopup() {
+function AgendaMosaic({
+  featured,
+  others,
+  free,
+  onRegister,
+}: {
+  featured: GalsEvent;
+  others: GalsEvent[];
+  free: GalsEvent[];
+  onRegister: (e: GalsEvent, source: string) => void;
+}) {
+  const rest = [...others, ...free];
+  const a = rest[0];
+  const b = rest[1];
+  const c = rest[2];
+  const more = rest.slice(3);
+
+  return (
+    <section id="agenda" className="relative scroll-mt-16 bg-gals-cream">
+      <div className="relative z-[6] overflow-visible px-0 pt-14 pb-0 sm:pt-16 md:pt-20">
+        <EdgeHongoBleed side="right" />
+        <div className="relative z-10 mx-auto max-w-6xl px-4 pr-[7.5rem] pb-2 sm:px-5 sm:pr-36 md:px-8 md:pr-44">
+          <motion.p
+            className="font-script text-2xl text-gals-blue-deep md:text-3xl"
+            {...fadeUp}
+          >
+            la agenda
+          </motion.p>
+          <motion.h2
+            className="mt-1 font-display text-3xl tracking-tight text-gals-ink uppercase md:text-5xl"
+            {...fadeUp}
+          >
+            Eventos GAL&apos;S
+          </motion.h2>
+          <motion.p
+            className="mt-3 max-w-xl text-sm text-gals-muted md:text-base"
+            {...fadeUp}
+          >
+            Elige el que te hace falta ahora. Cupos limitados.
+          </motion.p>
+        </div>
+      </div>
+
+      <div className="relative z-[1] mt-0">
+        <FeaturedExperience
+          event={featured}
+          onRegister={() => onRegister(featured, "featured")}
+        />
+      </div>
+
+      <div className="relative px-4 py-8 sm:px-5 md:px-8 md:py-12">
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-3 sm:gap-4 md:grid-cols-12">
+          {a ? (
+            <div className="overflow-hidden rounded-[1.25rem] md:col-span-7">
+              <MosaicCard
+                event={a}
+                variant="wide"
+                onRegister={() => onRegister(a, "mosaic")}
+              />
+            </div>
+          ) : null}
+          {b ? (
+            <div className="overflow-hidden rounded-[1.25rem] md:col-span-5">
+              <MosaicCard
+                event={b}
+                variant="type"
+                onRegister={() => onRegister(b, "mosaic")}
+              />
+            </div>
+          ) : null}
+          {c ? (
+            <div className="overflow-hidden rounded-[1.25rem] md:col-span-5">
+              <MosaicCard
+                event={c}
+                variant="tall"
+                onRegister={() => onRegister(c, "mosaic")}
+              />
+            </div>
+          ) : null}
+          {more.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 md:col-span-7">
+              {more.map((e) => (
+                <div key={e.id} className="overflow-hidden rounded-[1.25rem]">
+                  <MosaicCard
+                    event={e}
+                    variant="wide"
+                    onRegister={() => onRegister(e, "mosaic")}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExitPopup({
+  onOpenRegister,
+}: {
+  onOpenRegister: (t: RegisterTarget) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const [zone, setZone] = useState<"free" | "paid" | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => {
-      const free = document.getElementById("eventos-gratis");
-      const paid = document.getElementById("experiencias-pagas");
-      if (!free || !paid) return;
-      const mid = window.innerHeight * 0.4;
-      if (paid.getBoundingClientRect().top < mid) setZone("paid");
-      else if (free.getBoundingClientRect().top < mid) setZone("free");
-    };
     const onLeave = (e: MouseEvent) => {
-      if (dismissed || open || e.clientY > 10 || !zone) return;
+      if (dismissed || open || e.clientY > 10) return;
       setOpen(true);
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("mouseout", onLeave);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("mouseout", onLeave);
-    };
-  }, [dismissed, open, zone]);
-
-  const isFree = zone !== "paid";
+    return () => document.removeEventListener("mouseout", onLeave);
+  }, [dismissed, open]);
 
   return (
     <AnimatePresence>
@@ -333,7 +581,7 @@ function ExitPopup() {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="w-full max-w-md rounded-[1.5rem] border border-gals-blue-deep/15 bg-gals-cream p-6 shadow-2xl sm:p-8"
+            className="relative w-full max-w-md overflow-hidden rounded-[1.5rem] border border-gals-blue-deep/15 bg-gals-cream p-6 shadow-2xl sm:p-8"
             initial={{ y: 28, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 16, opacity: 0 }}
@@ -342,35 +590,35 @@ function ExitPopup() {
             aria-modal
           >
             <p className="font-script text-2xl text-gals-blue-deep">
-              {isFree
-                ? "¿Te vas sin tu cupo gratis? 🩶"
-                : "Guárdate tu lugar en GAL'S 🩶"}
+              ¿Te vas sin tu lugar?
             </p>
             <p className="mt-2 text-sm text-gals-muted">
-              {isFree
-                ? "Deja tus datos y te avisamos de la próxima fecha."
-                : "Cupos limitados — deja tus datos antes de que se agoten."}
+              Guárdate un cupo antes de que se agoten.
             </p>
-            <div className="mt-5">
-              <EventRegisterForm
-                eventId={isFree ? "popup-gratis" : "popup-pagas"}
-                beweAfter={isFree ? "form" : "packs"}
-                source={isFree ? "popup-gratis" : "popup-pagas"}
-                cta={
-                  isFree
-                    ? "No quiero perderme la próxima"
-                    : "Quiero mi lugar"
-                }
-                variant="light"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setDismissed(true);
+                onOpenRegister({
+                  eventId: "popup-pagas",
+                  title: "Eventos GAL'S",
+                  beweAfter: "packs",
+                  cta: "Quiero mi lugar",
+                  source: "popup-exit",
+                });
+              }}
+              className="mt-5 w-full rounded-full bg-gals-blue-deep px-5 py-3.5 text-sm font-semibold text-white uppercase"
+            >
+              Reservar cupo →
+            </button>
             <button
               type="button"
               onClick={() => {
                 setOpen(false);
                 setDismissed(true);
               }}
-              className="mt-4 w-full py-2 text-sm text-gals-muted underline-offset-2 hover:underline"
+              className="mt-3 w-full py-2 text-sm text-gals-muted underline-offset-2 hover:underline"
             >
               Seguir viendo
             </button>
@@ -381,17 +629,49 @@ function ExitPopup() {
   );
 }
 
-/** Landing de eventos — paleta home + video hero. Sin chrome de homepage. */
+/** Landing de eventos — editorial GAL'S + stickers móvil. */
 export function EventosLanding() {
-  const featured = PAID_EVENTS.find((e) => e.featured) ?? PAID_EVENTS[0];
-  const otherPaid = PAID_EVENTS.filter((e) => e.id !== featured.id);
+  const freeEvents = getActiveFreeEvents();
+  const paidEvents = getActivePaidEvents();
+  const featured = getFeaturedEvent() ?? paidEvents[0] ?? freeEvents[0];
+  const liveEvent = getNextLiveEvent() ?? featured;
+  const otherPaid = paidEvents.filter((e) => e.id !== featured?.id);
+  const [register, setRegister] = useState<RegisterTarget | null>(null);
+
+  const openFor = (event: GalsEvent, source: string) => {
+    setRegister({
+      eventId: event.id,
+      title: event.title,
+      beweAfter: event.beweAfter,
+      cta: event.cta,
+      source,
+    });
+  };
+
+  if (!featured || !liveEvent) {
+    return (
+      <div className="flex min-h-[70svh] items-center justify-center bg-gals-cream px-5 text-center">
+        <div>
+          <p className="font-script text-2xl text-gals-blue-deep">
+            eventos GAL&apos;S
+          </p>
+          <h1 className="mt-2 font-display text-3xl text-gals-ink uppercase">
+            Pronto nuevos eventos
+          </h1>
+          <p className="mt-3 text-gals-muted">
+            Estamos preparando la próxima agenda. Vuelve pronto.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-full overflow-x-clip bg-gals-cream text-gals-ink">
-      {/* ——— HERO con video de fondo (pc + móvil) ——— */}
+      {/* ——— HERO anclado al próximo evento ——— */}
       <section className="relative min-h-[100svh] overflow-hidden">
         <video
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full scale-105 object-cover"
           autoPlay
           muted
           loop
@@ -401,252 +681,145 @@ export function EventosLanding() {
         >
           <source src={EVENTOS_HERO_VIDEO} type="video/mp4" />
         </video>
-        {/* Solo un velo suave abajo para leer el texto — sin tinte azul */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-gals-cream" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-gals-cream" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_20%,rgba(26,42,53,0.45)_100%)]" />
 
-        <MiniHeader featured={featured} />
+        <MiniHeader onRegister={() => openFor(liveEvent, "header")} />
 
-        <div className="relative z-10 mx-auto grid max-w-6xl items-end gap-8 px-5 pb-14 pt-6 md:px-8 md:pb-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pt-10">
-          <div>
+        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-6xl flex-col justify-end px-4 pb-20 pt-8 sm:px-5 md:px-8 md:pb-24">
+          <motion.p
+            className="font-script text-xl text-gals-cream sm:text-2xl md:text-3xl"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            eventos GAL&apos;S
+          </motion.p>
+
+          <motion.h1
+            className="mt-3 max-w-3xl font-display text-[1.85rem] leading-[1.05] tracking-tight text-white uppercase drop-shadow sm:text-5xl md:text-6xl lg:text-7xl"
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.65 }}
+          >
+            ¿Cuándo fue la última vez que hiciste algo{" "}
+            <span className="text-gals-blue-soft">solo para ti?</span>
+          </motion.h1>
+
+          <motion.p
+            className="mt-5 max-w-lg text-sm leading-relaxed text-white/90 sm:text-base md:text-lg"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.28 }}
+          >
+            Un espacio para reconectar contigo, moverte con intención y
+            compartir energía con otras mujeres.
+          </motion.p>
+
+          <motion.div
+            className="mt-8 flex flex-wrap gap-3"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.38 }}
+          >
+            <a
+              href={`#${liveEvent.id}`}
+              className="rounded-full bg-gals-cream px-7 py-3.5 text-sm font-bold tracking-wide text-gals-blue-deep uppercase shadow-lg transition-transform hover:scale-[1.02]"
+            >
+              Próximo evento
+            </a>
+            <a
+              href="#agenda"
+              className="rounded-full border border-white/50 bg-white/10 px-6 py-3.5 text-sm font-semibold tracking-wide text-white uppercase backdrop-blur-sm"
+            >
+              Ver agenda
+            </a>
+          </motion.div>
+
+          {liveEvent.startsAt ? (
             <motion.div
-              className="flex flex-wrap gap-2"
+              className="mt-8 max-w-md"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.45 }}
             >
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/20 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-white uppercase backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-gals-green" />
-                {featured.dateLabel} — Bogotá
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/35 bg-white/20 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm">
-                📍 {ADDRESS}
-              </span>
-            </motion.div>
-
-            <motion.p
-              className="mt-6 font-script text-2xl text-gals-cream md:text-3xl"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              experiencias GAL&apos;S
-            </motion.p>
-            <motion.h1
-              className="mt-2 max-w-xl font-display text-[1.75rem] leading-[1.08] tracking-tight text-white uppercase drop-shadow sm:text-4xl md:text-5xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              ¿Cuándo fue la última vez que hiciste algo{" "}
-              <span className="text-gals-blue-soft">solo para ti?</span>
-            </motion.h1>
-            <motion.p
-              className="mt-4 max-w-md text-sm leading-relaxed text-white/90 sm:text-base"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.28 }}
-            >
-              Tu cuerpo lleva meses esperando este momento. Un espacio donde por
-              fin dejas de estar en la lista de espera de tu propia vida.
-            </motion.p>
-
-            <motion.div
-              className="mt-7"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.34 }}
-            >
-              <p className="font-display text-3xl text-white sm:text-4xl">
-                2 HORAS
+              <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
+                {liveEvent.title} · {liveEvent.dateLabel}
+                {liveEvent.timeLabel ? ` · ${liveEvent.timeLabel}` : ""}
               </p>
-              <p className="mt-1 max-w-sm text-xs font-semibold tracking-[0.12em] text-white/75 uppercase sm:text-sm">
-                Para retomar tu movimiento y tu alimentación, sin culpa y sin
-                extremos
-              </p>
+              <CountdownBlocks iso={liveEvent.startsAt} />
             </motion.div>
-
-            <motion.div
-              className="mt-8 grid max-w-md grid-cols-3 gap-3 border-t border-white/25 pt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              {(featured.stats ?? []).map((s) => (
-                <div key={s.label}>
-                  <p className="font-display text-2xl text-white">{s.value}</p>
-                  <p className="text-[10px] tracking-[0.14em] text-white/70 uppercase">
-                    {s.label}
-                  </p>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          <motion.div
-            id="registro"
-            className="scroll-mt-24"
-            initial={{ opacity: 0, y: 32, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.35, type: "spring", stiffness: 200, damping: 20 }}
-          >
-            <div className="rounded-[1.5rem] border border-white/40 bg-gals-cream/95 p-5 shadow-[0_24px_70px_rgba(26,42,53,0.28)] backdrop-blur-md sm:p-6">
-              <h2 className="font-display text-xl tracking-tight text-gals-blue-deep uppercase">
-                Regístrate
-              </h2>
-              <p className="mt-1 text-sm text-gals-muted">
-                Reserva tu cupo en {featured.title}
-              </p>
-              <div className="mt-5">
-                <EventRegisterForm
-                  eventId={featured.id}
-                  beweAfter={featured.beweAfter}
-                  cta="Reservar mi cupo"
-                  source="hero"
-                  variant="light"
-                />
-              </div>
-            </div>
-          </motion.div>
+          ) : null}
         </div>
       </section>
 
-      {/* COUNTDOWN */}
-      {featured.startsAt ? (
-        <section className="relative z-10 -mt-6 px-5 md:px-8">
-          <motion.div
-            className="mx-auto max-w-xl rounded-[1.5rem] border border-gals-blue-deep/10 bg-white/90 p-5 shadow-[0_16px_50px_rgba(85,104,148,0.14)] backdrop-blur sm:p-6"
-            {...fadeUp}
-          >
-            <p className="text-center text-xs font-semibold tracking-[0.22em] text-gals-blue-deep uppercase">
-              El evento comienza en
-            </p>
-            <div className="mt-4">
-              <CountdownBlocks iso={featured.startsAt} />
-            </div>
-          </motion.div>
-        </section>
-      ) : null}
+      <WhyPills />
 
-      <WhyGrid />
+      <AgendaMosaic
+        featured={featured}
+        others={otherPaid}
+        free={freeEvents}
+        onRegister={openFor}
+      />
 
-      {/* EVENTOS GRATIS */}
-      <section
-        id="eventos-gratis"
-        className="relative scroll-mt-20 bg-gals-mist px-5 py-14 md:px-8 md:py-20"
-      >
-        <FlowerSticker
-          className="absolute top-12 left-[6%] hidden opacity-60 md:block"
-          size={32}
-          color="var(--gals-blue)"
-          float
-        />
-        <div className="relative z-10 mx-auto max-w-5xl">
-          <motion.p
-            className="text-xs font-semibold tracking-[0.22em] text-gals-blue-deep uppercase"
-            {...fadeUp}
-          >
-            Sin costo
-          </motion.p>
-          <motion.h2
-            className="mt-2 font-display text-3xl tracking-tight text-gals-ink uppercase md:text-4xl"
-            {...fadeUp}
-          >
-            Eventos <span className="text-gals-blue-deep">gratis</span>
-          </motion.h2>
-          <div className="mt-8 space-y-6">
-            {FREE_EVENTS.map((e) => (
-              <EventBlock key={e.id} event={e} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* EXPERIENCIAS PAGAS */}
-      <section
-        id="experiencias-pagas"
-        className="relative scroll-mt-20 bg-gals-cream px-5 py-14 md:px-8 md:py-20"
-      >
-        <ImageSticker
-          src={STICKER_ASSETS.flor}
-          className="top-8 right-[6%] hidden md:block"
-          size={48}
-          rotate={12}
-          float
-          blend={false}
-        />
-        <div className="relative z-10 mx-auto max-w-5xl">
-          <motion.p
-            className="text-xs font-semibold tracking-[0.22em] text-gals-blue-deep uppercase"
-            {...fadeUp}
-          >
-            Upgrade exclusivo
-          </motion.p>
-          <motion.h2
-            className="mt-2 font-display text-3xl tracking-tight text-gals-ink uppercase md:text-4xl"
-            {...fadeUp}
-          >
-            Experiencias <span className="text-gals-blue-deep">pagas</span>
-          </motion.h2>
-          <div className="mt-8 space-y-8">
-            <EventBlock event={featured} featured />
-            {otherPaid.map((e) => (
-              <EventBlock key={e.id} event={e} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CIERRE */}
+      {/* CIERRE con foto */}
       <section
         id="cierre"
-        className="relative overflow-hidden bg-gals-blue-deep px-5 py-16 text-white md:px-8 md:py-24"
+        className="relative min-h-[70svh] overflow-hidden md:min-h-[75svh]"
       >
-        <StarSticker
-          className="absolute top-12 left-[10%] hidden opacity-40 md:block"
-          size={30}
-          color="rgba(255,255,255,0.6)"
-          float
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={liveEvent.image}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="relative z-10 mx-auto max-w-lg text-center">
+        <div className="absolute inset-0 bg-gals-blue-deep/75" />
+        <div className="relative z-10 mx-auto flex min-h-[70svh] max-w-xl flex-col items-center justify-center px-4 py-16 text-center text-white md:min-h-[75svh] md:px-8">
+          <motion.p
+            className="font-script text-2xl text-gals-blue-soft md:text-3xl"
+            {...fadeUp}
+          >
+            eventos GAL&apos;S
+          </motion.p>
           <motion.h2
-            className="font-display text-3xl tracking-tight uppercase sm:text-4xl md:text-5xl"
+            className="mt-2 font-display text-3xl tracking-tight uppercase sm:text-4xl md:text-5xl"
             {...fadeUp}
           >
             Tu lugar te{" "}
             <span className="text-gals-blue-soft">está esperando</span>
           </motion.h2>
           <motion.p
-            className="mx-auto mt-3 max-w-md text-sm text-white/80"
+            className="mx-auto mt-3 max-w-md text-sm text-white/80 md:text-base"
             {...fadeUp}
           >
-            No te quedes esperando el próximo momento. Déjanos tus datos.
+            No esperes el momento perfecto. Este puede ser el tuyo.
           </motion.p>
           <motion.div
-            className="mx-auto mt-8 rounded-[1.5rem] border border-white/25 bg-gals-cream p-5 text-left shadow-xl sm:p-7"
+            className="mt-8 flex flex-wrap justify-center gap-3"
             {...fadeUp}
           >
-            <EventRegisterForm
-              eventId="general"
-              beweAfter="form"
-              source="cierre-general"
-              cta="Quiero info de todos los eventos"
-              openWhatsApp
-              variant="light"
-            />
             <button
               type="button"
-              className={`${BEWE_FORM_CLASS} mt-3 w-full text-center text-xs text-gals-muted underline-offset-2 hover:underline`}
+              onClick={() => openFor(liveEvent, "cierre")}
+              className="rounded-full bg-gals-cream px-7 py-3.5 text-sm font-bold tracking-wide text-gals-blue-deep uppercase"
             >
-              Abrir formulario Bewe
+              Reservar mi cupo
+            </button>
+            <button
+              type="button"
+              className={`${BEWE_FORM_CLASS} rounded-full border border-white/40 px-6 py-3.5 text-sm font-semibold text-white uppercase`}
+            >
+              Hablar con el studio
             </button>
           </motion.div>
-          <p className="mt-8 text-[11px] text-white/50">
-            GAL&apos;S Studio Experiences 2026 — Calle 97, Bogotá
+          <p className="mt-10 text-[11px] text-white/50">
+            GAL&apos;S Studio · {ADDRESS}
           </p>
         </div>
       </section>
 
-      <ExitPopup />
+      <RegisterModal target={register} onClose={() => setRegister(null)} />
+      <ExitPopup onOpenRegister={setRegister} />
     </div>
   );
 }

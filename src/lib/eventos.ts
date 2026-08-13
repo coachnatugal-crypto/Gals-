@@ -32,10 +32,14 @@ export type GalsEvent = {
   concept?: string;
   image: string;
   why: { emoji: string; label: string }[];
-  /** Fecha ISO local Bogotá para countdown (solo featured). */
-  startsAt?: string;
+  /** Fecha/hora ISO (Bogotá) — se oculta al pasar el día del evento. */
+  startsAt: string;
   stats?: { label: string; value: string }[];
   afterEvent?: { name: string; price: string }[];
+  /** Precio del evento (texto, ej. "$120.000"). */
+  price?: string;
+  /** Si true, se muestra el precio en las tarjetas de la landing. */
+  showPrice?: boolean;
   cta: string;
   /** Tras enviar form: abre form Bewe o packs Bewe. */
   beweAfter: "form" | "packs";
@@ -55,6 +59,7 @@ export const FREE_EVENTS: GalsEvent[] = [
     concept:
       "Llevar la experiencia GAL'S fuera del estudio (parque cercano). Incluye clase de pilates, meditación guiada, café/té y presentación de la filosofía GAL'S.",
     image: "/media/capsules/pilates.jpg",
+    startsAt: "2026-08-07T10:00:00-05:00",
     why: [
       { emoji: "🧘", label: "Clase de Pilates" },
       { emoji: "🕊️", label: "Meditación guiada" },
@@ -63,6 +68,8 @@ export const FREE_EVENTS: GalsEvent[] = [
     ],
     cta: "Reservar mi cupo gratis",
     beweAfter: "form",
+    price: "Gratis",
+    showPrice: true,
   },
   {
     id: "blue-pilates-party",
@@ -76,7 +83,8 @@ export const FREE_EVENTS: GalsEvent[] = [
     subhead: "Dress code azul/blanco · playlist · contenido para redes",
     concept:
       "Edición especial con dress code azul/blanco, playlist especial y contenido para redes.",
-    image: "/media/capsules/IMG_4387.jpg",
+    image: "/media/eventos/blue-pilates-party.jpg",
+    startsAt: "2026-08-17T10:00:00-05:00",
     why: [
       { emoji: "💙", label: "Dress code azul/blanco" },
       { emoji: "🎵", label: "Playlist especial" },
@@ -85,6 +93,8 @@ export const FREE_EVENTS: GalsEvent[] = [
     ],
     cta: "Reservar mi cupo gratis",
     beweAfter: "form",
+    price: "Gratis",
+    showPrice: true,
   },
 ];
 
@@ -120,6 +130,8 @@ export const PAID_EVENTS: GalsEvent[] = [
       { name: "Semana GAL'S", price: "$80.000" },
       { name: "Membresía Ritual", price: "$380.000" },
     ],
+    price: "$80.000",
+    showPrice: true,
     cta: "Reservar mi cupo",
     beweAfter: "packs",
   },
@@ -134,6 +146,7 @@ export const PAID_EVENTS: GalsEvent[] = [
     subhead:
       "Clase de Pilates Sculpt + workshop de colorimetría e imagen personal",
     image: "/media/capsules/_DSC4460.jpg",
+    startsAt: "2026-08-13T10:00:00-05:00",
     why: [
       { emoji: "🔥", label: "Pilates Sculpt (50-60 min)" },
       { emoji: "🎨", label: "Colorimetría e Imagen" },
@@ -142,6 +155,8 @@ export const PAID_EVENTS: GalsEvent[] = [
       { emoji: "✨", label: "Alianza Exclusiva" },
       { emoji: "👯", label: "Comunidad Real" },
     ],
+    price: "$120.000",
+    showPrice: true,
     cta: "Reservar mi cupo",
     beweAfter: "packs",
   },
@@ -155,7 +170,8 @@ export const PAID_EVENTS: GalsEvent[] = [
     place: `GAL'S Studio · ${ADDRESS}`,
     headline: "Entiende por fin tu cuerpo y tu ciclo",
     subhead: "Conversación con invitada especial (nutricionista/ginecóloga)",
-    image: "/media/capsules/IMG_6986.jpg",
+    image: "/media/eventos/girls-talk-hormonas.jpg",
+    startsAt: "2026-08-29T09:30:00-05:00",
     why: [
       { emoji: "🩸", label: "Tu Ciclo Hormonal" },
       { emoji: "🏃‍♀️", label: "Entrena Según tu Fase" },
@@ -164,10 +180,51 @@ export const PAID_EVENTS: GalsEvent[] = [
       { emoji: "💬", label: "Espacio de Preguntas" },
       { emoji: "👯", label: "Comunidad Real" },
     ],
+    price: "$90.000",
+    showPrice: true,
     cta: "Reservar mi cupo",
     beweAfter: "packs",
   },
 ];
+
+/** YYYY-MM-DD en zona Bogotá. */
+function bogotaDay(d: Date) {
+  return d.toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+}
+
+/** Visible si el día del evento (Bogotá) aún no pasó. */
+export function isEventUpcoming(event: GalsEvent, now = new Date()) {
+  return bogotaDay(new Date(event.startsAt)) >= bogotaDay(now);
+}
+
+export function getActiveFreeEvents(now = new Date()) {
+  return FREE_EVENTS.filter((e) => isEventUpcoming(e, now));
+}
+
+export function getActivePaidEvents(now = new Date()) {
+  return PAID_EVENTS.filter((e) => isEventUpcoming(e, now)).sort(
+    (a, b) =>
+      new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+  );
+}
+
+/** Próximo evento pago (prioriza flagged featured si sigue activo). */
+export function getFeaturedEvent(now = new Date()) {
+  const active = getActivePaidEvents(now);
+  if (active.length === 0) return undefined;
+  return active.find((e) => e.featured) ?? active[0];
+}
+
+/** Próximo evento cuyo startsAt aún no llega (para el contador en vivo). */
+export function getNextLiveEvent(now = new Date()) {
+  const t = now.getTime();
+  return [...PAID_EVENTS, ...FREE_EVENTS]
+    .filter((e) => new Date(e.startsAt).getTime() > t)
+    .sort(
+      (a, b) =>
+        new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+    )[0];
+}
 
 export function findEvent(id: string) {
   return [...FREE_EVENTS, ...PAID_EVENTS].find((e) => e.id === id);

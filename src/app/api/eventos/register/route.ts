@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { EMAIL } from "@/lib/constants";
-import { findEvent } from "@/lib/eventos";
+import { findEvent, isEventUpcoming } from "@/lib/eventos";
 
 type Body = {
   name?: string;
@@ -52,6 +52,12 @@ export async function POST(request: Request) {
   }
 
   const event = findEvent(eventId);
+  if (event && !isEventUpcoming(event)) {
+    return NextResponse.json(
+      { ok: false, error: "Este evento ya pasó" },
+      { status: 410 },
+    );
+  }
   const eventLabel = event?.title ?? eventId;
 
   const formspree = process.env.FORMSPREE_ENDPOINT?.trim();

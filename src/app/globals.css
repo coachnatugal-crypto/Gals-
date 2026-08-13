@@ -80,6 +80,18 @@ body {
   animation: marquee 28s linear infinite;
 }
 
+.animate-marquee-reverse {
+  animation: marquee 28s linear infinite reverse;
+}
+
+.animate-marquee-slow {
+  animation: marquee 36s linear infinite;
+}
+
+.animate-marquee-slow-reverse {
+  animation: marquee 36s linear infinite reverse;
+}
+
 @keyframes float-soft {
   0%,
   100% {
