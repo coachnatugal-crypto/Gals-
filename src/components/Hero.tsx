@@ -252,7 +252,7 @@ export function HeroIntro() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/media/capsules/whois-1.jpg"
+                src="/media/capsules/whois-atras.jpg"
                 alt="GAL'S Studio"
                 className="h-full w-full object-cover"
               />
