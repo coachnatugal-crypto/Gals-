@@ -860,7 +860,7 @@ export function EventosLanding() {
               type="button"
               className={`${BEWE_FORM_CLASS} rounded-full border border-white/40 px-6 py-3.5 text-sm font-semibold text-white uppercase`}
             >
-              Te habla GALS
+              Hey somos GALS
             </button>
           </motion.div>
           <p className="mt-10 text-[11px] text-white/50">
