@@ -6,9 +6,7 @@ import { License } from "@/components/License";
 import { Plans } from "@/components/Plans";
 import { Schedule } from "@/components/Schedule";
 import { Experiences } from "@/components/Experiences";
-import { Coaches } from "@/components/Coaches";
 import { FinalCta } from "@/components/FinalCta";
-import { StickerDivider } from "@/components/StickerDivider";
 import { StudioStories } from "@/components/StudioStories";
 import { RealStories } from "@/components/RealStories";
 import { ClosingBanner } from "@/components/ClosingBanner";
@@ -30,7 +28,6 @@ export default function HomePage() {
         <CommunityMarquee />
       </div>
       <HeroIntro />
-      <StickerDivider />
       <Capsules />
       <RealStories />
       <StudioStories />
@@ -40,7 +37,6 @@ export default function HomePage() {
       <Plans />
       <Schedule />
       <Experiences />
-      <Coaches />
       <FinalCta />
       <ClosingBanner />
     </>

@@ -134,7 +134,7 @@ export function RealStories() {
             Historias reales GAL&apos;S
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-base text-gals-muted md:text-lg">
-            Ellas ya viven el studio. Toca para ver sus historias.
+            Ellas ya viven la experiencia GAL&apos;S.
           </p>
         </FadeIn>
 

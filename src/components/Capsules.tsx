@@ -49,18 +49,9 @@ export function Capsules() {
           >
             Hay un lugar para ti 🩶
           </motion.h2>
-          <motion.p
-            className="mx-auto mt-4 max-w-xl text-lg text-gals-muted md:text-xl"
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            Pilates, barre y yin yoga viven juntos en GAL&apos;S: un mismo
-            movimiento, distintas formas de volver a ti.
-          </motion.p>
 
           <motion.div
-            className="relative mx-auto mt-10 mb-2 flex w-full max-w-md items-center gap-3 rounded-full border border-gals-silver/40 bg-white px-5 py-3.5 shadow-[0_10px_30px_rgba(85,104,148,0.12)]"
+            className="relative mx-auto mt-10 mb-2 flex w-full max-w-xl items-center gap-4 rounded-full border border-gals-silver/40 bg-white px-6 py-5 shadow-[0_12px_36px_rgba(85,104,148,0.14)] sm:px-7 sm:py-6 md:max-w-2xl"
             initial={{ opacity: 0, y: 20, rotate: -3 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -76,31 +67,31 @@ export function Capsules() {
               rotate: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
             }}
           >
-            <p className="min-w-0 flex-1 text-left text-sm text-gals-ink md:text-base">
-              <span className="rounded-sm bg-gals-blue/25 px-1 py-0.5">
-                Elige el camino que se ajusta a ti hoy.
+            <p className="min-w-0 flex-1 text-left text-base text-gals-ink sm:text-lg md:text-xl">
+              <span className="rounded-sm bg-gals-blue/25 px-1.5 py-0.5">
+                tus clases gals combinarán:
               </span>
             </p>
             <span
-              className="flex shrink-0 items-center gap-2 text-gals-muted"
+              className="flex shrink-0 items-center gap-2.5 text-gals-muted"
               aria-hidden
             >
               <svg
                 viewBox="0 0 24 24"
-                className="h-4 w-4 fill-current opacity-50"
+                className="h-5 w-5 fill-current opacity-50 sm:h-6 sm:w-6"
               >
                 <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 0014 0h-2zm-5 8a1 1 0 01-1-1v-1.07A7.002 7.002 0 015 11h2a5 5 0 0010 0h2a7.002 7.002 0 01-6 6.93V18a1 1 0 01-1 1z" />
               </svg>
               <svg
                 viewBox="0 0 24 24"
-                className="h-4 w-4 fill-current opacity-40"
+                className="h-5 w-5 fill-current opacity-40 sm:h-6 sm:w-6"
               >
                 <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm3.5 12.1L14.1 15.5 12 13.4l-2.1 2.1-1.4-1.4 2.1-2.1-2.1-2.1 1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1z" />
               </svg>
             </span>
             <StarSticker
               className="absolute -bottom-3 left-1/2 z-10 -translate-x-1/2"
-              size={26}
+              size={32}
             />
           </motion.div>
         </div>
@@ -124,34 +115,16 @@ export function Capsules() {
           <div className="grid md:grid-cols-2">
             <CreativeCapsule
               title="BARRE"
-              script="Tonifica sin exigencia."
+              script="Fuerza con conciencia."
               accent="blue"
-              image="/media/capsules/IMG_4387.jpg"
+              image="/media/capsules/barre.jpg"
               className="border-t border-white/20 md:border-r"
             />
             <CreativeCapsule
               title="YIN YOGA"
               script="Tu pausa en medio del ruido."
               accent="green"
-              image="/media/capsules/IMG_6986.jpg"
-              className="border-t border-white/20"
-            />
-          </div>
-          <div className="grid md:grid-cols-2">
-            <CreativeCapsule
-              title="SCULPT"
-              script="Suda, siente, transforma."
-              accent="blue"
-              image="/media/capsules/_DSC4460.jpg"
-              textPosition="top"
-              className="border-t border-white/20 md:border-r"
-            />
-            <CreativeCapsule
-              title="EXPERIENCIAS GAL'S"
-              script="Nutrición, mentalidad y comunidad en un solo espacio."
-              accent="deep"
-              image="/media/capsules/IMG_7077.jpg"
-              textPosition="top"
+              image="/media/capsules/yin-yoga.jpg"
               className="border-t border-white/20"
             />
           </div>
@@ -163,7 +136,7 @@ export function Capsules() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          Todo forma parte del mismo camino dentro del studio.
+          Todo forma parte del mismo camino dentro de GAL&apos;S.
         </motion.p>
       </div>
     </section>

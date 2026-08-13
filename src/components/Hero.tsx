@@ -161,7 +161,7 @@ export function HeroIntro() {
 
                 <div className="absolute inset-x-0 bottom-8 z-10 px-4 text-center">
                   <p className="font-script text-xl text-gals-blue-soft drop-shadow md:text-2xl">
-                    te habla el studio
+                    hey somos gals
                   </p>
                 </div>
 

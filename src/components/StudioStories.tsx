@@ -38,7 +38,7 @@ const PILLARS = [
   },
   {
     n: "04",
-    image: "/media/capsules/whois-1.jpg",
+    image: "/media/capsules/mentalidad.jpg",
     title: "Trabajar tu mentalidad",
     accent: "más allá del cuerpo",
     body: "Acompañarte con espacios de coaching, espiritualidad y desarrollo personal, para que tu transformación vaya más allá del cuerpo.",
