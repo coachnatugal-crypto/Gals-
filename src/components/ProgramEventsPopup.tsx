@@ -3,20 +3,18 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 
 const BG = "/media/eventos/popup-eventos.jpg";
 
 type Props = {
   /** Clave sessionStorage para no repetir en la misma sesión. */
   storageKey?: string;
-  /** Texto del botón secundario. */
-  dismissLabel?: string;
 };
 
-/** Popup de entrada: invita a inscribirse en eventos GAL'S. */
+/** Popup de entrada: invita a la Semana GAL'S y a la comunidad. */
 export function ProgramEventsPopup({
   storageKey = "gals-programa-eventos-popup-seen",
-  dismissLabel = "Ahora no, seguir con el reto",
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -82,7 +80,7 @@ export function ProgramEventsPopup({
               className="absolute inset-0 h-full w-full object-cover object-center"
             />
             <div
-              className="absolute inset-0 bg-gradient-to-b from-[#1a2a35]/70 via-[#1a2a35]/55 to-[#1a2a35]/85"
+              className="absolute inset-0 bg-gradient-to-b from-[#1a2a35]/55 via-[#1a2a35]/45 to-[#1a2a35]/88"
               aria-hidden
             />
 
@@ -97,35 +95,33 @@ export function ProgramEventsPopup({
               </button>
 
               <p className="mt-4 text-xs font-semibold tracking-[0.18em] text-white/75 uppercase">
-                Eventos GAL&apos;S
+                Experiencia GALS
               </p>
               <p
                 id="programa-eventos-popup-title"
-                className="mt-2 pr-10 font-display text-2xl tracking-tight text-white uppercase sm:text-3xl"
+                className="mt-2 pr-10 font-display text-3xl tracking-tight text-white uppercase sm:text-4xl md:text-5xl"
               >
-                Inscríbete a los eventos
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-white/90 sm:text-base">
-                Vive una gran experiencia con la comunidad: espacios para
-                reconectar contigo, moverte con intención y compartir energía
-                con otras mujeres.
+                Vive tu Semana GALS
               </p>
 
-              <Link
-                href="/eventos"
-                onClick={dismiss}
-                className="mt-6 flex w-full items-center justify-center rounded-full bg-white px-5 py-3.5 text-sm font-semibold text-gals-blue-deep transition-transform hover:scale-[1.02]"
-              >
-                Quiero inscribirme →
-              </Link>
-
-              <button
-                type="button"
-                onClick={dismiss}
-                className="mt-3 w-full py-2 text-center text-sm font-medium text-white/80 underline-offset-4 transition hover:text-white hover:underline"
-              >
-                {dismissLabel}
-              </button>
+              <div className="mt-7 flex flex-col gap-3">
+                <Link
+                  href="/#planes"
+                  onClick={dismiss}
+                  className="flex w-full items-center justify-center rounded-full bg-white px-5 py-3.5 text-sm font-semibold text-gals-blue-deep transition-transform hover:scale-[1.02]"
+                >
+                  Ser parte de la Semana GALS
+                </Link>
+                <a
+                  href={WHATSAPP_COMMUNITY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={dismiss}
+                  className="flex w-full items-center justify-center rounded-full border border-white/60 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-transform hover:scale-[1.02] hover:bg-white/15"
+                >
+                  Unirme a la comunidad gratis
+                </a>
+              </div>
             </div>
           </motion.div>
         </motion.div>

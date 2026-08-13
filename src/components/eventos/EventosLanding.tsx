@@ -348,21 +348,16 @@ function FeaturedExperience({
         <img
           src={event.image}
           alt=""
-          className="absolute inset-0 h-full w-full scale-105 object-cover"
+          className="absolute inset-0 h-full w-full scale-105 object-cover object-[center_20%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-gals-ink/95 via-gals-ink/72 to-gals-ink/45" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gals-ink/90 via-gals-ink/40 to-black/35" />
-        {isPaid ? (
-          <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(197,204,212,0.12),transparent_55%)]"
-            aria-hidden
-          />
-        ) : null}
+        {/* Difuminado suave (femenino): foto visible, texto legible abajo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gals-ink/55 via-gals-ink/15 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-[#556894]/55 via-[#556894]/20 to-transparent" />
 
-        <div className="relative z-10 mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-14 pt-20 sm:px-5 md:min-h-[88svh] md:px-8 md:pb-20">
+        <div className="relative z-10 mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-14 pt-20 sm:px-5 md:min-h-[88svh] md:items-center md:px-8 md:pb-20 md:text-center">
           <motion.div
             {...fadeUp}
-            className="max-w-2xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.55)]"
+            className="max-w-2xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.55)] md:mx-auto md:flex md:flex-col md:items-center"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -387,7 +382,7 @@ function FeaturedExperience({
             <p className="mt-3 font-script text-2xl text-gals-cream md:text-3xl">
               {event.headline}
             </p>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-white">
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-white md:mx-auto">
               {event.subhead}
             </p>
             {event.showPrice && event.price ? (
@@ -397,7 +392,7 @@ function FeaturedExperience({
             ) : null}
 
             {isPaid && event.startsAt ? (
-              <div className="mt-8 max-w-md">
+              <div className="mt-8 w-full max-w-md md:mx-auto">
                 <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white uppercase">
                   Empieza en
                 </p>
@@ -405,7 +400,7 @@ function FeaturedExperience({
               </div>
             ) : null}
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3 md:justify-center">
               <button
                 type="button"
                 onClick={onRegister}
@@ -445,7 +440,7 @@ function MosaicCard({
       id={event.id}
       className={`group relative overflow-hidden rounded-[1.25rem] ${
         isPaid
-          ? "min-h-[460px] shadow-[0_18px_50px_rgba(85,104,148,0.28)] ring-2 ring-gals-blue-deep/25 sm:min-h-[520px] md:min-h-[560px]"
+          ? "min-h-[460px] shadow-[0_18px_50px_rgba(85,104,148,0.28)] ring-2 ring-gals-blue-deep/25 sm:min-h-[520px] md:min-h-[520px]"
           : tall
             ? "min-h-[320px] sm:min-h-[360px]"
             : "min-h-[240px] sm:min-h-[280px]"
@@ -463,10 +458,10 @@ function MosaicCard({
       <div
         className={`absolute inset-0 ${
           isPaid
-            ? "bg-gradient-to-t from-gals-ink/96 via-gals-ink/55 to-gals-ink/25"
+            ? "bg-gradient-to-t from-gals-ink/75 via-gals-ink/30 to-transparent"
             : withHongos
-              ? "bg-gradient-to-t from-gals-blue-deep/95 via-gals-blue-deep/55 to-gals-ink/30"
-              : "bg-gradient-to-t from-gals-ink/90 via-gals-ink/35 to-transparent"
+              ? "bg-gradient-to-t from-gals-blue-deep/80 via-gals-blue-deep/35 to-transparent"
+              : "bg-gradient-to-t from-gals-ink/75 via-gals-ink/25 to-transparent"
         }`}
       />
 
@@ -478,7 +473,9 @@ function MosaicCard({
 
       <div
         className={`absolute inset-x-0 bottom-0 p-5 sm:p-6 ${
-          isPaid ? "md:p-8" : ""
+          isPaid
+            ? "md:flex md:flex-col md:items-center md:p-8 md:text-center"
+            : ""
         }`}
       >
         <p className="text-[10px] font-semibold tracking-[0.14em] text-white/75 uppercase">
@@ -488,7 +485,7 @@ function MosaicCard({
         <h3
           className={`mt-1 font-display uppercase text-white ${
             isPaid
-              ? "text-2xl leading-tight sm:text-3xl md:text-4xl"
+              ? "text-2xl leading-tight sm:text-3xl md:text-3xl lg:text-[2rem]"
               : "text-xl sm:text-2xl"
           }`}
         >
@@ -499,11 +496,11 @@ function MosaicCard({
             <p className="mt-2 font-script text-xl text-gals-cream sm:text-2xl">
               {event.headline}
             </p>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90 sm:text-[15px]">
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90 sm:text-[15px] md:mx-auto">
               {event.subhead}
             </p>
             {event.why?.length ? (
-              <ul className="mt-3 flex flex-wrap gap-2">
+              <ul className="mt-3 flex flex-wrap gap-2 md:justify-center">
                 {event.why.slice(0, 3).map((w) => (
                   <li
                     key={w.label}
@@ -564,7 +561,7 @@ function AgendaMosaic({
     <section id="agenda" className="relative scroll-mt-16 bg-gals-cream">
       <div className="relative z-[6] overflow-visible px-0 pt-14 pb-0 sm:pt-16 md:pt-20">
         <EdgeHongoBleed side="right" />
-        <div className="relative z-10 mx-auto max-w-6xl px-4 pr-[7.5rem] pb-2 sm:px-5 sm:pr-36 md:px-8 md:pr-44">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 pr-[7.5rem] pb-2 sm:px-5 sm:pr-36 md:px-8 md:pr-8 md:text-center">
           <motion.p
             className="font-script text-2xl text-gals-blue-deep md:text-3xl"
             {...fadeUp}
@@ -578,7 +575,7 @@ function AgendaMosaic({
             Eventos GAL&apos;S
           </motion.h2>
           <motion.p
-            className="mt-3 max-w-xl text-sm text-gals-muted md:text-base"
+            className="mt-3 max-w-xl text-sm text-gals-muted md:mx-auto md:text-base"
             {...fadeUp}
           >
             Elige el que te hace falta ahora. Cupos limitados.
@@ -594,23 +591,22 @@ function AgendaMosaic({
       </div>
 
       <div className="relative px-4 py-8 sm:px-5 md:px-8 md:py-12">
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-4 sm:gap-5 md:grid-cols-12">
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-4 sm:gap-5 md:grid-cols-12 md:gap-6">
           {rest.map((e, i) => {
             const isPaid = e.kind === "paid";
+            const freeIndex = rest
+              .slice(0, i)
+              .filter((x) => x.kind === "free").length;
             const span = isPaid
-              ? "md:col-span-12"
-              : i % 3 === 0
+              ? "md:col-span-6"
+              : freeIndex % 2 === 0
                 ? "md:col-span-7"
-                : i % 3 === 1
-                  ? "md:col-span-5"
-                  : "md:col-span-5";
+                : "md:col-span-5";
             const variant: "wide" | "tall" | "type" = isPaid
               ? "tall"
-              : i % 3 === 1
+              : freeIndex % 2 === 1
                 ? "type"
-                : i % 3 === 2
-                  ? "tall"
-                  : "wide";
+                : "wide";
             return (
               <div key={e.id} className={span}>
                 <MosaicCard
@@ -762,9 +758,9 @@ export function EventosLanding() {
         >
           <source src={EVENTOS_HERO_VIDEO} type="video/mp4" />
         </video>
-        {/* Contraste para leer texto; azul solo abajo */}
-        <div className="absolute inset-0 bg-gals-ink/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gals-ink/85 via-gals-ink/45 to-black/35" />
+        {/* Contraste suave para leer; azul solo abajo */}
+        <div className="absolute inset-0 bg-gals-ink/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gals-ink/55 via-gals-ink/20 to-black/15" />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#b7c4e0] sm:h-24 md:h-28" />
 
         <MiniHeader onRegister={() => openFor(countdownEvent, "header")} />

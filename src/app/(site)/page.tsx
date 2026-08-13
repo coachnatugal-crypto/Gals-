@@ -12,13 +12,15 @@ import { StickerDivider } from "@/components/StickerDivider";
 import { StudioStories } from "@/components/StudioStories";
 import { RealStories } from "@/components/RealStories";
 import { ClosingBanner } from "@/components/ClosingBanner";
-import { CommunityWelcomePopup } from "@/components/CommunityWelcomePopup";
+import { ProgramEventsPopup } from "@/components/ProgramEventsPopup";
 import { UniverseBanner } from "@/components/UniverseBanner";
 
 export default function HomePage() {
   return (
     <>
-      <CommunityWelcomePopup />
+      <ProgramEventsPopup
+        storageKey="gals-home-experiencia-popup-seen"
+      />
       <Hero />
       <div className="hidden md:block">
         <CommunityMarquee />

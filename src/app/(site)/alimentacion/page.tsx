@@ -14,7 +14,6 @@ export default function AlimentacionRoutePage() {
       <AlimentacionPage />
       <ProgramEventsPopup
         storageKey="gals-alimentacion-eventos-popup-seen"
-        dismissLabel="Ahora no, seguir con alimentación"
       />
     </div>
   );
