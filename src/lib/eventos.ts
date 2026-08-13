@@ -108,9 +108,8 @@ export const PAID_EVENTS: GalsEvent[] = [
   {
     id: "back-to-routine",
     kind: "paid",
-    featured: true,
     title: "Back to Routine",
-    eyebrow: "Experiencia paga · protagonista",
+    eyebrow: "Experiencia paga",
     dateLabel: "5 de agosto",
     timeLabel: "6PM",
     place: `GAL'S Studio · ${ADDRESS}`,
@@ -173,8 +172,9 @@ export const PAID_EVENTS: GalsEvent[] = [
   {
     id: "girls-talk-hormonas",
     kind: "paid",
+    featured: true,
     title: "Girls Talk: Hormonas & Movimiento",
-    eyebrow: "Experiencia paga",
+    eyebrow: "Experiencia paga · protagonista",
     dateLabel: "29 de agosto",
     timeLabel: "9:30AM",
     place: `GAL'S Studio · ${ADDRESS}`,
@@ -227,15 +227,17 @@ export function getFeaturedEvent(now = new Date()) {
   return active.find((e) => e.featured) ?? active[0];
 }
 
-/** Próximo evento cuyo startsAt aún no llega (para el contador en vivo). */
+/** Próximo evento cuyo startsAt aún no llega — prioriza eventos de pago. */
 export function getNextLiveEvent(now = new Date()) {
   const t = now.getTime();
-  return [...PAID_EVENTS, ...FREE_EVENTS]
-    .filter((e) => new Date(e.startsAt).getTime() > t)
-    .sort(
-      (a, b) =>
-        new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
-    )[0];
+  const upcoming = (list: readonly GalsEvent[]) =>
+    list
+      .filter((e) => new Date(e.startsAt).getTime() > t)
+      .sort(
+        (a, b) =>
+          new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+      );
+  return upcoming(PAID_EVENTS)[0] ?? upcoming(FREE_EVENTS)[0];
 }
 
 export function findEvent(id: string) {

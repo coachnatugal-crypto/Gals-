@@ -38,7 +38,7 @@ function WeekNav() {
   return (
     <nav
       aria-label="Semanas del método"
-      className="sticky top-[4.25rem] z-30 -mx-4 mb-2 overflow-x-auto bg-[#f4f5f7]/90 px-4 py-3 backdrop-blur-md md:-mx-0 md:rounded-2xl md:border md:border-[#e6e8ee] md:bg-white/90 md:px-3"
+      className="sticky top-[4.25rem] z-30 -mx-4 mb-2 overflow-x-auto bg-[#f4f5f7]/90 px-4 py-3 backdrop-blur-md md:top-[5rem] md:-mx-0 md:mb-4 md:rounded-2xl md:border md:border-[#e6e8ee] md:bg-white/90 md:px-4 md:py-3.5"
     >
       <div className="flex min-w-max gap-2 md:flex-wrap md:justify-center">
         {data.weekNav.map((w) => (
@@ -126,7 +126,7 @@ function WeekShell({
           title={title}
           subtitle={subtitle}
           large={largeTitle}
-          className="mb-0 max-w-[calc(100%-5.5rem)] sm:max-w-xl md:max-w-2xl"
+          className="mb-0 max-w-[calc(100%-5.5rem)] sm:max-w-xl md:max-w-3xl"
         />
         {driveHref ? (
           <div className="relative z-10 shrink-0 sm:pb-5">
@@ -210,7 +210,7 @@ function VideoCard({
       href={ytWatch(video.youtubeId)}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative mx-auto block max-w-xl rounded-[1.35rem] bg-white p-2.5 pb-4 shadow-[0_16px_40px_rgba(85,104,148,0.14)]"
+      className="group relative mx-auto block max-w-xl rounded-[1.35rem] bg-white p-2.5 pb-4 shadow-[0_16px_40px_rgba(85,104,148,0.14)] md:max-w-3xl md:p-3 md:pb-5"
       style={{ rotate: `${rotate}deg` }}
       initial={{ opacity: 0, y: 28, rotate: rotate - 5 }}
       whileInView={{ opacity: 1, y: 0, rotate }}
@@ -251,12 +251,12 @@ function WeekMap() {
   const rotates = [-2.2, 1.8, -1.4, 2.4, -1.8];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {data.weekGuide.map((w, i) => (
         <motion.a
           key={w.id}
           href={`#${w.id}`}
-          className={`group relative overflow-hidden rounded-[1.6rem] bg-gradient-to-br p-5 shadow-[0_10px_32px_rgba(85,104,148,0.1)] sm:p-6 ${accents[i % accents.length]}`}
+          className={`group relative overflow-hidden rounded-[1.6rem] bg-gradient-to-br p-5 shadow-[0_10px_32px_rgba(85,104,148,0.1)] sm:p-6 xl:p-5 ${accents[i % accents.length]}`}
           style={{ rotate: `${rotates[i % rotates.length]}deg` }}
           initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -569,11 +569,11 @@ function GuideGroups({
   groups: readonly { name: string; items: readonly string[] }[];
 }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
       {groups.map((g) => (
         <div
           key={g.name}
-          className="rounded-2xl border border-[#e6e8ee] bg-white p-5"
+          className="rounded-2xl border border-[#e6e8ee] bg-white p-5 md:p-6"
         >
           <p className="font-display text-sm tracking-wide text-gals-blue-deep uppercase">
             {g.name}
@@ -615,9 +615,14 @@ function MarketList() {
         no es una obligación, es una canasta para inspirarte.
       </p>
 
-      <div className="space-y-5">
+      <div className="space-y-5 md:grid md:grid-cols-2 md:gap-5 md:space-y-0">
         {data.marketList.categories.map((c, ci) => (
-          <div key={c.name} className="space-y-5">
+          <div
+            key={c.name}
+            className={`space-y-5 ${
+              c.name === "Semillas y frutos secos" ? "md:col-span-2" : ""
+            }`}
+          >
             <article
               className={`overflow-hidden rounded-[1.75rem] bg-gradient-to-br p-5 shadow-[0_10px_32px_rgba(85,104,148,0.08)] sm:p-6 ${accents[ci % accents.length]}`}
             >
@@ -653,12 +658,12 @@ function MarketList() {
             </article>
 
             {c.name === "Semillas y frutos secos" ? (
-              <div className="flex flex-col items-center gap-4 py-2 md:gap-5">
-                <p className="max-w-md text-center font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:text-5xl">
+              <div className="flex flex-col items-center gap-4 py-2 md:flex-row md:items-center md:justify-center md:gap-10 md:py-6">
+                <p className="max-w-md text-center font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:max-w-xs md:text-left md:text-5xl">
                   Elige con calma:
                 </p>
                 <motion.div
-                  className="relative z-10 mx-auto w-full max-w-[240px]"
+                  className="relative z-10 mx-auto w-full max-w-[240px] md:max-w-[300px] md:shrink-0"
                   initial={{ opacity: 0, x: -80 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0.35 }}
@@ -695,16 +700,16 @@ function WeeklyActions({ week }: { week: number }) {
           key={w.week}
           className="overflow-hidden rounded-2xl border border-[#e6e8ee] bg-white shadow-[0_4px_20px_rgba(26,42,53,0.04)]"
         >
-          <div className="border-b border-[#eceef2] bg-gals-blue-soft/50 px-5 py-4">
-            <p className="font-display text-xl tracking-tight text-gals-blue-deep uppercase">
+          <div className="border-b border-[#eceef2] bg-gals-blue-soft/50 px-5 py-4 md:px-7 md:py-5">
+            <p className="font-display text-xl tracking-tight text-gals-blue-deep uppercase md:text-2xl">
               {w.title}
             </p>
-            <p className="mt-1 text-sm text-gals-muted">{w.focus}</p>
+            <p className="mt-1 text-sm text-gals-muted md:text-base">{w.focus}</p>
           </div>
-          <ol className="space-y-4 p-5">
+          <ol className="space-y-4 p-5 md:space-y-5 md:p-7">
             {w.steps.map((step, i) => (
               <li key={i} className="flex gap-4">
-                <span className="font-display text-2xl leading-none text-gals-blue-deep">
+                <span className="font-display text-2xl leading-none text-gals-blue-deep md:text-3xl">
                   {i + 1}
                 </span>
                 <p className="text-sm leading-relaxed text-gals-ink md:text-base">
@@ -713,7 +718,7 @@ function WeeklyActions({ week }: { week: number }) {
               </li>
             ))}
           </ol>
-          <p className="border-t border-[#eceef2] px-5 py-3 text-sm text-gals-muted">
+          <p className="border-t border-[#eceef2] px-5 py-3 text-sm text-gals-muted md:px-7">
             Tu coach, Nati · Método Body In Flow
           </p>
         </article>
@@ -724,8 +729,8 @@ function WeeklyActions({ week }: { week: number }) {
 
 function IntentionsMap() {
   return (
-    <div className="rounded-2xl border border-[#e6e8ee] bg-white p-5 sm:p-6">
-      <div className="grid gap-4 md:grid-cols-2">
+    <div className="rounded-2xl border border-[#e6e8ee] bg-white p-5 sm:p-6 md:p-8">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-5">
         {data.intentions.prompts.map((p) => (
           <label key={p.id} className="block space-y-1.5">
             <span className="text-xs font-semibold tracking-[0.12em] text-gals-blue-deep uppercase">
@@ -734,7 +739,7 @@ function IntentionsMap() {
             <textarea
               rows={3}
               placeholder={p.hint}
-              className="w-full resize-y rounded-xl border border-[#e6e8ee] bg-gals-cream/60 px-3 py-2.5 text-sm text-gals-ink outline-none placeholder:text-gals-muted/70 focus:border-gals-blue"
+              className="w-full resize-y rounded-xl border border-[#e6e8ee] bg-gals-cream/60 px-3 py-2.5 text-sm text-gals-ink outline-none placeholder:text-gals-muted/70 focus:border-gals-blue md:min-h-[6.5rem] md:px-4 md:py-3"
             />
           </label>
         ))}
@@ -749,21 +754,21 @@ function IntentionsMap() {
 export function AlimentacionPage() {
   return (
     <div className="relative overflow-x-clip pb-16 md:pb-24">
-      <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-24">
+      <section className="relative overflow-hidden pt-20 pb-16 md:flex md:min-h-[72vh] md:items-center md:pt-28 md:pb-28">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={data.heroBg}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          className="absolute inset-0 h-full w-full object-cover object-center md:object-[center_30%]"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-[#f4f5f7]/92 via-[#f4f5f7]/72 to-[#f4f5f7]/35 md:via-[#f4f5f7]/55 md:to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-[#f4f5f7]/92 via-[#f4f5f7]/72 to-[#f4f5f7]/35 md:from-[#f4f5f7]/95 md:via-[#f4f5f7]/60 md:to-transparent"
           aria-hidden
         />
 
         <ImageSticker
           src={STICKER_ASSETS.flor}
-          className="top-24 right-3 z-[3] sm:right-8 md:top-28 md:right-16"
+          className="top-24 right-3 z-[3] sm:right-8 md:top-32 md:right-20"
           size={48}
           rotate={14}
           float
@@ -771,7 +776,7 @@ export function AlimentacionPage() {
         />
         <ImageSticker
           src={STICKER_ASSETS.flor}
-          className="bottom-20 left-3 z-[3] sm:left-8 md:bottom-28"
+          className="bottom-20 left-3 z-[3] sm:left-8 md:bottom-32 md:left-12"
           size={40}
           rotate={-18}
           float
@@ -805,30 +810,30 @@ export function AlimentacionPage() {
           />
         </svg>
 
-        <div className="relative mx-auto max-w-6xl px-4 py-12 pb-16 md:px-8 md:py-20 md:pb-24">
-          <div className="max-w-2xl">
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-12 pb-16 md:max-w-7xl md:px-10 md:py-16 md:pb-20">
+          <div className="max-w-2xl md:max-w-xl lg:max-w-2xl">
             <p className="text-xs font-semibold tracking-[0.18em] text-gals-blue-deep uppercase">
               {data.subtitle}
             </p>
             <h1 className="mt-2 font-display text-4xl tracking-tight text-gals-ink uppercase md:text-5xl lg:text-6xl">
               {data.title}
             </h1>
-            <p className="mt-2 font-script text-2xl text-gals-blue-deep md:text-3xl">
+            <p className="mt-2 font-script text-2xl text-gals-blue-deep md:text-3xl lg:text-4xl">
               Comer con presencia
             </p>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-gals-muted md:text-base">
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-gals-muted md:text-base lg:text-lg">
               {data.intro}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="#empezar"
-                className="rounded-full bg-gals-blue-deep px-5 py-3 text-sm font-semibold text-white"
+                className="rounded-full bg-gals-blue-deep px-5 py-3 text-sm font-semibold text-white md:px-6 md:py-3.5"
               >
                 Empezar
               </a>
               <a
                 href="#semana-0"
-                className="rounded-full border border-gals-ink/80 bg-white/80 px-5 py-3 text-sm font-semibold text-gals-ink backdrop-blur-sm"
+                className="rounded-full border border-gals-ink/80 bg-white/80 px-5 py-3 text-sm font-semibold text-gals-ink backdrop-blur-sm md:px-6 md:py-3.5"
               >
                 Ir al mercado
               </a>
@@ -837,20 +842,22 @@ export function AlimentacionPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl space-y-16 px-4 pt-8 md:space-y-24 md:px-8 md:pt-12">
+      <div className="mx-auto max-w-6xl space-y-16 px-4 pt-8 md:max-w-7xl md:space-y-20 md:px-10 md:pt-14">
         <WeekNav />
 
         <section id="empezar" className="scroll-mt-28">
           <SectionTitle
             title="Por qué esto importa"
             subtitle="No es una dieta más. Es aprender a elegir con más conciencia, escuchar tu cuerpo y sostener el movimiento desde adentro. Cuando la comida acompaña, todo el método se siente más liviano."
+            className="mb-5 md:max-w-3xl"
           />
           <VideoCard video={data.introVideo} rotate={-2.5} />
 
-          <div className="mt-14">
+          <div className="mt-14 md:mt-20">
             <SectionTitle
               title="Tu camino por semanas"
               subtitle="Cinco momentos para ir a tu ritmo. Entra por el que necesites hoy."
+              className="mb-5 md:max-w-3xl"
             />
             <WeekMap />
           </div>
@@ -863,7 +870,7 @@ export function AlimentacionPage() {
           subtitle="Esta semana no es sobre comer perfecto: es armar tu base. Llenas la nevera con intención, revisas lo que ya tienes y cocinas con calma."
           largeTitle
         >
-          <div className="mb-8 max-w-2xl space-y-3 rounded-2xl bg-gals-blue-soft/70 p-5 sm:p-6">
+          <div className="mb-8 max-w-2xl space-y-3 rounded-2xl bg-gals-blue-soft/70 p-5 sm:p-6 md:mb-10 md:max-w-3xl md:p-8">
             <p className="font-script text-2xl text-gals-blue-deep md:text-3xl">
               De qué trata esta semana
             </p>
@@ -874,24 +881,26 @@ export function AlimentacionPage() {
             </p>
           </div>
 
-          <div className="relative mb-10 overflow-x-clip">
-            <p className="relative z-10 max-w-lg font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:text-5xl">
-              Empezar por la despensa también es cuidarte
-            </p>
-            <motion.div
-              className="relative z-10 mx-auto mt-4 w-[min(52vw,200px)] sm:w-[210px] md:w-[230px]"
-              initial={{ opacity: 0, x: "-55vw" }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={data.cartImage}
-                alt="Al mercado con presencia"
-                className="h-auto w-full object-contain drop-shadow-[0_18px_36px_rgba(85,104,148,0.22)]"
-              />
-            </motion.div>
+          <div className="relative mb-10 overflow-x-clip md:mb-14">
+            <div className="md:grid md:grid-cols-[1.15fr_0.85fr] md:items-center md:gap-12 lg:gap-16">
+              <p className="relative z-10 max-w-lg font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:max-w-none md:text-5xl lg:text-6xl">
+                Empezar por la despensa también es cuidarte
+              </p>
+              <motion.div
+                className="relative z-10 mx-auto mt-4 w-[min(52vw,200px)] sm:w-[210px] md:mt-0 md:w-[280px] md:justify-self-end lg:w-[320px]"
+                initial={{ opacity: 0, x: "-55vw" }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={data.cartImage}
+                  alt="Al mercado con presencia"
+                  className="h-auto w-full object-contain drop-shadow-[0_18px_36px_rgba(85,104,148,0.22)]"
+                />
+              </motion.div>
+            </div>
           </div>
 
           <div className="mb-5">
@@ -923,75 +932,79 @@ export function AlimentacionPage() {
         >
           <ImageSticker
             src={STICKER_ASSETS.flor}
-            className="top-[18.5rem] left-3 z-[3] sm:left-6"
+            className="top-[18.5rem] left-3 z-[3] sm:left-6 md:hidden"
             size={38}
             rotate={10}
             float
             blend={false}
           />
-          <div className="flex flex-col gap-4">
-            <div className="relative flex justify-center overflow-visible">
-              <ImageSticker
-                src={STICKER_ASSETS.flor}
-                className="-right-1 top-2 z-[3] sm:right-8 md:right-16"
-                size={34}
-                rotate={-20}
-                float
-                delay={0.12}
-                blend={false}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={data.plateImage}
-                alt="Plato nutricional: vegetales, proteínas, carbohidratos y grasas"
-                className="plate-spin -my-1 h-auto w-[min(68vw,280px)] object-contain drop-shadow-[0_10px_22px_rgba(85,104,148,0.18)] md:w-[min(42vw,340px)]"
-                draggable={false}
-              />
+          <div className="flex flex-col gap-4 md:gap-10">
+            <div className="md:grid md:grid-cols-[minmax(240px,340px)_1fr] md:items-start md:gap-12 lg:gap-16">
+              <div className="relative flex justify-center overflow-visible md:sticky md:top-28">
+                <ImageSticker
+                  src={STICKER_ASSETS.flor}
+                  className="-right-1 top-2 z-[3] sm:right-8 md:right-0"
+                  size={34}
+                  rotate={-20}
+                  float
+                  delay={0.12}
+                  blend={false}
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={data.plateImage}
+                  alt="Plato nutricional: vegetales, proteínas, carbohidratos y grasas"
+                  className="plate-spin -my-1 h-auto w-[min(68vw,280px)] object-contain drop-shadow-[0_10px_22px_rgba(85,104,148,0.18)] md:w-full md:max-w-[340px]"
+                  draggable={false}
+                />
+              </div>
+
+              <div className="space-y-4 md:space-y-6">
+                {data.longGuides.map((g) => (
+                  <article
+                    key={g.id}
+                    className="rounded-2xl bg-gradient-to-br from-gals-blue to-gals-blue-deep p-6 text-white shadow-[0_8px_30px_rgba(85,104,148,0.25)] md:p-8"
+                  >
+                    <p className="text-xs font-semibold tracking-[0.16em] text-white/75 uppercase">
+                      {g.eyebrow}
+                    </p>
+                    <h3 className="mt-2 font-display text-2xl uppercase md:text-3xl">
+                      {g.title}
+                    </h3>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90 md:text-base">
+                      {g.summary}
+                    </p>
+                    <ul className="mt-5 space-y-2">
+                      {g.bullets.map((b) => (
+                        <li key={b} className="flex gap-2 text-sm text-white/95">
+                          <span aria-hidden>→</span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                      <a
+                        href={data.week1Files.guideHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-gals-blue-deep"
+                      >
+                        Abrir guía completa →
+                      </a>
+                      <a
+                        href={data.week1Files.habitsPdf}
+                        download="habitos-tracker-gals.pdf"
+                        className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm"
+                      >
+                        Descargar tracker de hábitos
+                      </a>
+                    </div>
+                  </article>
+                ))}
+
+                <WeeklyActions week={1} />
+              </div>
             </div>
-
-            {data.longGuides.map((g) => (
-              <article
-                key={g.id}
-                className="rounded-2xl bg-gradient-to-br from-gals-blue to-gals-blue-deep p-6 text-white shadow-[0_8px_30px_rgba(85,104,148,0.25)] md:p-8"
-              >
-                <p className="text-xs font-semibold tracking-[0.16em] text-white/75 uppercase">
-                  {g.eyebrow}
-                </p>
-                <h3 className="mt-2 font-display text-2xl uppercase md:text-3xl">
-                  {g.title}
-                </h3>
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90 md:text-base">
-                  {g.summary}
-                </p>
-                <ul className="mt-5 space-y-2">
-                  {g.bullets.map((b) => (
-                    <li key={b} className="flex gap-2 text-sm text-white/95">
-                      <span aria-hidden>→</span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <a
-                    href={data.week1Files.guideHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-gals-blue-deep"
-                  >
-                    Abrir guía completa →
-                  </a>
-                  <a
-                    href={data.week1Files.habitsPdf}
-                    download="habitos-tracker-gals.pdf"
-                    className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm"
-                  >
-                    Descargar tracker de hábitos
-                  </a>
-                </div>
-              </article>
-            ))}
-
-            <WeeklyActions week={1} />
 
             <div>
               <SectionTitle
@@ -1018,9 +1031,9 @@ export function AlimentacionPage() {
           title="Etiquetas y despensa"
           subtitle="Aquí practicas en corto: la acción semanal y las guías de compra. Lo largo —la Guía de Alimentación Semana 2— vive en el material descargable."
         >
-          <HongosEdge className="top-2" size={72} height={120} delay={0.05} />
-          <div className="space-y-10">
-            <article className="rounded-2xl bg-gradient-to-br from-gals-blue to-gals-blue-deep p-6 text-white shadow-[0_8px_30px_rgba(85,104,148,0.25)] md:p-8">
+          <HongosEdge className="top-2 md:top-0" size={72} height={120} delay={0.05} />
+          <div className="space-y-10 md:space-y-14">
+            <article className="rounded-2xl bg-gradient-to-br from-gals-blue to-gals-blue-deep p-6 text-white shadow-[0_8px_30px_rgba(85,104,148,0.25)] md:p-8 lg:p-10">
               <p className="text-xs font-semibold tracking-[0.16em] text-white/75 uppercase">
                 El documento largo
               </p>
@@ -1071,9 +1084,9 @@ export function AlimentacionPage() {
 
         <section id="semana-3" className="relative scroll-mt-28 overflow-visible">
           <div className="relative z-10 mb-10 md:mb-14">
-            <div className="flex items-end gap-2 sm:items-center sm:gap-5 md:gap-8">
+            <div className="flex items-end gap-2 sm:items-center sm:gap-5 md:grid md:grid-cols-[minmax(220px,340px)_1fr] md:items-center md:gap-12 lg:gap-16">
               <motion.div
-                className="relative ml-[calc(50%-50vw)] w-[42vw] max-w-[150px] shrink-0 sm:max-w-[170px] md:max-w-[200px]"
+                className="relative ml-[calc(50%-50vw)] w-[42vw] max-w-[150px] shrink-0 sm:max-w-[170px] md:ml-0 md:w-full md:max-w-none"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, amount: 0.35 }}
@@ -1087,7 +1100,7 @@ export function AlimentacionPage() {
                 />
                 <ImageSticker
                   src={STICKER_ASSETS.flor}
-                  className="-right-2 top-4 z-[3]"
+                  className="-right-2 top-4 z-[3] md:right-2 md:top-6"
                   size={34}
                   rotate={-14}
                   float
@@ -1096,18 +1109,18 @@ export function AlimentacionPage() {
                 />
               </motion.div>
 
-              <div className="min-w-0 flex-1 pb-2 sm:pb-4">
+              <div className="min-w-0 flex-1 pb-2 sm:pb-4 md:pb-0">
                 <p className="text-xs font-semibold tracking-[0.16em] text-gals-blue-deep uppercase">
                   Semana 3
                 </p>
                 <h2 className="mt-1 font-display text-xl tracking-tight text-gals-ink uppercase sm:text-2xl md:text-3xl lg:text-4xl">
                   Cuando la comida también es emoción
                 </h2>
-                <p className="mt-2 max-w-md text-sm leading-relaxed text-gals-muted md:text-base">
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-gals-muted md:max-w-xl md:text-base lg:text-lg">
                   Esta semana vive aquí: no hay material descargable. Solo
                   escucha, a tu ritmo.
                 </p>
-                <p className="mt-4 max-w-sm font-script text-xl text-gals-blue-deep sm:text-2xl md:text-3xl">
+                <p className="mt-4 max-w-sm font-script text-xl text-gals-blue-deep sm:text-2xl md:mt-6 md:max-w-md md:text-3xl lg:text-4xl">
                   Permitirte disfrutar también es parte del método
                 </p>
               </div>
@@ -1134,8 +1147,8 @@ export function AlimentacionPage() {
             float
             blend={false}
           />
-          <div className="mb-8 max-w-2xl space-y-3 rounded-2xl bg-gals-blue-soft/70 p-5 sm:p-6">
-            <p className="font-script text-2xl text-gals-blue-deep">
+          <div className="mb-8 max-w-2xl space-y-3 rounded-2xl bg-gals-blue-soft/70 p-5 sm:p-6 md:mb-10 md:max-w-3xl md:p-8">
+            <p className="font-script text-2xl text-gals-blue-deep md:text-3xl">
               Qué vas a hacer aquí
             </p>
             <p className="text-sm leading-relaxed text-gals-ink md:text-base">
@@ -1149,17 +1162,17 @@ export function AlimentacionPage() {
           <RecommendationsBlock />
         </WeekShell>
 
-        <section className="rounded-2xl border border-[#e6e8ee] bg-white p-6 text-center md:p-8">
-          <p className="font-display text-2xl tracking-tight text-gals-ink uppercase">
+        <section className="rounded-2xl border border-[#e6e8ee] bg-white p-6 text-center md:mx-auto md:max-w-3xl md:p-10">
+          <p className="font-display text-2xl tracking-tight text-gals-ink uppercase md:text-3xl">
             Si quieres vivirlo en persona
           </p>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-gals-muted">
+          <p className="mx-auto mt-2 max-w-lg text-sm text-gals-muted md:text-base">
             En el studio el movimiento y esta forma de comer se encuentran.
             Cuando te sientas lista, estamos.
           </p>
           <button
             type="button"
-            className={`${data.ctaBewe} mt-5 inline-flex rounded-full bg-gals-blue-deep px-6 py-3 text-sm font-semibold text-white`}
+            className={`${data.ctaBewe} mt-5 inline-flex rounded-full bg-gals-blue-deep px-6 py-3 text-sm font-semibold text-white md:mt-6 md:px-8 md:py-3.5`}
           >
             {data.ctaLabel}
           </button>

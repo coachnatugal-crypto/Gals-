@@ -4,8 +4,8 @@ import { usePathname } from "next/navigation";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { BeweChat } from "@/components/BeweChat";
 
-/** Rutas donde no mostramos WhatsApp flotante ni Linda (reto en casa). */
-const HIDE_FLOATERS = ["/programa"];
+/** Rutas sin WhatsApp flotante ni Linda. */
+const HIDE_FLOATERS = ["/programa", "/alimentacion"];
 
 export function SiteFloaters() {
   const pathname = usePathname();

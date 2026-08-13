@@ -4,22 +4,31 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 
-const STORAGE_KEY = "gals-programa-eventos-popup-seen";
 const BG = "/media/eventos/popup-eventos.jpg";
 
-/** Popup al entrar al reto: invita a inscribirse en eventos GAL'S. */
-export function ProgramEventsPopup() {
+type Props = {
+  /** Clave sessionStorage para no repetir en la misma sesión. */
+  storageKey?: string;
+  /** Texto del botón secundario. */
+  dismissLabel?: string;
+};
+
+/** Popup de entrada: invita a inscribirse en eventos GAL'S. */
+export function ProgramEventsPopup({
+  storageKey = "gals-programa-eventos-popup-seen",
+  dismissLabel = "Ahora no, seguir con el reto",
+}: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem(STORAGE_KEY) === "1") return;
+      if (sessionStorage.getItem(storageKey) === "1") return;
     } catch {
       /* ignore */
     }
     const t = window.setTimeout(() => setOpen(true), 550);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (!open) return;
@@ -33,7 +42,7 @@ export function ProgramEventsPopup() {
   function dismiss() {
     setOpen(false);
     try {
-      sessionStorage.setItem(STORAGE_KEY, "1");
+      sessionStorage.setItem(storageKey, "1");
     } catch {
       /* ignore */
     }
@@ -115,7 +124,7 @@ export function ProgramEventsPopup() {
                 onClick={dismiss}
                 className="mt-3 w-full py-2 text-center text-sm font-medium text-white/80 underline-offset-4 transition hover:text-white hover:underline"
               >
-                Ahora no, seguir con el reto
+                {dismissLabel}
               </button>
             </div>
           </motion.div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AlimentacionPage } from "@/components/AlimentacionPage";
+import { ProgramEventsPopup } from "@/components/ProgramEventsPopup";
 
 export const metadata: Metadata = {
   title: "Alimentación consciente | GAL'S Studio",
@@ -11,6 +12,10 @@ export default function AlimentacionRoutePage() {
   return (
     <div className="min-h-screen bg-[#f4f5f7]">
       <AlimentacionPage />
+      <ProgramEventsPopup
+        storageKey="gals-alimentacion-eventos-popup-seen"
+        dismissLabel="Ahora no, seguir con alimentación"
+      />
     </div>
   );
 }

@@ -333,19 +333,33 @@ function FeaturedExperience({
   event: GalsEvent;
   onRegister: () => void;
 }) {
+  const isPaid = event.kind === "paid";
+
   return (
     <section id={event.id} className="relative scroll-mt-16">
-      <div className="relative min-h-[78svh] overflow-hidden md:min-h-[85svh]">
+      <div
+        className={`relative min-h-[78svh] overflow-hidden md:min-h-[88svh] ${
+          isPaid
+            ? "ring-1 ring-inset ring-white/25 md:ring-white/30"
+            : ""
+        }`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={event.image}
           alt=""
           className="absolute inset-0 h-full w-full scale-105 object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-gals-ink/90 via-gals-ink/55 to-gals-ink/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gals-cream via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-gals-ink/92 via-gals-ink/60 to-gals-ink/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gals-cream via-transparent to-black/25" />
+        {isPaid ? (
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(197,204,212,0.22),transparent_55%)]"
+            aria-hidden
+          />
+        ) : null}
 
-        <div className="relative z-10 mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-14 pt-20 sm:px-5 md:min-h-[85svh] md:px-8 md:pb-20">
+        <div className="relative z-10 mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-14 pt-20 sm:px-5 md:min-h-[88svh] md:px-8 md:pb-20">
           <motion.div
             {...fadeUp}
             className="max-w-2xl"
@@ -354,8 +368,17 @@ function FeaturedExperience({
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="text-xs font-semibold tracking-[0.2em] text-gals-blue-soft uppercase">
-              Destacado · {event.dateLabel}
+            {isPaid ? (
+              <span className="inline-flex items-center rounded-full border border-white/35 bg-white/15 px-3.5 py-1 text-[10px] font-bold tracking-[0.18em] text-gals-cream uppercase backdrop-blur-sm">
+                Destacada
+              </span>
+            ) : null}
+            <p
+              className={`text-xs font-semibold tracking-[0.2em] text-gals-blue-soft uppercase ${
+                isPaid ? "mt-4" : ""
+              }`}
+            >
+              {event.dateLabel}
               {event.timeLabel ? ` · ${event.timeLabel}` : ""}
             </p>
             <h2 className="mt-3 font-display text-4xl tracking-tight text-white uppercase sm:text-5xl md:text-6xl lg:text-7xl">
@@ -368,9 +391,18 @@ function FeaturedExperience({
               {event.subhead}
             </p>
             {event.showPrice && event.price ? (
-              <p className="mt-4 font-display text-3xl text-gals-cream sm:text-4xl">
+              <p className="mt-5 font-display text-3xl text-gals-cream sm:text-4xl md:text-5xl">
                 {event.price}
               </p>
+            ) : null}
+
+            {isPaid && event.startsAt ? (
+              <div className="mt-8 max-w-md">
+                <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
+                  Empieza en
+                </p>
+                <CountdownBlocks iso={event.startsAt} />
+              </div>
             ) : null}
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -406,6 +438,7 @@ function MosaicCard({
 }) {
   const tall = variant === "tall";
   const withHongos = variant === "type";
+  const isPaid = event.kind === "paid";
 
   return (
     <motion.article
@@ -414,6 +447,10 @@ function MosaicCard({
         tall
           ? "min-h-[320px] sm:min-h-[360px]"
           : "min-h-[240px] sm:min-h-[280px]"
+      } ${
+        isPaid
+          ? "shadow-[0_18px_50px_rgba(85,104,148,0.28)] ring-2 ring-gals-blue-deep/25"
+          : ""
       }`}
       {...fadeUp}
     >
@@ -425,35 +462,56 @@ function MosaicCard({
       />
       <div
         className={`absolute inset-0 ${
-          withHongos
-            ? "bg-gradient-to-t from-gals-blue-deep/95 via-gals-blue-deep/55 to-gals-ink/30"
-            : "bg-gradient-to-t from-gals-ink/90 via-gals-ink/35 to-transparent"
+          isPaid
+            ? "bg-gradient-to-t from-gals-ink/95 via-gals-ink/45 to-gals-ink/20"
+            : withHongos
+              ? "bg-gradient-to-t from-gals-blue-deep/95 via-gals-blue-deep/55 to-gals-ink/30"
+              : "bg-gradient-to-t from-gals-ink/90 via-gals-ink/35 to-transparent"
         }`}
       />
 
+      {isPaid ? null : (
+        <span className="absolute top-4 left-4 z-[2] rounded-full border border-white/25 bg-black/25 px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-white/85 uppercase backdrop-blur-sm">
+          Gratis
+        </span>
+      )}
+
       <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
         <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
-          {event.kind === "free" ? "Gratis" : "Con inversión"} ·{" "}
           {event.dateLabel}
           {event.timeLabel ? ` · ${event.timeLabel}` : ""}
         </p>
-        <h3 className="mt-1 font-display text-xl uppercase text-white sm:text-2xl">
+        <h3
+          className={`mt-1 font-display uppercase text-white ${
+            isPaid ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
+          }`}
+        >
           {event.title}
         </h3>
-        {withHongos ? (
+        {withHongos || isPaid ? (
           <p className="mt-2 line-clamp-2 text-sm text-white/80">
             {event.subhead}
           </p>
         ) : null}
         {event.showPrice && event.price ? (
-          <p className="mt-1 font-display text-lg text-gals-blue-soft">
+          <p
+            className={`mt-1 font-display ${
+              isPaid
+                ? "text-xl text-gals-cream sm:text-2xl"
+                : "text-lg text-gals-blue-soft"
+            }`}
+          >
             {event.price}
           </p>
         ) : null}
         <button
           type="button"
           onClick={onRegister}
-          className="mt-4 rounded-full bg-gals-cream px-4 py-2 text-[11px] font-bold tracking-wide text-gals-blue-deep uppercase"
+          className={`mt-4 rounded-full px-4 py-2 text-[11px] font-bold tracking-wide uppercase ${
+            isPaid
+              ? "bg-gals-cream text-gals-blue-deep shadow-md"
+              : "bg-gals-cream text-gals-blue-deep"
+          }`}
         >
           Reservar cupo →
         </button>
@@ -616,6 +674,11 @@ export function EventosLanding() {
   const paidEvents = getActivePaidEvents();
   const featured = getFeaturedEvent() ?? paidEvents[0] ?? freeEvents[0];
   const liveEvent = getNextLiveEvent() ?? featured;
+  /** Contador y CTAs principales van al evento de pago destacado. */
+  const countdownEvent =
+    featured?.kind === "paid"
+      ? featured
+      : paidEvents[0] ?? liveEvent;
   const otherPaid = paidEvents.filter((e) => e.id !== featured?.id);
   const [register, setRegister] = useState<RegisterTarget | null>(null);
 
@@ -633,7 +696,7 @@ export function EventosLanding() {
     });
   };
 
-  if (!featured || !liveEvent) {
+  if (!featured || !countdownEvent) {
     return (
       <div className="flex min-h-[70svh] items-center justify-center bg-gals-cream px-5 text-center">
         <div>
@@ -666,10 +729,11 @@ export function EventosLanding() {
         >
           <source src={EVENTOS_HERO_VIDEO} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-gals-blue-deep/45 to-[#b7c4e0]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_25%,rgba(85,104,148,0.35)_100%)]" />
+        {/* Oscurecido suave solo para leer el texto; azul solo abajo para el fade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/25 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#b7c4e0] sm:h-28 md:h-32" />
 
-        <MiniHeader onRegister={() => openFor(liveEvent, "header")} />
+        <MiniHeader onRegister={() => openFor(countdownEvent, "header")} />
 
         <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-6xl flex-col justify-end px-4 pb-20 pt-8 sm:px-5 md:px-8 md:pb-24">
           <motion.p
@@ -708,7 +772,7 @@ export function EventosLanding() {
             transition={{ delay: 0.38 }}
           >
             <a
-              href={`#${liveEvent.id}`}
+              href={`#${countdownEvent.id}`}
               className="rounded-full bg-gals-cream px-7 py-3.5 text-sm font-bold tracking-wide text-gals-blue-deep uppercase shadow-lg transition-transform hover:scale-[1.02]"
             >
               Próximo evento
@@ -721,7 +785,7 @@ export function EventosLanding() {
             </a>
           </motion.div>
 
-          {liveEvent.startsAt ? (
+          {countdownEvent.startsAt ? (
             <motion.div
               className="mt-8 max-w-md"
               initial={{ opacity: 0, y: 16 }}
@@ -729,10 +793,12 @@ export function EventosLanding() {
               transition={{ delay: 0.45 }}
             >
               <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
-                {liveEvent.title} · {liveEvent.dateLabel}
-                {liveEvent.timeLabel ? ` · ${liveEvent.timeLabel}` : ""}
+                {countdownEvent.title} · {countdownEvent.dateLabel}
+                {countdownEvent.timeLabel
+                  ? ` · ${countdownEvent.timeLabel}`
+                  : ""}
               </p>
-              <CountdownBlocks iso={liveEvent.startsAt} />
+              <CountdownBlocks iso={countdownEvent.startsAt} />
             </motion.div>
           ) : null}
         </div>
@@ -754,7 +820,7 @@ export function EventosLanding() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={liveEvent.image}
+          src={countdownEvent.image}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -785,7 +851,7 @@ export function EventosLanding() {
           >
             <button
               type="button"
-              onClick={() => openFor(liveEvent, "cierre")}
+              onClick={() => openFor(countdownEvent, "cierre")}
               className="rounded-full bg-gals-cream px-7 py-3.5 text-sm font-bold tracking-wide text-gals-blue-deep uppercase"
             >
               Reservar mi cupo
@@ -794,7 +860,7 @@ export function EventosLanding() {
               type="button"
               className={`${BEWE_FORM_CLASS} rounded-full border border-white/40 px-6 py-3.5 text-sm font-semibold text-white uppercase`}
             >
-              Hablar con el studio
+              Te habla GALS
             </button>
           </motion.div>
           <p className="mt-10 text-[11px] text-white/50">
