@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { StarSticker } from "./Stickers";
 
 export function PolaroidFrame({
   children,
@@ -171,7 +170,6 @@ export function CreativeCapsule({
   badge,
   accent = "blue",
   className = "",
-  href = "#planes",
   image,
   textPosition = "bottom",
 }: {
@@ -180,7 +178,6 @@ export function CreativeCapsule({
   badge?: string;
   accent?: keyof typeof accentMap;
   className?: string;
-  href?: string;
   image?: string;
   textPosition?: "top" | "bottom";
 }) {
@@ -188,14 +185,12 @@ export function CreativeCapsule({
   const isTop = textPosition === "top";
 
   return (
-    <motion.a
-      href={href}
-      className={`group relative block min-h-[280px] overflow-hidden rounded-[2.2rem] p-6 shadow-[0_18px_50px_rgba(85,104,148,0.15)] md:min-h-[320px] md:p-8 ${className}`}
-      initial={{ opacity: 0, y: 36 }}
+    <motion.article
+      className={`group relative min-h-[260px] overflow-hidden p-6 md:min-h-[300px] md:p-8 ${className}`}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.25 }}
+      viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -8, scale: 1.015 }}
     >
       {image ? (
         <>
@@ -203,13 +198,13 @@ export function CreativeCapsule({
           <img
             src={image}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover"
           />
           <div
             className={`absolute inset-0 ${
               isTop
-                ? "bg-gradient-to-b from-black/80 via-black/40 to-black/15"
-                : "bg-gradient-to-t from-black/80 via-black/45 to-black/25"
+                ? "bg-gradient-to-b from-black/75 via-black/35 to-black/10"
+                : "bg-gradient-to-t from-black/75 via-black/40 to-black/20"
             }`}
           />
         </>
@@ -219,23 +214,16 @@ export function CreativeCapsule({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.25),transparent_45%)]" />
         </>
       )}
-      <StarSticker
-        className={`absolute left-6 z-20 opacity-80 ${
-          isTop ? "bottom-1/3" : "top-1/3"
-        }`}
-        size={22}
-        color="rgba(255,255,255,0.85)"
-      />
 
       <div
-        className={`relative z-10 flex h-full min-h-[240px] flex-col md:min-h-[270px] ${
+        className={`relative z-10 flex h-full min-h-[220px] flex-col md:min-h-[250px] ${
           isTop ? "justify-between" : "justify-end"
         }`}
       >
         <div>
-          <p className="font-script text-2xl text-white/95 md:text-3xl">{script}</p>
+          <p className="font-script text-xl text-white/95 md:text-2xl">{script}</p>
           <h3
-            className={`mt-1 font-display text-4xl leading-[0.9] tracking-tight uppercase md:text-5xl lg:text-6xl ${
+            className={`mt-1 font-display text-3xl leading-[0.9] tracking-tight uppercase md:text-4xl lg:text-5xl ${
               image ? "text-white" : a.title
             }`}
           >
@@ -250,10 +238,8 @@ export function CreativeCapsule({
           >
             {badge}
           </div>
-        ) : (
-          <div className={isTop ? "" : "mt-5"} />
-        )}
+        ) : null}
       </div>
-    </motion.a>
+    </motion.article>
   );
 }

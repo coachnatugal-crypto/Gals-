@@ -306,6 +306,7 @@ export function ImageSticker({
   blend = true,
   objectPosition = "center",
   height,
+  filter,
 }: {
   src: string;
   alt?: string;
@@ -318,6 +319,8 @@ export function ImageSticker({
   objectPosition?: "center" | "left" | "right";
   /** Alto opcional (para stickers verticales como hongos). */
   height?: number;
+  /** Filtro CSS (p. ej. hue-rotate para variantes de color). */
+  filter?: string;
 }) {
   const h = height ?? size;
   return (
@@ -350,6 +353,7 @@ export function ImageSticker({
         src={src}
         alt={alt}
         draggable={false}
+        style={filter ? { filter } : undefined}
         className={`h-full w-full object-contain drop-shadow-[0_14px_28px_rgba(26,42,53,0.28)] ${
           objectPosition === "right"
             ? "object-right"

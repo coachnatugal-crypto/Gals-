@@ -53,14 +53,20 @@ export const INSTAGRAM = "https://www.instagram.com/galstudio___";
 export const MEMBER_SPACE_URL = "https://web.bewe.co/be-well-club";
 export const BOOKING_URL = MEMBER_SPACE_URL;
 
+/** Solo anclas de la homepage — sin enlaces a reto/alimentación/eventos. */
 export const NAV_LINKS = [
   { href: "/#inicio", label: "Inicio" },
-  { href: "/programa", label: "En casa" },
-  { href: "/alimentacion", label: "Alimentación" },
   { href: "/#capsulas", label: "Programas" },
   { href: "/#planes", label: "Planes" },
   { href: "/#horario", label: "Horario" },
   { href: "/#experiencias", label: "Experiencias" },
+] as const;
+
+/** Menú móvil compacto */
+export const MENU_LINKS = [
+  { href: "/eventos", label: "Eventos" },
+  { href: "/#horario", label: "Clases" },
+  { href: "/#planes", label: "Planes" },
 ] as const;
 
 /** Valores de su home actual */

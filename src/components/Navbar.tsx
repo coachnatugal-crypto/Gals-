@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_LINKS, INSTAGRAM, WHATSAPP_COMMUNITY_URL, WHATSAPP_URL } from "@/lib/constants";
+import { MENU_LINKS, INSTAGRAM, WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 
 function InstagramIcon({ className = "" }: { className?: string }) {
   return (
@@ -58,205 +58,150 @@ export function Navbar() {
     };
   }, [open]);
 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   const lightNav = isHome && !scrolled;
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-[60] w-full max-w-[100vw] overflow-x-clip transition-all duration-300 ${
-        scrolled || !isHome
-          ? "bg-gals-cream/95 py-2 shadow-[0_1px_0_rgba(26,42,53,0.06)] backdrop-blur-md"
-          : "bg-gals-cream py-3 md:bg-transparent"
-      }`}
-    >
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
-        <Link
-          href="/"
-          className="relative z-50 flex h-11 w-28 shrink-0 items-center overflow-hidden sm:h-12 sm:w-36 lg:h-12 lg:w-40"
-        >
-          <Image
-            src="/brand/logos/logo.png"
-            alt="GAL'S Studio"
-            width={320}
-            height={128}
-            priority
-            className={`h-full w-full translate-y-1 scale-[2.85] object-contain object-center sm:translate-y-0.5 sm:scale-[3.1] lg:scale-[3.2] ${
-              lightNav ? "md:brightness-0 md:invert" : ""
-            }`}
-          />
-        </Link>
+    <>
+      <header
+        className={`fixed inset-x-0 top-0 z-[60] w-full max-w-[100vw] overflow-x-clip transition-all duration-300 ${
+          scrolled || !isHome
+            ? "bg-gals-cream/95 py-2 shadow-[0_1px_0_rgba(26,42,53,0.06)] backdrop-blur-md"
+            : "bg-gals-cream py-3 md:bg-transparent"
+        }`}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
+          <Link
+            href="/"
+            className="relative z-50 flex h-11 w-28 shrink-0 items-center overflow-hidden sm:h-12 sm:w-36 lg:h-12 lg:w-40"
+          >
+            <Image
+              src="/brand/logos/logo.png"
+              alt="GAL'S Studio"
+              width={320}
+              height={128}
+              priority
+              className={`h-full w-full translate-y-1 scale-[2.85] object-contain object-center sm:translate-y-0.5 sm:scale-[3.1] lg:scale-[3.2] ${
+                lightNav ? "md:brightness-0 md:invert" : ""
+              }`}
+            />
+          </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex">
-          {NAV_LINKS.slice(0, 5).map((link) => {
-            const isRoute =
-              link.href.startsWith("/") && !link.href.startsWith("/#");
-            const active = isRoute
-              ? pathname === link.href
-              : isHome && link.href.startsWith("/#");
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`font-display text-xs tracking-[0.18em] uppercase transition-opacity hover:opacity-60 ${
-                  lightNav
-                    ? "text-white drop-shadow"
-                    : "text-gals-blue-deep"
-                } ${active && isRoute ? "underline underline-offset-4" : ""}`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="hidden items-center gap-8 lg:flex">
+            {MENU_LINKS.map((link) => {
+              const isRoute =
+                link.href.startsWith("/") && !link.href.startsWith("/#");
+              const active = isRoute
+                ? pathname === link.href
+                : isHome && link.href.startsWith("/#");
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`font-display text-xs tracking-[0.18em] uppercase transition-opacity hover:opacity-60 ${
+                    lightNav
+                      ? "text-white drop-shadow"
+                      : "text-gals-blue-deep"
+                  } ${active && isRoute ? "underline underline-offset-4" : ""}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="hidden items-center gap-4 lg:flex">
-          <button
-            type="button"
-            className={`bewe-book-btn font-display text-xs tracking-[0.14em] uppercase ${
-              lightNav
-                ? "text-white drop-shadow"
-                : "text-gals-blue-deep"
-            }`}
-          >
-            Reservar
-          </button>
-          <button
-            type="button"
-            className={`bewe-login-btn font-display text-xs tracking-[0.14em] uppercase ${
-              lightNav
-                ? "text-white drop-shadow"
-                : "text-gals-blue-deep"
-            }`}
-          >
-            Mi espacio
-          </button>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`rounded-full border px-5 py-2 font-display text-xs tracking-[0.14em] uppercase transition-colors ${
-              lightNav
-                ? "border-white/80 text-white hover:bg-white hover:text-gals-blue-deep"
-                : "border-gals-blue-deep text-gals-blue-deep hover:bg-gals-blue-deep hover:text-white"
-            }`}
-          >
-            Contáctanos
-          </a>
+          {/* Acciones extra solo en móvil vía menú; en PC mismo set que el cel */}
+          <div className="hidden w-28 shrink-0 lg:block" aria-hidden />
+
+          <div className="relative z-50 flex shrink-0 items-center gap-0.5 lg:hidden">
+            <a
+              href={INSTAGRAM}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram de GAL'S"
+              className="flex h-10 w-10 items-center justify-center text-gals-blue-deep transition-opacity hover:opacity-70"
+            >
+              <InstagramIcon className="h-[1.15rem] w-[1.15rem]" />
+            </a>
+            <a
+              href={WHATSAPP_COMMUNITY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Comunidad de WhatsApp GAL'S"
+              className="flex h-10 w-10 items-center justify-center text-gals-blue-deep transition-opacity hover:opacity-70"
+            >
+              <WhatsAppIcon className="h-[1.2rem] w-[1.2rem]" />
+            </a>
+            <button
+              type="button"
+              aria-label={open ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={open}
+              className="-mr-1 flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-gals-blue-deep"
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span
+                className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-transform ${
+                  open ? "translate-y-[7.5px] rotate-45" : ""
+                }`}
+              />
+              <span
+                className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-opacity ${
+                  open ? "opacity-0" : ""
+                }`}
+              />
+              <span
+                className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-transform ${
+                  open ? "-translate-y-[7.5px] -rotate-45" : ""
+                }`}
+              />
+            </button>
+          </div>
         </div>
+      </header>
 
-        <div className="relative z-50 flex shrink-0 items-center gap-0.5 lg:hidden">
-          <a
-            href={INSTAGRAM}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram de GAL'S"
-            className="flex h-10 w-10 items-center justify-center text-gals-blue-deep transition-opacity hover:opacity-70"
-          >
-            <InstagramIcon className="h-[1.15rem] w-[1.15rem]" />
-          </a>
-          <a
-            href={WHATSAPP_COMMUNITY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Comunidad de WhatsApp GAL'S"
-            className="flex h-10 w-10 items-center justify-center text-gals-blue-deep transition-opacity hover:opacity-70"
-          >
-            <WhatsAppIcon className="h-[1.2rem] w-[1.2rem]" />
-          </a>
-          <button
-            type="button"
-            aria-label={open ? "Cerrar menú" : "Abrir menú"}
-            className="-mr-1 flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-gals-blue-deep"
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span
-              className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-transform ${
-                open ? "translate-y-[7.5px] rotate-45" : ""
-              }`}
-            />
-            <span
-              className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-opacity ${
-                open ? "opacity-0" : ""
-              }`}
-            />
-            <span
-              className={`block h-[2.5px] w-6 rounded-full bg-gals-blue-deep transition-transform ${
-                open ? "-translate-y-[7.5px] -rotate-45" : ""
-              }`}
-            />
-          </button>
-        </div>
-      </div>
-
+      {/* Fuera del header: overflow-x-clip rompía fixed inset-0 en móvil */}
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-gals-cream lg:hidden"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[55] bg-gals-cream/55 backdrop-blur-md lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú de navegación"
+            onClick={() => setOpen(false)}
           >
-            <nav className="flex h-full flex-col items-center justify-center gap-7 px-6">
-              <div className="mb-6 flex h-20 w-56 items-center justify-center overflow-hidden sm:h-24 sm:w-64">
-                <Image
-                  src="/brand/logos/logo.png"
-                  alt="GAL'S Studio"
-                  width={320}
-                  height={128}
-                  className="h-full w-full scale-[2.45] object-contain"
-                />
-              </div>
-              {NAV_LINKS.map((link, i) => (
-                <motion.div
-                  key={link.href}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 * i }}
-                >
-                  <Link
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="font-display text-2xl tracking-[0.14em] text-gals-blue-deep uppercase"
+            <nav
+              className="flex flex-col items-center px-6 pt-24 pb-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex w-full max-w-xs flex-col items-center gap-5">
+                {MENU_LINKS.map((link, i) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.04 * i }}
                   >
-                    {link.label}
-                  </Link>
-                </motion.div>
-              ))}
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.28 }}
-                className="bewe-book-btn font-display text-2xl tracking-[0.14em] text-gals-blue-deep uppercase"
-                onClick={() => setOpen(false)}
-              >
-                Reservar
-              </motion.button>
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32 }}
-                className="bewe-login-btn font-display text-2xl tracking-[0.14em] text-gals-blue-deep uppercase"
-                onClick={() => setOpen(false)}
-              >
-                Mi espacio
-              </motion.button>
-              <motion.a
-                href={WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.38 }}
-                className="mt-4 rounded-full bg-gals-blue-deep px-8 py-3.5 font-display text-sm tracking-[0.14em] text-white uppercase"
-                onClick={() => setOpen(false)}
-              >
-                Contáctanos
-              </motion.a>
+                    <Link
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className="font-display text-xl tracking-[0.16em] text-gals-blue-deep uppercase drop-shadow-sm"
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

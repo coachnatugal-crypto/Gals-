@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProgramChallenge } from "@/components/ProgramChallenge";
+import { ProgramEventsPopup } from "@/components/ProgramEventsPopup";
 
 export const metadata: Metadata = {
   title: "Reto Pilates en casa | GAL'S Studio",
@@ -9,7 +10,8 @@ export const metadata: Metadata = {
 
 export default function ProgramaPage() {
   return (
-    <div className="min-h-screen bg-[#f4f5f7]">
+    <div className="bg-[#f4f5f7]">
+      <ProgramEventsPopup />
       <ProgramChallenge />
     </div>
   );

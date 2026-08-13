@@ -1,8 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { BeweWidgets } from "@/components/BeweWidgets";
-import { BeweChat } from "@/components/BeweChat";
+import { SiteFloaters } from "@/components/SiteFloaters";
 
 export default function SiteLayout({
   children,
@@ -14,9 +13,8 @@ export default function SiteLayout({
       <Navbar />
       <main>{children}</main>
       <Footer />
-      <WhatsAppButton />
       <BeweWidgets />
-      <BeweChat />
+      <SiteFloaters />
     </>
   );
 }

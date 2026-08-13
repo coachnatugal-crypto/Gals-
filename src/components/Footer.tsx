@@ -1,7 +1,38 @@
+"use client";
+
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { INSTAGRAM, NAV_LINKS, WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 
+const LOGO_ONLY = ["/programa"];
+
 export function Footer() {
+  const pathname = usePathname();
+  const logoOnly = LOGO_ONLY.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+
+  if (logoOnly) {
+    return (
+      <footer className="border-t border-gals-silver/30 bg-white py-5">
+        <div className="mx-auto flex max-w-6xl justify-center px-5 md:px-8">
+          <a
+            href="/"
+            className="flex h-14 w-44 items-center overflow-hidden sm:h-16 sm:w-52"
+          >
+            <Image
+              src="/brand/logos/logo.png"
+              alt="GAL'S Studio"
+              width={320}
+              height={128}
+              className="h-full w-full scale-[2.55] object-contain"
+            />
+          </a>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="border-t border-gals-silver/30 bg-white py-12">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-5 md:flex-row md:items-start md:justify-between md:px-8">

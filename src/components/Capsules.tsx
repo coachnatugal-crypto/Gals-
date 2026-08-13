@@ -12,7 +12,7 @@ export function Capsules() {
   return (
     <section
       id="capsulas"
-      className="relative overflow-visible bg-gals-cream pb-10 pt-8 md:pb-12 md:pt-10"
+      className="relative overflow-visible bg-gals-cream pb-10 pt-8 md:pb-14 md:pt-10"
     >
       <ImageSticker
         src={STICKER_ASSETS.tapete}
@@ -55,8 +55,8 @@ export function Capsules() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            Elige tu camino a través de una combinación de pilates, barre y yin
-            yoga.
+            Pilates, barre y yin yoga viven juntos en GAL&apos;S: un mismo
+            movimiento, distintas formas de volver a ti.
           </motion.p>
 
           <motion.div
@@ -105,50 +105,66 @@ export function Capsules() {
           </motion.div>
         </div>
 
-        <div className="relative mt-12 grid gap-5">
+        {/* Un solo bloque visual — no tarjetas sueltas */}
+        <motion.div
+          className="relative mt-10 overflow-hidden rounded-[1.75rem] md:mt-12 md:rounded-[2rem]"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          aria-label="El ecosistema de movimiento GAL'S"
+        >
           <CreativeCapsule
             title="PILATES"
             script="Fortalece desde adentro."
             accent="deep"
-            href="#planes"
-            className="min-h-[300px] md:min-h-[340px]"
+            className="min-h-[280px] md:min-h-[320px]"
             image="/media/capsules/pilates.jpg"
           />
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid md:grid-cols-2">
             <CreativeCapsule
               title="BARRE"
               script="Tonifica sin exigencia."
               accent="blue"
-              href="#planes"
               image="/media/capsules/IMG_4387.jpg"
+              className="border-t border-white/20 md:border-r"
             />
             <CreativeCapsule
               title="YIN YOGA"
               script="Tu pausa en medio del ruido."
               accent="green"
-              href="#planes"
               image="/media/capsules/IMG_6986.jpg"
+              className="border-t border-white/20"
             />
           </div>
-          <div className="relative grid gap-5 md:grid-cols-2">
+          <div className="grid md:grid-cols-2">
             <CreativeCapsule
               title="SCULPT"
               script="Suda, siente, transforma."
               accent="blue"
-              href="#planes"
               image="/media/capsules/_DSC4460.jpg"
               textPosition="top"
+              className="border-t border-white/20 md:border-r"
             />
             <CreativeCapsule
               title="EXPERIENCIAS GAL'S"
               script="Nutrición, mentalidad y comunidad en un solo espacio."
               accent="deep"
-              href="#experiencias"
               image="/media/capsules/IMG_7077.jpg"
               textPosition="top"
+              className="border-t border-white/20"
             />
           </div>
-        </div>
+        </motion.div>
+
+        <motion.p
+          className="mx-auto mt-6 max-w-md text-center text-sm text-gals-muted md:mt-8 md:text-base"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+        >
+          Todo forma parte del mismo camino dentro del studio.
+        </motion.p>
       </div>
     </section>
   );
