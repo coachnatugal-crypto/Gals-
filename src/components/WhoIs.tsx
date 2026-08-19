@@ -227,6 +227,16 @@ export function WhoIs() {
                   <p className="absolute bottom-2.5 left-0 right-0 text-center font-display text-[10px] tracking-[0.18em] text-gals-ink uppercase sm:bottom-3 sm:text-[11px]">
                     GAL&apos;S Studio
                   </p>
+
+                  {/* Flor en esquina inferior izquierda del polaroid (móvil) */}
+                  <ImageSticker
+                    src={STICKER_ASSETS.flor}
+                    className="-bottom-12 -left-4 z-30 sm:-bottom-14 sm:-left-5"
+                    size={72}
+                    height={88}
+                    rotate={-18}
+                    blend={false}
+                  />
                 </div>
               </motion.div>
             </div>
@@ -336,15 +346,6 @@ export function WhoIs() {
             focused ? "z-0" : ""
           }`}
         >
-          {/* Flor móvil: al lado de “Un lugar para”, sin cortarse con el nav */}
-          <ImageSticker
-            src={STICKER_ASSETS.flor}
-            className="-left-1 top-0 z-[3] md:hidden sm:left-2"
-            size={78}
-            height={96}
-            rotate={-14}
-            blend={false}
-          />
           <div className="mx-auto flex max-w-xl flex-col items-center text-center md:mx-0 md:max-w-2xl md:items-start md:text-left">
             <motion.h2
               className="font-display text-[2.4rem] leading-[1.02] tracking-tight sm:text-5xl md:text-6xl"

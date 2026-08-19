@@ -12,21 +12,21 @@ const CLASS_STEPS = [
     label: "Pilates",
     id: "pilates",
     arc: "fuerza",
-    whisper: "Abrís el cuerpo.",
+    whisper: "Conectas con tu cuerpo.",
   },
   {
     n: "02",
     label: "Barre",
     id: "barre",
     arc: "control",
-    whisper: "Activás con conciencia.",
+    whisper: "Despiertas tu fuerza.",
   },
   {
     n: "03",
     label: "Yin",
     id: "yin",
-    arc: "suelta",
-    whisper: "Cerrás y volvés a ti.",
+    arc: "calma",
+    whisper: "Conectas con tu centro.",
   },
 ] as const;
 
@@ -124,16 +124,7 @@ export function Capsules() {
           onMouseLeave={() => setPaused(false)}
         >
           <div className="relative z-30 bg-gradient-to-b from-gals-cream to-gals-cream/90 px-4 py-3.5 sm:px-6 md:py-4">
-            <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between sm:gap-4">
-              <motion.p
-                className="font-script text-2xl leading-none text-gals-blue-deep md:text-3xl"
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-              >
-                una sola clase
-              </motion.p>
-
+            <div className="flex flex-col items-center gap-3">
               <div
                 className="flex items-center gap-1 sm:gap-1.5"
                 role="tablist"
@@ -181,7 +172,7 @@ export function Capsules() {
             {/* Duración + arco de la clase */}
             <div className="mt-3 flex flex-col items-center gap-2 sm:mt-3.5">
               <p className="font-display text-[10px] tracking-[0.16em] text-gals-ink/55 uppercase sm:text-[11px]">
-                ~45 min · fuerza → control → suelta
+                ~45 min · fuerza → control → calma
               </p>
               <div
                 className="h-[3px] w-full max-w-xs overflow-hidden rounded-full bg-gals-blue/15 sm:max-w-sm"
@@ -220,7 +211,7 @@ export function Capsules() {
           />
 
           <div
-            className="relative z-20 -my-3 flex items-center justify-center md:-my-4"
+            className="relative z-20 -my-5 flex items-center justify-center md:-my-6"
             aria-hidden
           >
             <span className="absolute inset-x-8 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-white/70 to-transparent md:inset-x-16" />
@@ -228,7 +219,7 @@ export function Capsules() {
             <span className="absolute left-[18%] top-1/2 hidden h-2 w-2 -translate-y-1/2 rounded-full bg-gals-cream shadow md:block" />
             <span className="absolute right-[18%] top-1/2 hidden h-2 w-2 -translate-y-1/2 rounded-full bg-gals-cream shadow md:block" />
             <motion.p
-              className="relative rounded-full bg-gals-cream/95 px-4 py-1 font-script text-2xl text-gals-blue-deep shadow-[0_8px_24px_rgba(26,42,53,0.12)] md:px-5 md:text-3xl"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-gals-cream/95 font-display text-xl font-semibold leading-none text-gals-blue-deep shadow-[0_8px_24px_rgba(26,42,53,0.12)] md:h-10 md:w-10 md:text-2xl"
               initial={{ opacity: 0, y: 6 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -237,7 +228,7 @@ export function Capsules() {
                 scale: active === 0 || active === 1 ? 1.04 : 1,
               }}
             >
-              luego
+              +
             </motion.p>
           </div>
 
@@ -252,12 +243,12 @@ export function Capsules() {
             />
 
             <div
-              className="relative z-20 -my-3 flex items-center justify-center md:absolute md:inset-y-0 md:left-1/2 md:my-0 md:w-auto md:-translate-x-1/2 md:flex-col"
+              className="relative z-20 -my-5 flex items-center justify-center md:absolute md:inset-y-0 md:left-1/2 md:my-0 md:w-auto md:-translate-x-1/2 md:flex-col"
               aria-hidden
             >
               <span className="absolute inset-x-10 top-1/2 h-px -translate-y-1/2 bg-white/60 md:hidden" />
               <motion.p
-                className="relative rounded-full bg-gals-cream/95 px-3 py-1.5 font-script text-xl text-gals-blue-deep shadow-[0_8px_24px_rgba(26,42,53,0.12)] md:px-2.5 md:py-3 md:text-2xl"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full bg-gals-cream/95 font-display text-xl font-semibold leading-none text-gals-blue-deep shadow-[0_8px_24px_rgba(26,42,53,0.12)] md:h-10 md:w-10 md:text-2xl"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -266,7 +257,7 @@ export function Capsules() {
                   scale: active === 1 || active === 2 ? 1.06 : 1,
                 }}
               >
-                y
+                +
               </motion.p>
             </div>
 

@@ -192,7 +192,7 @@ export function HeroIntro() {
 
             <ImageSticker
               src={STICKER_ASSETS.bola}
-              className="-bottom-10 -left-4 sm:-bottom-4 sm:-left-12"
+              className="-bottom-16 -left-4 sm:-bottom-14 sm:-left-12"
               size={88}
               rotate={-16}
               float
