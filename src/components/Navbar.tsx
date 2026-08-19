@@ -74,10 +74,10 @@ export function Navbar() {
             : "bg-gals-cream py-3.5 md:bg-transparent md:py-4"
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 pl-5 pr-4 sm:gap-4 sm:px-5 md:px-8">
           <Link
             href="/"
-            className="relative z-50 flex h-12 w-32 shrink-0 items-center justify-start overflow-visible sm:h-14 sm:w-40 lg:h-14 lg:w-44"
+            className="relative z-50 flex h-11 w-[9.5rem] shrink-0 items-center justify-start overflow-visible sm:h-14 sm:w-40 lg:h-14 lg:w-44"
           >
             <Image
               src="/brand/logos/logo.png"
@@ -85,7 +85,7 @@ export function Navbar() {
               width={320}
               height={128}
               priority
-              className={`h-full w-full scale-[2.35] object-contain object-left sm:scale-[2.5] lg:scale-[2.55] ${
+              className={`h-full w-full origin-left scale-[1.75] object-contain object-left sm:origin-center sm:scale-[2.5] lg:scale-[2.55] ${
                 lightNav ? "md:brightness-0 md:invert" : ""
               }`}
             />

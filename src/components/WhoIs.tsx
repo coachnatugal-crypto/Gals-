@@ -336,6 +336,15 @@ export function WhoIs() {
             focused ? "z-0" : ""
           }`}
         >
+          {/* Flor móvil: al lado de “Un lugar para”, sin cortarse con el nav */}
+          <ImageSticker
+            src={STICKER_ASSETS.flor}
+            className="-left-1 top-0 z-[3] md:hidden sm:left-2"
+            size={78}
+            height={96}
+            rotate={-14}
+            blend={false}
+          />
           <div className="mx-auto flex max-w-xl flex-col items-center text-center md:mx-0 md:max-w-2xl md:items-start md:text-left">
             <motion.h2
               className="font-display text-[2.4rem] leading-[1.02] tracking-tight sm:text-5xl md:text-6xl"
@@ -374,21 +383,13 @@ export function WhoIs() {
         </div>
       </div>
 
-      {/* Flor arriba a la izquierda (desktop) */}
+      {/* Flor arriba a la izquierda (solo desktop) */}
       <ImageSticker
         src={STICKER_ASSETS.flor}
         className="top-10 left-4 hidden md:block lg:top-12 lg:left-8"
         size={140}
         height={160}
         rotate={-10}
-        blend={false}
-      />
-      <ImageSticker
-        src={STICKER_ASSETS.flor}
-        className="top-6 left-2 md:hidden"
-        size={64}
-        height={80}
-        rotate={-12}
         blend={false}
       />
 
