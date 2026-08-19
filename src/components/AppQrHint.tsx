@@ -19,30 +19,14 @@ function detectStore(): StoreKind {
 }
 
 function storeCopy(kind: StoreKind) {
-  if (kind === "ios") {
-    return {
-      short: "App Store",
-      hint: "Mira el video o escanea el QR (App Store)",
-      scan: "Escanea y ve a App Store",
-      open: "Abrir App Store →",
-      aria: "Descargar la app en App Store",
-    };
-  }
-  if (kind === "android") {
-    return {
-      short: "Play Store",
-      hint: "Mira el video o escanea el QR (Play Store)",
-      scan: "Escanea y ve a Play Store",
-      open: "Abrir Play Store →",
-      aria: "Descargar la app en Play Store",
-    };
-  }
+  // Texto neutro: el link Bewe abre App Store o Play Store según el dispositivo.
+  void kind;
   return {
-    short: "App Store / Play Store",
-    hint: "Mira el video o escanea el QR (App Store o Play Store)",
+    short: "tienda de apps",
+    hint: "Mira el video o escanea el QR para descargar la app",
     scan: "Escanea y descarga la app",
-    open: "Abrir tienda de apps →",
-    aria: "Descargar la app (App Store o Play Store)",
+    open: "Descargar ahora →",
+    aria: "Descargar la app GAL'S",
   };
 }
 
