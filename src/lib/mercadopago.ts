@@ -42,53 +42,74 @@ export async function createEventCheckoutPreference(input: PreferenceInput) {
     throw new Error("Mercado Pago no configurado (MP_ACCESS_TOKEN)");
   }
 
+  if (!Number.isFinite(input.unitPrice) || input.unitPrice <= 0) {
+    throw new Error("Monto de pago inválido");
+  }
+
   const site = getSiteUrl();
+  if (!site.startsWith("https://") && !site.includes("localhost")) {
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL debe ser https:// en producción para Mercado Pago",
+    );
+  }
+
   const client = new MercadoPagoConfig({ accessToken });
   const preference = new Preference(client);
 
-  const result = await preference.create({
-    body: {
-      items: [
-        {
-          id: input.eventId,
-          title: input.title.slice(0, 250),
-          quantity: input.quantity ?? 1,
-          unit_price: input.unitPrice,
-          currency_id: "COP",
+  try {
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: input.eventId,
+            title: input.title.slice(0, 250),
+            quantity: input.quantity ?? 1,
+            unit_price: input.unitPrice,
+            currency_id: "COP",
+          },
+        ],
+        payer: {
+          name: input.payerName,
         },
-      ],
-      payer: {
-        name: input.payerName,
+        metadata: {
+          eventId: input.eventId,
+          registrationId: input.registrationId,
+          whatsapp: input.payerWhatsapp,
+          name: input.payerName,
+        },
+        external_reference: input.registrationId,
+        notification_url: `${site}/api/mercadopago/webhook`,
+        back_urls: {
+          success: `${site}/eventos?pago=ok`,
+          failure: `${site}/eventos?pago=error`,
+          pending: `${site}/eventos?pago=pendiente`,
+        },
+        auto_return: "approved",
+        statement_descriptor: "GALS EVENTOS",
       },
-      metadata: {
-        eventId: input.eventId,
-        registrationId: input.registrationId,
-        whatsapp: input.payerWhatsapp,
-        name: input.payerName,
-      },
-      external_reference: input.registrationId,
-      notification_url: `${site}/api/mercadopago/webhook`,
-      back_urls: {
-        success: `${site}/eventos?pago=ok`,
-        failure: `${site}/eventos?pago=error`,
-        pending: `${site}/eventos?pago=pendiente`,
-      },
-      auto_return: "approved",
-      statement_descriptor: "GALS EVENTOS",
-    },
-  });
+    });
 
-  const initPoint =
-    result.init_point ||
-    result.sandbox_init_point ||
-    null;
+    const initPoint =
+      result.init_point ||
+      result.sandbox_init_point ||
+      null;
 
-  if (!initPoint) {
-    throw new Error("Mercado Pago no devolvió URL de pago");
+    if (!initPoint) {
+      throw new Error("Mercado Pago no devolvió URL de pago");
+    }
+
+    return {
+      id: result.id,
+      initPoint,
+    };
+  } catch (err) {
+    const detail =
+      err && typeof err === "object" && "message" in err
+        ? String((err as { message: unknown }).message)
+        : err instanceof Error
+          ? err.message
+          : "Error Mercado Pago";
+    console.error("[mercadopago] preference.create", detail, err);
+    throw new Error(detail || "No se pudo crear la preferencia de pago");
   }
-
-  return {
-    id: result.id,
-    initPoint,
-  };
 }

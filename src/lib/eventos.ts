@@ -358,7 +358,10 @@ export function getEventPriceAmount(event: GalsEvent): number | null {
     return event.priceAmount;
   }
   if (event.kind !== "paid") return null;
-  const fromLabel = event.price?.replace(/[^\d]/g, "");
+  // Si el label trae varios precios ("Público $99.000 · Gals $40.000"),
+  // usar solo el primero para no concatenar dígitos.
+  const firstChunk = (event.price ?? "").split(/[·|/]| - /)[0] ?? "";
+  const fromLabel = firstChunk.replace(/[^\d]/g, "");
   if (!fromLabel) return null;
   const n = Number(fromLabel);
   return Number.isFinite(n) && n > 0 ? n : null;

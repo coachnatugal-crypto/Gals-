@@ -267,11 +267,17 @@ export async function POST(request: Request) {
             rollbackErr,
           );
         }
+        const detail =
+          mpError instanceof Error ? mpError.message : "Error Mercado Pago";
+        const isConfig =
+          /MP_ACCESS_TOKEN|no configurado|SITE_URL|https/i.test(detail);
         return NextResponse.json(
           {
             ok: false,
-            error:
-              "No se pudo abrir el pago. Intenta de nuevo o escríbenos por WhatsApp.",
+            error: isConfig
+              ? "Pago no configurado en el servidor. Revisá Mercado Pago en Vercel."
+              : "No se pudo abrir el pago. Intenta de nuevo o escríbenos por WhatsApp.",
+            detail,
           },
           { status: 502 },
         );
