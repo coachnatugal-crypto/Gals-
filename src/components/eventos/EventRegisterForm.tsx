@@ -59,13 +59,15 @@ export function EventRegisterForm({
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         error?: string;
+        detail?: string;
         beweAfter?: "form" | "packs";
         checkoutUrl?: string;
         needsPriceConfirm?: boolean;
       };
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "No se pudo registrar");
+        const msg = [data.error, data.detail].filter(Boolean).join(" — ");
+        throw new Error(msg || "No se pudo registrar");
       }
 
       /** Checkout Mercado Pago */
