@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
@@ -8,15 +8,33 @@ import { WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
 const BG = "/media/eventos/popup-eventos.jpg";
 
 type Props = {
-  /** Clave sessionStorage para no repetir en la misma sesión. */
+  /** Clave sessionStorage (entrada). El final usa `${storageKey}-end`. */
   storageKey?: string;
   /**
    * `enter`: al cargar.
    * `end`: al llegar a `#page-end`.
-   * `enter-and-end`: ambos (mismo popup).
+   * `enter-and-end`: ambos (mismo diseño; claves aparte).
    */
   trigger?: "enter" | "end" | "enter-and-end";
 };
+
+type Active = "enter" | "end";
+
+function readSeen(key: string) {
+  try {
+    return sessionStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSeen(key: string) {
+  try {
+    sessionStorage.setItem(key, "1");
+  } catch {
+    /* ignore */
+  }
+}
 
 /** Popup: invita a la Semana GAL'S y a la comunidad. */
 export function ProgramEventsPopup({
@@ -24,43 +42,44 @@ export function ProgramEventsPopup({
   trigger = "enter",
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<Active>("enter");
+  const openRef = useRef(false);
+  const enterKey = storageKey;
+  const endKey = `${storageKey}-end`;
 
   useEffect(() => {
-    const alreadySeen = () => {
-      try {
-        return sessionStorage.getItem(storageKey) === "1";
-      } catch {
-        return false;
-      }
-    };
+    openRef.current = open;
+  }, [open]);
 
-    if (alreadySeen()) return;
-
-    const show = () => {
-      if (alreadySeen()) return;
+  useEffect(() => {
+    const show = (which: Active) => {
+      if (openRef.current) return;
+      const key = which === "end" ? endKey : enterKey;
+      if (readSeen(key)) return;
+      setActive(which);
       setOpen(true);
     };
 
     const cleanups: Array<() => void> = [];
 
     if (trigger === "enter" || trigger === "enter-and-end") {
-      const t = window.setTimeout(show, 550);
-      cleanups.push(() => window.clearTimeout(t));
+      if (!readSeen(enterKey)) {
+        const t = window.setTimeout(() => show("enter"), 550);
+        cleanups.push(() => window.clearTimeout(t));
+      }
     }
 
     if (trigger === "end" || trigger === "enter-and-end") {
       const target = document.getElementById("page-end");
-      if (target) {
-        let shownByEnd = false;
+      if (target && !readSeen(endKey)) {
         const io = new IntersectionObserver(
           (entries) => {
             const hit = entries.some((e) => e.isIntersecting);
-            if (!hit || shownByEnd || alreadySeen()) return;
-            shownByEnd = true;
-            show();
+            if (!hit || readSeen(endKey) || openRef.current) return;
+            show("end");
             io.disconnect();
           },
-          { threshold: 0.35, rootMargin: "0px 0px -8% 0px" },
+          { threshold: 0.2, rootMargin: "0px 0px -5% 0px" },
         );
         io.observe(target);
         cleanups.push(() => io.disconnect());
@@ -70,7 +89,7 @@ export function ProgramEventsPopup({
     return () => {
       cleanups.forEach((fn) => fn());
     };
-  }, [storageKey, trigger]);
+  }, [trigger, enterKey, endKey]);
 
   useEffect(() => {
     if (!open) return;
@@ -96,11 +115,22 @@ export function ProgramEventsPopup({
   }, [open]);
 
   function dismiss() {
+    writeSeen(active === "end" ? endKey : enterKey);
     setOpen(false);
-    try {
-      sessionStorage.setItem(storageKey, "1");
-    } catch {
-      /* ignore */
+
+    // Si cerró el de entrada y ya está al final, mostrar el del final.
+    if (active === "enter" && !readSeen(endKey)) {
+      window.setTimeout(() => {
+        if (openRef.current || readSeen(endKey)) return;
+        const el = document.getElementById("page-end");
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const vh = window.innerHeight || 0;
+        if (rect.top < vh && rect.bottom > 0) {
+          setActive("end");
+          setOpen(true);
+        }
+      }, 400);
     }
   }
 
