@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BEWE_BOOK_CLASS, BEWE_CENTER_ID, BEWE_CLASSES_EMBED } from "@/lib/bewe";
+import { AppQrHint } from "@/components/AppQrHint";
 
 /**
  * Reserva / horario embebido (widget Bewe: clases).
@@ -66,13 +67,14 @@ export function BeweSchedule() {
         </p>
       ) : null}
 
-      <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+      <div className="flex flex-col items-center gap-4 px-2 pb-2 pt-1 sm:gap-5">
         <button
           type="button"
-          className={`${BEWE_BOOK_CLASS} inline-flex rounded-full border border-gals-blue-deep/30 bg-white px-6 py-3 text-sm font-semibold text-gals-blue-deep transition-transform hover:scale-[1.03]`}
+          className={`${BEWE_BOOK_CLASS} inline-flex rounded-full bg-gals-blue px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03]`}
         >
           Reservar clase
         </button>
+        <AppQrHint />
       </div>
     </div>
   );
