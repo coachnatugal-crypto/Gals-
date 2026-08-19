@@ -68,6 +68,6 @@ export async function POST(request: Request) {
     html,
     eventId: event.id,
     eventTitle: event.title,
-    subject: `GAL'S · Confirmación · ${event.title}`,
+    subject: `Inscripción confirmada · ${event.title}`,
   });
 }

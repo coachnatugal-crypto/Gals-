@@ -16,7 +16,126 @@ import {
 import type { EventKind, GalsEvent } from "@/lib/eventos";
 import { EventCoverPicker } from "@/components/admin/EventCoverPicker";
 
-type Tab = "resumen" | "eventos" | "inscritos" | "editor";
+type Tab = "resumen" | "eventos" | "inscritos" | "correos" | "editor";
+
+const VENUE_STUDIO =
+  "GAL'S Studio · Calle 97 #10-28, Chicó Reservado, Bogotá";
+const VENUE_OUTDOOR = "Aire libre · Bogotá";
+
+const BULK_EMAIL_TEMPLATES = [
+  {
+    id: "recordatorio",
+    label: "Recordatorio",
+    hint: "Un día antes",
+    subject: "Recordatorio · {{evento}} te espera en GAL'S",
+    ctaTarget: "event" as const,
+    ctaLabel: "Ver el evento",
+    ctaUrl: "",
+    message: `{{nombre}}, te escribimos para recordarte que ya casi es el día de {{evento}}.
+
+Guardá tu lugar, llegá con tiempo y traé ganas de moverte.
+
+Si tenés alguna duda, respondé este correo o escribinos por WhatsApp.
+
+Nos vemos pronto,
+GAL'S`,
+  },
+  {
+    id: "manana",
+    label: "Mañana es el día",
+    hint: "Víspera",
+    subject: "Mañana · {{evento}}",
+    ctaTarget: "event" as const,
+    ctaLabel: "Ver el evento",
+    ctaUrl: "",
+    message: `{{nombre}}, mañana nos vemos en {{evento}}.
+
+Tip rápido: llegá unos minutos antes, traé agua y ropa cómoda.
+
+Estamos listas para recibirte.
+
+Con cariño,
+GAL'S`,
+  },
+  {
+    id: "gracias",
+    label: "Gracias por venir",
+    hint: "Post evento",
+    subject: "Gracias por vivir {{evento}} con nosotras",
+    ctaTarget: "custom" as const,
+    ctaLabel: "Ver próximos eventos",
+    ctaUrl: "/eventos#agenda",
+    message: `{{nombre}}, gracias por sumarte a {{evento}}.
+
+Ojalá te hayas sentido cuidada, movida y en comunidad.
+
+Si querés seguir el camino GAL'S, te esperamos en clase y en nuestros próximos encuentros.
+
+Un abrazo,
+GAL'S`,
+  },
+  {
+    id: "pago",
+    label: "Pago pendiente",
+    hint: "Cobro",
+    subject: "Tu cupo en {{evento}} · falta completar el pago",
+    ctaTarget: "event" as const,
+    ctaLabel: "Completar inscripción",
+    ctaUrl: "",
+    message: `{{nombre}}, quedaste inscrita en {{evento}}, pero todavía no vemos el pago confirmado.
+
+Cuando completes el pago, tu cupo queda asegurado.
+
+Si ya pagaste, escribinos y lo revisamos juntas.
+
+GAL'S`,
+  },
+  {
+    id: "info",
+    label: "Info práctica",
+    hint: "Lugar y hora",
+    subject: "Info práctica · {{evento}}",
+    ctaTarget: "event" as const,
+    ctaLabel: "Ver el evento",
+    ctaUrl: "",
+    message: `{{nombre}}, te compartimos lo esencial para {{evento}}:
+
+• Fecha: {{fecha}}
+• Hora: {{hora}}
+• Lugar: {{lugar}}
+• Traé mat si lo tenés (si no, te ayudamos en el studio)
+
+Cualquier duda, estamos.
+
+GAL'S`,
+  },
+  {
+    id: "cupos",
+    label: "Quedan cupos",
+    hint: "Urgencia suave",
+    subject: "Todavía hay lugar en {{evento}}",
+    ctaTarget: "event" as const,
+    ctaLabel: "Reservar cupo",
+    ctaUrl: "",
+    message: `{{nombre}}, queríamos avisarte: todavía hay cupos para {{evento}}.
+
+Si querés venir, aseguralo pronto para no quedarte afuera.
+
+Te esperamos,
+GAL'S`,
+  },
+] as const;
+
+function applyBulkTemplate(
+  template: (typeof BULK_EMAIL_TEMPLATES)[number],
+  eventTitle: string,
+) {
+  const title = eventTitle.trim() || "tu evento GAL'S";
+  return {
+    subject: template.subject.replaceAll("{{evento}}", title),
+    message: template.message.replaceAll("{{evento}}", title),
+  };
+}
 
 const fade = {
   initial: { opacity: 0, y: 12 },
@@ -209,6 +328,30 @@ export function EventosAdminPanel() {
   const [emailPreviewHtml, setEmailPreviewHtml] = useState<string | null>(null);
   const [emailPreviewSubject, setEmailPreviewSubject] = useState("");
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [bulkEventId, setBulkEventId] = useState("");
+  const [bulkStatus, setBulkStatus] = useState<
+    "all" | AdminRegistration["status"]
+  >("all");
+  const [bulkSubject, setBulkSubject] = useState("");
+  const [bulkMessage, setBulkMessage] = useState("");
+  const [sendingBulk, setSendingBulk] = useState(false);
+  const [bulkExtraEmail, setBulkExtraEmail] = useState("");
+  const [bulkExtraName, setBulkExtraName] = useState("");
+  const [sendingBulkExtra, setSendingBulkExtra] = useState(false);
+  const [bulkDesign, setBulkDesign] = useState({
+    badge: "Para ti",
+    accent: "#8799c4",
+    showLogo: true,
+    showCover: true,
+    coverUrl: "",
+    showDetails: true,
+    ctaLabel: "Reservar cupo",
+    ctaTarget: "event" as "event" | "whatsapp" | "custom",
+    ctaUrl: "",
+    showWhatsAppLink: true,
+    signOff: "Con cariño,\nGAL'S Studio",
+  });
+  const [loadingBulkPreview, setLoadingBulkPreview] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -382,6 +525,90 @@ export function EventosAdminPanel() {
       );
   }, [regs, filterEventId, filterStatus, search, tab]);
 
+  const bulkRecipients = useMemo(() => {
+    const eventId = bulkEventId || events[0]?.id || "";
+    if (!eventId) return [];
+    const list = regs.filter((r) => {
+      if (r.eventId !== eventId) return false;
+      if (r.status === "cancelado") return false;
+      if (bulkStatus !== "all" && r.status !== bulkStatus) return false;
+      const email = r.email?.trim().toLowerCase() ?? "";
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    });
+    const seen = new Set<string>();
+    return list.filter((r) => {
+      const email = r.email!.trim().toLowerCase();
+      if (seen.has(email)) return false;
+      seen.add(email);
+      return true;
+    });
+  }, [regs, events, bulkEventId, bulkStatus]);
+
+  const bulkExtraEmails = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const part of bulkExtraEmail.split(/[,;\s]+/)) {
+      const email = part.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || seen.has(email)) {
+        continue;
+      }
+      seen.add(email);
+      out.push(email);
+    }
+    return out;
+  }, [bulkExtraEmail]);
+
+  const bulkSendTotal = bulkRecipients.length + bulkExtraEmails.filter(
+    (email) =>
+      !bulkRecipients.some(
+        (r) => r.email?.trim().toLowerCase() === email,
+      ),
+  ).length;
+
+  const inscritosStatusFilters = useMemo(() => {
+    const base =
+      filterEventId === "all"
+        ? regs
+        : regs.filter((r) => r.eventId === filterEventId);
+    const count = (status: AdminRegistration["status"] | "all") =>
+      status === "all"
+        ? base.length
+        : base.filter((r) => r.status === status).length;
+    return [
+      { id: "all" as const, label: "Todas", count: count("all"), hint: "Sin filtro" },
+      {
+        id: "pendiente_pago" as const,
+        label: "Pendiente pago",
+        count: count("pendiente_pago"),
+        hint: "Esperan pagar",
+      },
+      {
+        id: "pagado" as const,
+        label: "Pagado",
+        count: count("pagado"),
+        hint: "Pago OK",
+      },
+      {
+        id: "confirmado" as const,
+        label: "Confirmado",
+        count: count("confirmado"),
+        hint: "Listas",
+      },
+      {
+        id: "nuevo" as const,
+        label: "Nuevo",
+        count: count("nuevo"),
+        hint: "Recién inscritas",
+      },
+      {
+        id: "cancelado" as const,
+        label: "Cancelado",
+        count: count("cancelado"),
+        hint: "Baja",
+      },
+    ];
+  }, [regs, filterEventId]);
+
   const eventTitle = (id: string) =>
     events.find((e) => e.id === id)?.title ?? id;
 
@@ -449,6 +676,177 @@ export function EventosAdminPanel() {
       flash(err instanceof Error ? err.message : "Error al cargar preview");
     } finally {
       setLoadingPreview(false);
+    }
+  }
+
+  async function sendBulkEmail() {
+    const eventId = bulkEventId || events[0]?.id || "";
+    if (!eventId) {
+      flash("Elegí un evento");
+      return;
+    }
+    if (bulkSubject.trim().length < 3) {
+      flash("Escribí un asunto");
+      return;
+    }
+    if (bulkMessage.trim().length < 5) {
+      flash("Escribí el mensaje");
+      return;
+    }
+    if (bulkSendTotal === 0) {
+      flash("No hay destinatarias: agregá inscritas o un correo extra");
+      return;
+    }
+    const okConfirm = window.confirm(
+      `¿Enviar correo a ${bulkSendTotal} destinataria(s) de «${eventTitle(eventId)}»?`,
+    );
+    if (!okConfirm) return;
+
+    setSendingBulk(true);
+    try {
+      const res = await fetch("/api/admin/eventos/bulk-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          subject: bulkSubject.trim(),
+          message: bulkMessage.trim(),
+          statusFilter: bulkStatus,
+          extraEmails: bulkExtraEmails,
+          extraName: bulkExtraName.trim() || "GAL'S",
+          design: {
+            ...bulkDesign,
+            coverUrl: bulkDesign.coverUrl.trim() || undefined,
+            ctaUrl: bulkDesign.ctaUrl.trim() || undefined,
+          },
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        sent?: number;
+        total?: number;
+        failed?: string[];
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo enviar");
+      }
+      const failN = data.failed?.length ?? 0;
+      flash(
+        failN > 0
+          ? `Enviados ${data.sent}/${data.total}. Fallaron ${failN}.`
+          : `Correo enviado a ${data.sent} persona(s)`,
+      );
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al enviar masivo");
+    } finally {
+      setSendingBulk(false);
+    }
+  }
+
+  async function sendBulkExtraOnly() {
+    const eventId = bulkEventId || events[0]?.id || "";
+    if (!eventId) {
+      flash("Elegí un evento");
+      return;
+    }
+    if (bulkExtraEmails.length === 0) {
+      flash("Agregá al menos un correo extra");
+      return;
+    }
+    if (bulkSubject.trim().length < 3) {
+      flash("Escribí un asunto (o elegí una plantilla)");
+      return;
+    }
+    if (bulkMessage.trim().length < 5) {
+      flash("Escribí el mensaje (o elegí una plantilla)");
+      return;
+    }
+
+    setSendingBulkExtra(true);
+    try {
+      const res = await fetch("/api/admin/eventos/bulk-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          subject: bulkSubject.trim(),
+          message: bulkMessage.trim(),
+          extraEmails: bulkExtraEmails,
+          extraName: bulkExtraName.trim() || "GAL'S",
+          onlyExtras: true,
+          design: {
+            ...bulkDesign,
+            coverUrl: bulkDesign.coverUrl.trim() || undefined,
+            ctaUrl: bulkDesign.ctaUrl.trim() || undefined,
+          },
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        sent?: number;
+        failed?: string[];
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo enviar");
+      }
+      flash(
+        data.failed?.length
+          ? `Parcial: ${data.sent} ok, falló ${data.failed.join(", ")}`
+          : `Enviado a ${bulkExtraEmails.join(", ")}`,
+      );
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al enviar");
+    } finally {
+      setSendingBulkExtra(false);
+    }
+  }
+
+  async function previewBulkEmail() {
+    const eventId = bulkEventId || events[0]?.id || "";
+    if (!eventId) {
+      flash("Elegí un evento");
+      return;
+    }
+    if (bulkMessage.trim().length < 3 && bulkSubject.trim().length < 3) {
+      flash("Elegí una plantilla o escribí asunto/mensaje");
+      return;
+    }
+    setLoadingBulkPreview(true);
+    try {
+      const res = await fetch("/api/admin/eventos/bulk-email-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          name: bulkExtraName.trim() || "Naty",
+          subject: bulkSubject.trim() || "Preview · {{evento}}",
+          message:
+            bulkMessage.trim() ||
+            "{{nombre}}, este es un preview del correo de {{evento}}.",
+          design: {
+            ...bulkDesign,
+            coverUrl: bulkDesign.coverUrl.trim() || undefined,
+            ctaUrl: bulkDesign.ctaUrl.trim() || undefined,
+          },
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        html?: string;
+        subject?: string;
+      };
+      if (!res.ok || !data.ok || !data.html) {
+        throw new Error(data.error || "No se pudo generar el preview");
+      }
+      setEmailPreviewHtml(data.html);
+      setEmailPreviewSubject(data.subject || "Preview GAL'S");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al cargar preview");
+    } finally {
+      setLoadingBulkPreview(false);
     }
   }
 
@@ -801,6 +1199,7 @@ export function EventosAdminPanel() {
     { id: "resumen", label: "Resumen" },
     { id: "eventos", label: "Eventos" },
     { id: "inscritos", label: "Inscritos" },
+    { id: "correos", label: "Correos" },
     { id: "editor", label: editingId ? "Editar" : "Crear" },
   ];
 
@@ -1288,6 +1687,21 @@ export function EventosAdminPanel() {
                                 >
                                   {e.kind === "free" ? "Gratis" : "Pago"}
                                 </Chip>
+                                <Chip
+                                  tone={
+                                    /aire libre|parque|exterior/i.test(e.place)
+                                      ? "green"
+                                      : "blue"
+                                  }
+                                >
+                                  {/aire libre|parque|exterior/i.test(e.place)
+                                    ? "Aire libre"
+                                    : /studio|calle 97|chicó|chico/i.test(
+                                          e.place,
+                                        )
+                                      ? "Studio"
+                                      : "Lugar"}
+                                </Chip>
                                 <Chip tone={published ? "green" : "amber"}>
                                   {published ? "Publicado" : "Borrador"}
                                 </Chip>
@@ -1300,7 +1714,9 @@ export function EventosAdminPanel() {
                                 {e.timeLabel ? ` · ${e.timeLabel}` : ""}
                                 {" · "}
                                 {e.capacity
-                                  ? `Cupo ${taken}/${e.capacity}`
+                                  ? `Cupos ${taken}/${e.capacity}${
+                                      taken >= e.capacity ? " · LLENO" : ""
+                                    }`
                                   : `Inscritos ${taken} · sin límite`}
                                 {e.showPrice && e.price
                                   ? ` · ${e.price}`
@@ -1308,6 +1724,23 @@ export function EventosAdminPanel() {
                                     ? " · precio oculto"
                                     : ""}
                               </p>
+                              {e.capacity && e.capacity > 0 ? (
+                                <div className="mt-2 h-1.5 max-w-[220px] overflow-hidden rounded-full bg-gals-blue-deep/10">
+                                  <div
+                                    className={`h-full rounded-full ${
+                                      taken >= e.capacity
+                                        ? "bg-amber-500"
+                                        : "bg-gals-blue-deep"
+                                    }`}
+                                    style={{
+                                      width: `${Math.min(
+                                        100,
+                                        Math.round((taken / e.capacity) * 100),
+                                      )}%`,
+                                    }}
+                                  />
+                                </div>
+                              ) : null}
                             </div>
                           </div>
 
@@ -1463,12 +1896,28 @@ export function EventosAdminPanel() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex flex-wrap items-center gap-2">
+              <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_12px_40px_rgba(85,104,148,0.06)] backdrop-blur-sm">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.16em] text-gals-muted uppercase">
+                      Filtros
+                    </p>
+                    <h3 className="font-display text-lg uppercase text-gals-blue-deep">
+                      Ver inscritas por estado
+                    </h3>
+                  </div>
+                  <p className="text-xs font-semibold text-gals-muted tabular-nums">
+                    {filteredRegs.length} resultado
+                    {filteredRegs.length === 1 ? "" : "s"}
+                  </p>
+                </div>
+
+                <div className="mt-4">
+                  <label className={labelClass}>Evento</label>
                   <select
                     value={filterEventId}
                     onChange={(e) => setFilterEventId(e.target.value)}
-                    className={`${inputClass} max-w-[220px]`}
+                    className={inputClass}
                   >
                     <option value="all">Todos los eventos</option>
                     {events.map((e) => (
@@ -1477,35 +1926,64 @@ export function EventosAdminPanel() {
                       </option>
                     ))}
                   </select>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) =>
-                      setFilterStatus(
-                        e.target.value as
-                          | "all"
-                          | AdminRegistration["status"],
-                      )
-                    }
-                    className={`${inputClass} max-w-[160px]`}
-                  >
-                    <option value="all">Todos los estados</option>
-                    <option value="nuevo">Nuevo</option>
-                    <option value="pendiente_pago">Pendiente pago</option>
-                    <option value="pagado">Pagado</option>
-                    <option value="confirmado">Confirmado</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
-                  <p className="text-xs font-semibold text-gals-muted tabular-nums">
-                    {filteredRegs.length} resultado
-                    {filteredRegs.length === 1 ? "" : "s"}
-                  </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {inscritosStatusFilters.map((f) => {
+                    const active = filterStatus === f.id;
+                    const tone =
+                      f.id === "pendiente_pago"
+                        ? active
+                          ? "bg-amber-500 text-white shadow-md shadow-amber-500/25"
+                          : "bg-amber-50 text-amber-950 ring-1 ring-amber-200/80 hover:bg-amber-100"
+                        : f.id === "pagado" || f.id === "confirmado"
+                          ? active
+                            ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                            : "bg-emerald-50 text-emerald-950 ring-1 ring-emerald-200/80 hover:bg-emerald-100"
+                          : f.id === "cancelado"
+                            ? active
+                              ? "bg-gals-ink text-white"
+                              : "bg-gals-ink/5 text-gals-muted ring-1 ring-gals-ink/10 hover:bg-gals-ink/10"
+                            : active
+                              ? "bg-gals-blue-deep text-white shadow-md shadow-gals-blue-deep/20"
+                              : "bg-white text-gals-ink ring-1 ring-gals-blue-deep/12 hover:bg-gals-blue-soft/50";
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFilterStatus(f.id)}
+                        className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left transition ${tone}`}
+                      >
+                        <span>
+                          <span className="block text-sm font-semibold">
+                            {f.label}
+                          </span>
+                          <span
+                            className={`mt-0.5 block text-[11px] ${
+                              active ? "text-white/75" : "text-gals-muted"
+                            }`}
+                          >
+                            {f.hint}
+                          </span>
+                        </span>
+                        <span
+                          className={`font-display text-2xl tabular-nums ${
+                            active ? "text-white" : "text-gals-blue-deep"
+                          }`}
+                        >
+                          {f.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Buscar nombre, email o WhatsApp…"
-                    className={`${inputClass} lg:max-w-xs`}
+                    className={`${inputClass} flex-1`}
                   />
                   <button
                     type="button"
@@ -1627,6 +2105,562 @@ export function EventosAdminPanel() {
             </motion.div>
           ) : null}
 
+          {tab === "correos" ? (
+            <motion.div key="correos" className="mt-8 space-y-5" {...fade}>
+              <div className="overflow-hidden rounded-[1.75rem] border border-white/70 bg-white shadow-[0_18px_50px_rgba(85,104,148,0.1)]">
+                <div className="relative overflow-hidden bg-gradient-to-br from-gals-blue-deep via-[#3d4d73] to-gals-blue-mid px-5 py-7 text-white sm:px-8 sm:py-9">
+                  <div
+                    className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute bottom-0 left-10 h-24 w-24 rounded-full bg-gals-blue-soft/20 blur-xl"
+                    aria-hidden
+                  />
+                  <p className="relative text-[11px] font-semibold tracking-[0.2em] text-white/70 uppercase">
+                    Comunicación
+                  </p>
+                  <h2 className="relative mt-2 font-display text-3xl tracking-tight uppercase sm:text-4xl">
+                    Correos masivos
+                  </h2>
+                  <p className="relative mt-2 max-w-xl text-sm text-white/80 sm:text-base">
+                    Avisos, recordatorios o info del evento a todas las
+                    inscritas con email.
+                  </p>
+                  <div className="relative mt-6 grid max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                      <p className="text-[10px] tracking-wide text-white/65 uppercase">
+                        Destinatarias
+                      </p>
+                      <p className="mt-1 font-display text-3xl tabular-nums">
+                        {bulkSendTotal}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                      <p className="text-[10px] tracking-wide text-white/65 uppercase">
+                        Eventos
+                      </p>
+                      <p className="mt-1 font-display text-3xl tabular-nums">
+                        {events.length}
+                      </p>
+                    </div>
+                    <div className="col-span-2 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm sm:col-span-1">
+                      <p className="text-[10px] tracking-wide text-white/65 uppercase">
+                        Canal
+                      </p>
+                      <p className="mt-1 font-script text-2xl text-gals-cream">
+                        Resend
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6 p-5 sm:p-7">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.16em] text-gals-muted uppercase">
+                      1 · A quién
+                    </p>
+                    <div className="mt-3 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+                      <div>
+                        <label className={labelClass} htmlFor="bulk-event">
+                          Evento
+                        </label>
+                        <select
+                          id="bulk-event"
+                          className={inputClass}
+                          value={bulkEventId || events[0]?.id || ""}
+                          onChange={(e) => setBulkEventId(e.target.value)}
+                        >
+                          {events.length === 0 ? (
+                            <option value="">Sin eventos</option>
+                          ) : (
+                            events.map((e) => (
+                              <option key={e.id} value={e.id}>
+                                {e.title}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={labelClass}>Estado</label>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {(
+                            [
+                              ["all", "Todas"],
+                              ["pendiente_pago", "Pend. pago"],
+                              ["pagado", "Pagado"],
+                              ["confirmado", "Confirmado"],
+                              ["nuevo", "Nuevo"],
+                            ] as const
+                          ).map(([id, label]) => (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => setBulkStatus(id)}
+                              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
+                                bulkStatus === id
+                                  ? "bg-gals-blue-deep text-white"
+                                  : "bg-gals-blue-soft/60 text-gals-ink ring-1 ring-gals-blue-deep/10"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-dashed border-gals-blue-deep/20 bg-gals-blue-soft/25 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-gals-blue-deep">
+                        Lista de envío
+                      </p>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-gals-blue-deep tabular-nums shadow-sm">
+                        {bulkSendTotal} emails
+                      </span>
+                    </div>
+                    {bulkRecipients.length > 0 ? (
+                      <ul className="mt-3 grid max-h-40 gap-1.5 overflow-y-auto sm:grid-cols-2">
+                        {bulkRecipients.slice(0, 24).map((r) => (
+                          <li
+                            key={r.id}
+                            className="truncate rounded-xl bg-white/90 px-3 py-2 text-xs text-gals-ink ring-1 ring-gals-blue-deep/8"
+                          >
+                            <span className="font-semibold">{r.name}</span>
+                            <span className="mt-0.5 block truncate text-gals-muted">
+                              {r.email}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-3 text-sm text-gals-muted">
+                        Nadie con email válido en este filtro. Podés agregar
+                        correos extra abajo.
+                      </p>
+                    )}
+                    {bulkRecipients.length > 24 ? (
+                      <p className="mt-2 text-xs font-medium text-gals-muted">
+                        +{bulkRecipients.length - 24} más en el envío
+                      </p>
+                    ) : null}
+
+                    <div className="mt-4 border-t border-gals-blue-deep/10 pt-4">
+                      <p className="text-[10px] font-semibold tracking-[0.14em] text-gals-muted uppercase">
+                        Correos extra
+                      </p>
+                      <p className="mt-1 text-xs text-gals-muted">
+                        Sumá mails que no estén en la lista (vos, otra persona,
+                        etc.). Entran en el envío general.
+                      </p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-[1.4fr_1fr]">
+                        <div>
+                          <label
+                            className={labelClass}
+                            htmlFor="bulk-extra-email"
+                          >
+                            Email(s)
+                          </label>
+                          <input
+                            id="bulk-extra-email"
+                            className={inputClass}
+                            value={bulkExtraEmail}
+                            onChange={(e) => setBulkExtraEmail(e.target.value)}
+                            placeholder="tu@email.com, otro@email.com"
+                            autoComplete="email"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            className={labelClass}
+                            htmlFor="bulk-extra-name"
+                          >
+                            Nombre (para extras)
+                          </label>
+                          <input
+                            id="bulk-extra-name"
+                            className={inputClass}
+                            value={bulkExtraName}
+                            onChange={(e) => setBulkExtraName(e.target.value)}
+                            placeholder="Ej. Naty"
+                          />
+                        </div>
+                      </div>
+                      {bulkExtraEmails.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          {bulkExtraEmails.map((email) => (
+                            <span
+                              key={email}
+                              className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-gals-blue-deep ring-1 ring-gals-blue-deep/12"
+                            >
+                              {email}
+                            </span>
+                          ))}
+                          <button
+                            type="button"
+                            disabled={
+                              sendingBulkExtra || events.length === 0
+                            }
+                            onClick={() => void sendBulkExtraOnly()}
+                            className="rounded-full bg-gals-blue-deep/90 px-3.5 py-1.5 text-[11px] font-bold tracking-wide text-white uppercase transition hover:bg-gals-blue-deep disabled:opacity-55"
+                          >
+                            {sendingBulkExtra
+                              ? "Enviando…"
+                              : "Enviar solo a extras"}
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.16em] text-gals-muted uppercase">
+                      2 · Qué enviar
+                    </p>
+                    <p className="mt-2 text-sm text-gals-muted">
+                      Elegí una plantilla o escribí desde cero. Se personaliza
+                      con el nombre de cada inscrita. Podés usar{" "}
+                      <code className="rounded bg-gals-blue-soft/80 px-1 text-[11px]">
+                        {"{{nombre}}"}
+                      </code>
+                      ,{" "}
+                      <code className="rounded bg-gals-blue-soft/80 px-1 text-[11px]">
+                        {"{{evento}}"}
+                      </code>
+                      ,{" "}
+                      <code className="rounded bg-gals-blue-soft/80 px-1 text-[11px]">
+                        {"{{fecha}}"}
+                      </code>
+                      ,{" "}
+                      <code className="rounded bg-gals-blue-soft/80 px-1 text-[11px]">
+                        {"{{hora}}"}
+                      </code>
+                      ,{" "}
+                      <code className="rounded bg-gals-blue-soft/80 px-1 text-[11px]">
+                        {"{{lugar}}"}
+                      </code>
+                      .
+                    </p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {BULK_EMAIL_TEMPLATES.map((tpl) => (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          onClick={() => {
+                            const next = applyBulkTemplate(
+                              tpl,
+                              eventTitle(bulkEventId || events[0]?.id || ""),
+                            );
+                            setBulkSubject(next.subject);
+                            setBulkMessage(next.message);
+                            if (tpl.id === "pago") {
+                              setBulkStatus("pendiente_pago");
+                            }
+                            setBulkDesign((d) => ({
+                              ...d,
+                              badge: tpl.label,
+                              ctaTarget: tpl.ctaTarget,
+                              ctaLabel: tpl.ctaLabel,
+                              ctaUrl: tpl.ctaUrl,
+                              showWhatsAppLink: true,
+                            }));
+                          }}
+                          className="rounded-2xl border border-gals-blue-deep/10 bg-gradient-to-br from-white to-gals-blue-soft/30 px-4 py-3.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-gals-blue-deep/25 hover:shadow-md"
+                        >
+                          <span className="block text-sm font-semibold text-gals-blue-deep">
+                            {tpl.label}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] text-gals-muted">
+                            {tpl.hint}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className={labelClass} htmlFor="bulk-subject">
+                          Asunto
+                        </label>
+                        <input
+                          id="bulk-subject"
+                          className={inputClass}
+                          value={bulkSubject}
+                          onChange={(e) => setBulkSubject(e.target.value)}
+                          placeholder="Ej. Recordatorio · mañana nos vemos en GAL'S"
+                        />
+                      </div>
+                      <div>
+                        <label className={labelClass} htmlFor="bulk-message">
+                          Mensaje
+                        </label>
+                        <textarea
+                          id="bulk-message"
+                          className={`${inputClass} min-h-[180px] resize-y leading-relaxed`}
+                          value={bulkMessage}
+                          onChange={(e) => setBulkMessage(e.target.value)}
+                          placeholder={
+                            "Hola! Te escribimos para recordarte…\n\nNos vemos en el studio."
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-gals-blue-deep/12 bg-white p-4 sm:p-5">
+                    <p className="text-[10px] font-semibold tracking-[0.16em] text-gals-muted uppercase">
+                      3 · Diseño del correo
+                    </p>
+                    <p className="mt-2 text-sm text-gals-muted">
+                      Configurá logo, imagen, color y textos del diseño. El
+                      mensaje de arriba va adentro de esta plantilla.
+                    </p>
+
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <p className={labelClass}>Color de acento</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {(
+                            [
+                              ["#8799c4", "Marca"],
+                              ["#556894", "Azul profundo"],
+                              ["#6b7fb0", "Periwinkle"],
+                              ["#6fad86", "Verde"],
+                              ["#1a2a35", "Ink"],
+                            ] as const
+                          ).map(([hex, label]) => (
+                            <button
+                              key={hex}
+                              type="button"
+                              onClick={() =>
+                                setBulkDesign((d) => ({ ...d, accent: hex }))
+                              }
+                              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold ring-1 transition ${
+                                bulkDesign.accent === hex
+                                  ? "bg-gals-blue-deep text-white ring-gals-blue-deep"
+                                  : "bg-gals-blue-soft/50 text-gals-ink ring-gals-blue-deep/10"
+                              }`}
+                            >
+                              <span
+                                className="h-3 w-3 rounded-full ring-1 ring-black/10"
+                                style={{ background: hex }}
+                              />
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className={labelClass} htmlFor="bulk-badge">
+                            Frase bajo el logo
+                          </label>
+                          <input
+                            id="bulk-badge"
+                            className={inputClass}
+                            value={bulkDesign.badge}
+                            onChange={(e) =>
+                              setBulkDesign((d) => ({
+                                ...d,
+                                badge: e.target.value,
+                              }))
+                            }
+                            placeholder="Para ti · Recordatorio…"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass} htmlFor="bulk-cta">
+                            Texto del botón
+                          </label>
+                          <input
+                            id="bulk-cta"
+                            className={inputClass}
+                            value={bulkDesign.ctaLabel}
+                            onChange={(e) =>
+                              setBulkDesign((d) => ({
+                                ...d,
+                                ctaLabel: e.target.value,
+                              }))
+                            }
+                            placeholder="Reservar cupo"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className={labelClass}>Botón principal va a</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {(
+                            [
+                              ["event", "Landing del evento"],
+                              ["whatsapp", "WhatsApp"],
+                              ["custom", "URL custom"],
+                            ] as const
+                          ).map(([id, label]) => (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() =>
+                                setBulkDesign((d) => ({
+                                  ...d,
+                                  ctaTarget: id,
+                                  ctaLabel:
+                                    id === "whatsapp" &&
+                                    d.ctaTarget !== "whatsapp"
+                                      ? "WhatsApp GAL'S"
+                                      : id === "event" &&
+                                          d.ctaTarget !== "event"
+                                        ? "Reservar cupo"
+                                        : d.ctaLabel,
+                                }))
+                              }
+                              className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition ${
+                                bulkDesign.ctaTarget === id
+                                  ? "bg-gals-blue-deep text-white"
+                                  : "bg-gals-blue-soft/60 text-gals-ink ring-1 ring-gals-blue-deep/10"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        {bulkDesign.ctaTarget === "event" ? (
+                          <p className="mt-2 text-xs text-gals-muted">
+                            Abre{" "}
+                            <code className="rounded bg-gals-blue-soft/80 px-1">
+                              /eventos#…
+                            </code>{" "}
+                            para que se inscriban en la landing.
+                          </p>
+                        ) : null}
+                        {bulkDesign.ctaTarget === "custom" ? (
+                          <div className="mt-3">
+                            <label
+                              className={labelClass}
+                              htmlFor="bulk-cta-url"
+                            >
+                              URL del botón
+                            </label>
+                            <input
+                              id="bulk-cta-url"
+                              className={inputClass}
+                              value={bulkDesign.ctaUrl}
+                              onChange={(e) =>
+                                setBulkDesign((d) => ({
+                                  ...d,
+                                  ctaUrl: e.target.value,
+                                }))
+                              }
+                              placeholder="https://… o /eventos"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div>
+                        <label className={labelClass} htmlFor="bulk-cover-url">
+                          Imagen del mail (opcional)
+                        </label>
+                        <input
+                          id="bulk-cover-url"
+                          className={inputClass}
+                          value={bulkDesign.coverUrl}
+                          onChange={(e) =>
+                            setBulkDesign((d) => ({
+                              ...d,
+                              coverUrl: e.target.value,
+                            }))
+                          }
+                          placeholder="Vacío = imagen del evento · o URL /media/…"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClass} htmlFor="bulk-signoff">
+                          Firma / cierre
+                        </label>
+                        <textarea
+                          id="bulk-signoff"
+                          className={`${inputClass} min-h-[72px] resize-y`}
+                          value={bulkDesign.signOff}
+                          onChange={(e) =>
+                            setBulkDesign((d) => ({
+                              ...d,
+                              signOff: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            ["showLogo", "Logo GAL'S"],
+                            ["showCover", "Imagen"],
+                            ["showDetails", "Fecha y lugar"],
+                            ["showWhatsAppLink", "Link WhatsApp"],
+                          ] as const
+                        ).map(([key, label]) => {
+                          const on = bulkDesign[key];
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() =>
+                                setBulkDesign((d) => ({ ...d, [key]: !on }))
+                              }
+                              className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition ${
+                                on
+                                  ? "bg-gals-blue-deep text-white"
+                                  : "bg-gals-blue-soft/60 text-gals-muted ring-1 ring-gals-blue-deep/10"
+                              }`}
+                            >
+                              {on ? "✓ " : ""}
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={loadingBulkPreview || events.length === 0}
+                        onClick={() => void previewBulkEmail()}
+                        className="w-full rounded-full bg-gals-cream px-5 py-3 text-xs font-bold tracking-wide text-gals-blue-deep uppercase ring-1 ring-gals-blue-deep/15 transition hover:bg-white disabled:opacity-55 sm:w-auto"
+                      >
+                        {loadingBulkPreview
+                          ? "Generando…"
+                          : "Ver preview del correo"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 border-t border-gals-blue-deep/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs text-gals-muted">
+                      Canceladas no se incluyen. Correos extra sí.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={
+                        sendingBulk ||
+                        events.length === 0 ||
+                        bulkSendTotal === 0
+                      }
+                      onClick={() => void sendBulkEmail()}
+                      className="inline-flex items-center justify-center rounded-full bg-gals-blue-deep px-8 py-3.5 text-xs font-bold tracking-wide text-white uppercase shadow-[0_12px_28px_rgba(47,61,92,0.28)] transition hover:scale-[1.02] disabled:opacity-55 disabled:hover:scale-100"
+                    >
+                      {sendingBulk
+                        ? "Enviando…"
+                        : `Enviar a ${bulkSendTotal}`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : null}
+
           {tab === "editor" ? (
             <motion.div key="editor" className="mt-8 space-y-4 pb-8" {...fade}>
               <div>
@@ -1651,36 +2685,48 @@ export function EventosAdminPanel() {
                 </div>
                 <div>
                   <label className={labelClass}>Tipo</label>
-                  <select
-                    className={inputClass}
-                    value={draft.kind}
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        kind: e.target.value as EventKind,
-                        eyebrow:
-                          e.target.value === "free"
-                            ? "Evento gratis"
-                            : "Experiencia paga",
-                        beweAfter:
-                          e.target.value === "free" ? "form" : "packs",
-                        cta:
-                          e.target.value === "free"
-                            ? "Reservar mi cupo gratis"
-                            : "Pagar y reservar",
-                        price:
-                          e.target.value === "free"
-                            ? "Gratis"
-                            : d.price === "Gratis"
-                              ? ""
-                              : d.price,
-                        showPrice: true,
-                      }))
-                    }
-                  >
-                    <option value="paid">Pago</option>
-                    <option value="free">Gratis</option>
-                  </select>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {(
+                      [
+                        ["paid", "Pago"],
+                        ["free", "Gratis"],
+                      ] as const
+                    ).map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            kind: id,
+                            eyebrow:
+                              id === "free"
+                                ? "Evento gratis"
+                                : "Experiencia paga",
+                            beweAfter: id === "free" ? "form" : "packs",
+                            cta:
+                              id === "free"
+                                ? "Reservar mi cupo gratis"
+                                : "Pagar y reservar",
+                            price:
+                              id === "free"
+                                ? "Gratis"
+                                : d.price === "Gratis"
+                                  ? ""
+                                  : d.price,
+                            showPrice: true,
+                          }))
+                        }
+                        className={`rounded-full px-4 py-2 text-[11px] font-bold uppercase transition ${
+                          draft.kind === id
+                            ? "bg-gals-blue-deep text-white"
+                            : "bg-white text-gals-muted ring-1 ring-gals-blue-deep/15"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className={labelClass}>Eyebrow</label>
@@ -1738,16 +2784,6 @@ export function EventosAdminPanel() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Lugar</label>
-                  <input
-                    className={inputClass}
-                    value={draft.place}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, place: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
                   <label className={labelClass}>CTA</label>
                   <input
                     className={inputClass}
@@ -1768,7 +2804,162 @@ export function EventosAdminPanel() {
               </SectionCard>
 
               <SectionCard
-                title="2. Copy"
+                title="2. Lugar y cupos"
+                hint="Studio con límite o aire libre / sin tope"
+              >
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Tipo de lugar</label>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                    {(
+                      [
+                        {
+                          id: "studio" as const,
+                          label: "Studio",
+                          hint: "Cupos limitados",
+                          place: VENUE_STUDIO,
+                          capacity: 12,
+                        },
+                        {
+                          id: "outdoor" as const,
+                          label: "Aire libre",
+                          hint: "Parque / exterior",
+                          place: VENUE_OUTDOOR,
+                          capacity: undefined as number | undefined,
+                        },
+                        {
+                          id: "other" as const,
+                          label: "Otro",
+                          hint: "Escribí el lugar",
+                          place: draft.place,
+                          capacity: draft.capacity,
+                        },
+                      ] as const
+                    ).map((v) => {
+                      const active =
+                        v.id === "studio"
+                          ? /studio|calle 97|chicó|chico/i.test(draft.place) &&
+                            !/aire libre|parque|exterior/i.test(draft.place)
+                          : v.id === "outdoor"
+                            ? /aire libre|parque|exterior/i.test(draft.place)
+                            : !/studio|calle 97|chicó|chico|aire libre|parque|exterior/i.test(
+                                draft.place,
+                              );
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() =>
+                            setDraft((d) => ({
+                              ...d,
+                              place:
+                                v.id === "other"
+                                  ? d.place || "Otro lugar · Bogotá"
+                                  : v.place,
+                              capacity:
+                                v.id === "studio"
+                                  ? d.capacity && d.capacity > 0
+                                    ? d.capacity
+                                    : 12
+                                  : v.id === "outdoor"
+                                    ? undefined
+                                    : d.capacity,
+                            }))
+                          }
+                          className={`rounded-2xl px-4 py-3.5 text-left transition ${
+                            active
+                              ? "bg-gals-blue-deep text-white shadow-md"
+                              : "bg-white text-gals-ink ring-1 ring-gals-blue-deep/12 hover:bg-gals-blue-soft/40"
+                          }`}
+                        >
+                          <span className="block text-sm font-semibold">
+                            {v.label}
+                          </span>
+                          <span
+                            className={`mt-0.5 block text-[11px] ${
+                              active ? "text-white/75" : "text-gals-muted"
+                            }`}
+                          >
+                            {v.hint}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Dirección / lugar</label>
+                  <input
+                    className={inputClass}
+                    value={draft.place}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, place: e.target.value }))
+                    }
+                    placeholder="GAL'S Studio · Calle 97… o Parque…"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Cupos</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDraft((d) => ({ ...d, capacity: undefined }))
+                      }
+                      className={`rounded-full px-3.5 py-2 text-[11px] font-bold uppercase ${
+                        !draft.capacity
+                          ? "bg-gals-blue-deep text-white"
+                          : "bg-white text-gals-muted ring-1 ring-gals-blue-deep/15"
+                      }`}
+                    >
+                      Sin límite
+                    </button>
+                    {[8, 12, 15, 20, 25, 30].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() =>
+                          setDraft((d) => ({ ...d, capacity: n }))
+                        }
+                        className={`rounded-full px-3.5 py-2 text-[11px] font-bold uppercase ${
+                          draft.capacity === n
+                            ? "bg-gals-blue-deep text-white"
+                            : "bg-white text-gals-muted ring-1 ring-gals-blue-deep/15"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                    <div>
+                      <label className={labelClass}>Número exacto</label>
+                      <input
+                        className={inputClass}
+                        type="number"
+                        min={1}
+                        value={draft.capacity ?? ""}
+                        placeholder="Vacío = sin límite"
+                        onChange={(e) =>
+                          setDraft((d) => ({
+                            ...d,
+                            capacity: e.target.value
+                              ? Number(e.target.value)
+                              : undefined,
+                          }))
+                        }
+                      />
+                    </div>
+                    <p className="pb-2.5 text-xs text-gals-muted">
+                      {draft.capacity
+                        ? `Máximo ${draft.capacity} inscritas`
+                        : "Ideal para aire libre o sin tope"}
+                    </p>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard
+                title="3. Copy"
                 hint="Textos que ve la clienta en la landing y el modal"
               >
                 <div>
@@ -1828,7 +3019,7 @@ export function EventosAdminPanel() {
               </SectionCard>
 
               <SectionCard
-                title="3. Precio / Mercado Pago"
+                title="4. Precio / Mercado Pago"
                 hint="Sin monto MP, el lead de pago va a WhatsApp"
               >
                 <div>
@@ -1906,26 +3097,8 @@ export function EventosAdminPanel() {
                 </label>
               </SectionCard>
 
-              <SectionCard title="4. Publicación" hint="Visibilidad y cupos">
-                <div>
-                  <label className={labelClass}>Cupos</label>
-                  <input
-                    className={inputClass}
-                    type="number"
-                    min={1}
-                    value={draft.capacity ?? ""}
-                    placeholder="Opcional"
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        capacity: e.target.value
-                          ? Number(e.target.value)
-                          : undefined,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="flex flex-wrap items-end gap-5">
+              <SectionCard title="5. Publicación" hint="Visibilidad en /eventos">
+                <div className="flex flex-wrap items-end gap-5 md:col-span-2">
                   <label className="flex items-center gap-2 text-sm text-gals-ink">
                     <input
                       type="checkbox"
@@ -1942,7 +3115,7 @@ export function EventosAdminPanel() {
                   <label className="flex items-center gap-2 text-sm text-gals-ink">
                     <input
                       type="checkbox"
-                      checked={draft.published}
+                      checked={!!draft.published}
                       onChange={(e) =>
                         setDraft((d) => ({
                           ...d,

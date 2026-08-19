@@ -94,7 +94,7 @@ export function emptyDraft(kind: EventKind = "paid"): AdminEventDraft {
     eyebrow: kind === "free" ? "Evento gratis" : "Experiencia paga",
     dateLabel: "",
     timeLabel: "",
-    place: "GAL'S Studio · Calle 97",
+    place: "GAL'S Studio · Calle 97 #10-28, Chicó Reservado, Bogotá",
     headline: "",
     subhead: "",
     concept: "",
@@ -107,7 +107,7 @@ export function emptyDraft(kind: EventKind = "paid"): AdminEventDraft {
     priceAmount: undefined,
     showPrice: true,
     whyText: "",
-    capacity: undefined,
+    capacity: 12,
     published: true,
   };
 }
