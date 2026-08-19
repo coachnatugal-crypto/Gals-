@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ImageSticker,
-  MoonSticker,
   StarSticker,
   STICKER_ASSETS,
 } from "@/components/capsules/Stickers";
@@ -84,56 +83,117 @@ export function Hero() {
 export function HeroIntro() {
   return (
     <section id="comunidad" className="relative overflow-hidden bg-gals-cream">
-      <div className="relative overflow-x-clip pb-6 pt-16 md:overflow-visible md:pb-8 md:pt-24">
-        <ImageSticker
-          src={STICKER_ASSETS.tapete}
-          className="left-[2%] top-10 hidden md:block md:left-[6%] lg:left-[10%]"
-          size={130}
-          rotate={-28}
-          float
-        />
-        <ImageSticker
-          src={STICKER_ASSETS.pesas}
-          className="right-[2%] top-14 hidden md:block md:right-[7%] lg:right-[11%]"
-          size={112}
-          rotate={18}
-          float
-          delay={0.15}
-        />
-        <MoonSticker
-          className="absolute top-8 left-[42%] hidden md:block"
-          size={40}
-          rotate={-8}
-          float
-          color="var(--gals-blue)"
-        />
+      <div className="relative overflow-x-clip pb-6 pt-16 md:overflow-visible md:pb-20 md:pt-28">
         <StarSticker
-          className="absolute bottom-16 right-[18%] hidden opacity-80 md:block"
-          size={28}
+          className="absolute top-10 right-[8%] hidden opacity-70 md:block"
+          size={26}
           color="var(--gals-blue-mid)"
         />
 
-        <div className="relative z-20 mx-auto flex max-w-5xl flex-col items-center px-5 md:px-8">
+        {/* Pesas en esquina — imagen fija, sin efecto sticker */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={STICKER_ASSETS.pesas}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="pointer-events-none absolute top-8 right-4 z-[1] hidden h-32 w-auto -rotate-12 object-contain mix-blend-screen drop-shadow-[0_12px_24px_rgba(26,42,53,0.2)] md:block lg:top-12 lg:right-10 lg:h-40"
+        />
+
+        <div className="relative z-20 mx-auto grid max-w-6xl items-center gap-10 px-5 md:grid-cols-2 md:gap-14 md:px-8 lg:gap-16">
+          {/* Polaroid */}
           <motion.div
-            className="relative w-full max-w-xl origin-center"
+            className="relative mx-auto w-full max-w-md origin-center md:mx-0 md:max-w-none lg:max-w-xl"
             initial={{ opacity: 0, y: 50, rotate: -6 }}
             whileInView={{ opacity: 1, y: 0, rotate: -3 }}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            whileHover={{ rotate: -2, scale: 1.02 }}
+            whileHover={{ rotate: -2, scale: 1.015 }}
           >
+            {/* Stickers colgando del polaroid */}
+            <ImageSticker
+              src={STICKER_ASSETS.tapete}
+              className="-left-8 -top-6 hidden md:block lg:-left-12 lg:-top-8"
+              size={118}
+              rotate={-28}
+              float
+            />
+
+            {/* Cámara mobile: sticker simple */}
             <ImageSticker
               src={STICKER_ASSETS.camara}
-              className="-right-6 -top-8 sm:-right-12 sm:-top-10"
+              className="-right-5 -top-7 sm:-right-10 sm:-top-9 md:hidden"
               size={92}
               rotate={14}
               float
               delay={0.2}
             />
+
+            {/* Cámara PC: más grande + efecto “disparo” */}
+            <motion.div
+              className="pointer-events-none absolute -right-10 -top-12 z-30 hidden h-[168px] w-[168px] select-none lg:-right-14 lg:-top-14 lg:h-[190px] lg:w-[190px] md:block"
+              initial={{ opacity: 0, scale: 0.4, rotate: -24, y: 28 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: 12, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ type: "spring", stiffness: 180, damping: 14, delay: 0.25 }}
+              aria-hidden
+            >
+              <motion.div
+                className="relative h-full w-full"
+                animate={{
+                  y: [0, -14, -4, -18, 0],
+                  rotate: [12, 16, 10, 18, 12],
+                  x: [0, 4, -2, 6, 0],
+                }}
+                transition={{
+                  duration: 6.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                {/* Flash del obturador */}
+                <motion.span
+                  className="absolute top-[38%] left-1/2 z-10 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+                  animate={{
+                    opacity: [0, 0, 0.95, 0, 0],
+                    scale: [0.4, 0.4, 1.8, 2.4, 0.4],
+                  }}
+                  transition={{
+                    duration: 5.5,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    times: [0, 0.72, 0.78, 0.88, 1],
+                  }}
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <motion.img
+                  src={STICKER_ASSETS.camara}
+                  alt=""
+                  draggable={false}
+                  className="relative z-[1] h-full w-full object-contain drop-shadow-[0_18px_36px_rgba(26,42,53,0.32)] mix-blend-screen"
+                  animate={{
+                    filter: [
+                      "brightness(1)",
+                      "brightness(1)",
+                      "brightness(1.55)",
+                      "brightness(1)",
+                      "brightness(1)",
+                    ],
+                  }}
+                  transition={{
+                    duration: 5.5,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    times: [0, 0.72, 0.78, 0.88, 1],
+                  }}
+                />
+              </motion.div>
+            </motion.div>
+
             <ImageSticker
               src={STICKER_ASSETS.bola}
-              className="-left-6 -bottom-14 sm:-left-14 sm:-bottom-6"
-              size={96}
+              className="-bottom-10 -left-4 sm:-bottom-4 sm:-left-12"
+              size={88}
               rotate={-16}
               float
               delay={0.3}
@@ -200,20 +260,21 @@ export function HeroIntro() {
             </div>
           </motion.div>
 
+          {/* Copy + CTAs — en PC a la derecha; en mobile debajo centrado */}
           <motion.div
-            className="mt-12 max-w-xl text-center"
+            className="mx-auto max-w-md text-center md:mx-0 md:max-w-lg md:text-left"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <p className="text-lg leading-relaxed text-gals-ink/80 md:text-xl">
-              Movimiento con propósito y profundidad para volver a ti.
-            </p>
-            <p className="mt-2 font-script text-2xl text-gals-blue-deep">
+            <p className="font-script text-3xl leading-tight text-gals-blue-deep md:text-4xl lg:text-5xl">
               espiritualidad por medio del movimiento
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <p className="mt-4 text-lg leading-relaxed text-gals-ink/80 md:mt-5 md:text-xl">
+              Movimiento con propósito y profundidad para volver a ti.
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
               <a
                 href="#capsulas"
                 className="inline-flex rounded-full bg-gals-blue-deep px-8 py-3.5 text-sm font-semibold tracking-wide text-white transition-transform hover:scale-[1.03]"
@@ -232,7 +293,7 @@ export function HeroIntro() {
           </motion.div>
 
           {/* Collage solo móvil — llena el espacio antes de Cápsulas */}
-          <div className="relative mx-auto mt-10 h-[320px] w-full max-w-[400px] md:hidden">
+          <div className="relative mx-auto mt-2 h-[320px] w-full max-w-[400px] md:hidden">
             <motion.div
               className="absolute top-0 left-0 h-[64%] w-[78%] overflow-hidden rounded-[2rem] shadow-xl"
               initial={{ opacity: 0, rotate: -8, y: 30 }}
@@ -303,7 +364,7 @@ export function HeroIntro() {
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              who is
+              what is
             </motion.p>
             <motion.p
               className="pointer-events-none absolute -bottom-1 left-[4%] z-20 font-script text-5xl text-gals-blue-deep"

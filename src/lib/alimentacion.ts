@@ -15,7 +15,6 @@ export const ALIMENTACION = {
   heroImage: "/media/alimentacion/nati-bowl.png",
   heroBg: "/media/alimentacion/hero-bg.png",
   marketImage: "/media/alimentacion/nati-mercado.png",
-  cartImage: "/media/alimentacion/nati-carrito.png",
   joyImage: "/media/alimentacion/nati-waffle.png",
   plateImage: "/media/alimentacion/plato-nutricion.png?v=2",
   /** Mockup laptop+celular de la guía Come como te mueves */

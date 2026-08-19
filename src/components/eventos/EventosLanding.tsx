@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { EventRegisterForm } from "@/components/eventos/EventRegisterForm";
+import { EventosCalendar } from "@/components/eventos/EventosCalendar";
 import {
   EVENTOS_HERO_VIDEO,
   getActiveFreeEvents,
@@ -57,16 +59,15 @@ function EdgeHongoBleed({ side = "right" }: { side?: "left" | "right" }) {
 }
 
 function useCountdown(iso?: string) {
-  const [now, setNow] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    setNow(Date.now());
     if (!iso) return;
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, [iso]);
 
-  if (!iso || now === null) return null;
+  if (!iso) return null;
   const end = new Date(iso).getTime();
   if (Number.isNaN(end)) return null;
   const diff = Math.max(0, end - now);
@@ -181,7 +182,8 @@ function RegisterModal({
               {target.title}
             </h2>
             <p className="mt-2 text-sm text-gals-muted">
-              Déjanos tus datos y continuamos tu reserva.
+              Déjanos tus datos. Si el evento tiene pago, te llevamos a Mercado
+              Pago para asegurar tu cupo.
             </p>
             {target.description ? (
               <p className="mt-3 text-sm leading-relaxed text-gals-ink">
@@ -555,7 +557,7 @@ function AgendaMosaic({
   free: GalsEvent[];
   onRegister: (e: GalsEvent, source: string) => void;
 }) {
-  const rest = [...others, ...free];
+  const rest = [...others, ...free].filter((e) => e.id !== featured.id);
 
   return (
     <section id="agenda" className="relative scroll-mt-16 bg-gals-cream">
@@ -699,17 +701,39 @@ function ExitPopup({
 }
 
 /** Landing de eventos — editorial GAL'S + stickers móvil. */
-export function EventosLanding() {
-  const freeEvents = getActiveFreeEvents();
-  const paidEvents = getActivePaidEvents();
-  const featured = getFeaturedEvent() ?? paidEvents[0] ?? freeEvents[0];
-  const liveEvent = getNextLiveEvent() ?? featured;
+export function EventosLanding({
+  events,
+}: {
+  events?: GalsEvent[];
+} = {}) {
+  const freeEvents = getActiveFreeEvents(new Date(), events);
+  const paidEvents = getActivePaidEvents(new Date(), events);
+  const featured =
+    getFeaturedEvent(new Date(), events) ?? paidEvents[0] ?? freeEvents[0];
+  const liveEvent = getNextLiveEvent(new Date(), events) ?? featured;
   /** Contador y CTAs principales van al evento de pago destacado. */
   const countdownEvent =
     featured?.kind === "paid"
       ? featured
       : paidEvents[0] ?? liveEvent;
+  const searchParams = useSearchParams();
   const [register, setRegister] = useState<RegisterTarget | null>(null);
+  const [pagoDismissed, setPagoDismissed] = useState(false);
+
+  const pagoBanner = useMemo(() => {
+    if (pagoDismissed) return null;
+    const pago = searchParams.get("pago");
+    if (pago === "ok") {
+      return "¡Pago recibido! Te contactamos por WhatsApp para confirmar tu cupo 🩶";
+    }
+    if (pago === "pendiente") {
+      return "Tu pago quedó pendiente. Cuando se acredite, te confirmamos el cupo.";
+    }
+    if (pago === "error") {
+      return "No se completó el pago. Puedes intentar de nuevo cuando quieras.";
+    }
+    return null;
+  }, [searchParams, pagoDismissed]);
 
   const openFor = (event: GalsEvent, source: string) => {
     setRegister({
@@ -745,6 +769,19 @@ export function EventosLanding() {
 
   return (
     <div className="relative min-h-full overflow-x-clip bg-gals-cream text-gals-ink">
+      {pagoBanner ? (
+        <div className="relative z-40 border-b border-gals-blue-deep/15 bg-gals-blue-deep px-4 py-3 text-center text-sm text-white">
+          {pagoBanner}
+          <button
+            type="button"
+            className="ml-3 underline underline-offset-2 opacity-90"
+            onClick={() => setPagoDismissed(true)}
+          >
+            Cerrar
+          </button>
+        </div>
+      ) : null}
+
       {/* ——— HERO anclado al próximo evento ——— */}
       <section className="relative min-h-[100svh] overflow-hidden">
         <video
@@ -841,6 +878,16 @@ export function EventosLanding() {
         others={paidEvents}
         free={freeEvents}
         onRegister={openFor}
+      />
+
+      <EventosCalendar
+        events={(() => {
+          const map = new Map<string, GalsEvent>();
+          for (const e of [featured, ...paidEvents, ...freeEvents]) {
+            map.set(e.id, e);
+          }
+          return [...map.values()];
+        })()}
       />
 
       {/* CIERRE con foto */}

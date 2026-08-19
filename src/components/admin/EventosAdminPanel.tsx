@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ADMIN_EVENTS_KEY,
-  ADMIN_REGS_KEY,
   draftToEvent,
   emptyDraft,
   eventToDraft,
   formatWhen,
-  loadJson,
-  saveJson,
-  seedEvents,
+  labelsFromStartsAt,
   slugifyId,
+  toDatetimeLocalValue,
   type AdminEventDraft,
   type AdminRegistration,
 } from "@/lib/admin-eventos-store";
 import type { EventKind, GalsEvent } from "@/lib/eventos";
+import { EventCoverPicker } from "@/components/admin/EventCoverPicker";
 
 type Tab = "resumen" | "eventos" | "inscritos" | "editor";
 
@@ -59,25 +57,36 @@ function StatCard({
 }
 
 function StatusPill({ status }: { status: AdminRegistration["status"] }) {
-  const styles = {
+  const styles: Record<AdminRegistration["status"], string> = {
     nuevo: "bg-gals-blue-soft text-gals-blue-deep",
+    pendiente_pago: "bg-amber-100 text-amber-900",
+    pagado: "bg-gals-green-soft text-gals-ink",
     confirmado: "bg-gals-green-soft text-gals-ink",
     cancelado: "bg-gals-ink/8 text-gals-muted",
-  } as const;
+  };
   return (
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase ${styles[status]}`}
     >
-      {status}
+      {status.replace("_", " ")}
     </span>
   );
 }
 
-function EmptyState({ title, body }: { title: string; body: string }) {
+function EmptyState({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="rounded-2xl border border-dashed border-gals-blue-deep/20 bg-white/50 px-6 py-14 text-center">
       <p className="font-display text-lg uppercase text-gals-blue-deep">{title}</p>
       <p className="mx-auto mt-2 max-w-sm text-sm text-gals-muted">{body}</p>
+      {children}
     </div>
   );
 }
@@ -103,24 +112,55 @@ export function EventosAdminPanel() {
     eventId: "",
   });
 
+  const [saving, setSaving] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [testName, setTestName] = useState("Naty");
+  const [testEventId, setTestEventId] = useState("");
+  const [testPaid, setTestPaid] = useState(false);
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+
   useEffect(() => {
-    const seeded = seedEvents();
-    const storedEvents = loadJson<GalsEvent[] | null>(ADMIN_EVENTS_KEY, null);
-    setEvents(storedEvents?.length ? storedEvents : seeded);
-    // Solo inscritos reales guardados — sin datos inventados
-    setRegs(loadJson<AdminRegistration[]>(ADMIN_REGS_KEY, []));
-    setReady(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        const [evRes, regRes] = await Promise.all([
+          fetch("/api/admin/eventos"),
+          fetch("/api/admin/eventos/registrations"),
+        ]);
+        const evData = (await evRes.json()) as {
+          ok?: boolean;
+          events?: GalsEvent[];
+          error?: string;
+        };
+        const regData = (await regRes.json()) as {
+          ok?: boolean;
+          registrations?: AdminRegistration[];
+          error?: string;
+        };
+        if (cancelled) return;
+        if (!evRes.ok || !evData.ok) {
+          throw new Error(
+            evData.error || "No se pudieron cargar eventos",
+          );
+        }
+        setEvents(evData.events ?? []);
+        setRegs(regData.ok ? (regData.registrations ?? []) : []);
+        setLoadingError(null);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadingError(
+            err instanceof Error ? err.message : "Error al cargar el panel",
+          );
+        }
+      } finally {
+        if (!cancelled) setReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    saveJson(ADMIN_EVENTS_KEY, events);
-  }, [events, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    saveJson(ADMIN_REGS_KEY, regs);
-  }, [regs, ready]);
 
   useEffect(() => {
     if (!toast) return;
@@ -134,10 +174,12 @@ export function EventosAdminPanel() {
     return () => window.removeEventListener("click", close);
   }, []);
 
-  const upcomingCount = useMemo(() => {
-    const now = Date.now();
-    return events.filter((e) => new Date(e.startsAt).getTime() >= now).length;
-  }, [events]);
+  const [nowTs] = useState(() => Date.now());
+  const upcomingCount = useMemo(
+    () =>
+      events.filter((e) => new Date(e.startsAt).getTime() >= nowTs).length,
+    [events, nowTs],
+  );
 
   const filteredEvents = useMemo(() => {
     return events
@@ -170,7 +212,8 @@ export function EventosAdminPanel() {
         const q = search.toLowerCase();
         return (
           r.name.toLowerCase().includes(q) ||
-          r.whatsapp.toLowerCase().includes(q)
+          r.whatsapp.toLowerCase().includes(q) ||
+          (r.email?.toLowerCase().includes(q) ?? false)
         );
       })
       .sort(
@@ -181,6 +224,41 @@ export function EventosAdminPanel() {
 
   const eventTitle = (id: string) =>
     events.find((e) => e.id === id)?.title ?? id;
+
+  async function sendTestEmail() {
+    if (!testEmail.trim()) {
+      flash("Escribí un email de destino");
+      return;
+    }
+    setSendingTestEmail(true);
+    try {
+      const res = await fetch("/api/admin/eventos/test-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: testEmail.trim(),
+          name: testName.trim() || "GAL'S",
+          eventId: testEventId || undefined,
+          paid: testPaid,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        eventTitle?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo enviar");
+      }
+      flash(
+        `Mail de prueba enviado${data.eventTitle ? ` · ${data.eventTitle}` : ""}`,
+      );
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al enviar prueba");
+    } finally {
+      setSendingTestEmail(false);
+    }
+  }
 
   function flash(msg: string) {
     setToast(msg);
@@ -198,7 +276,7 @@ export function EventosAdminPanel() {
     setTab("editor");
   }
 
-  function saveDraft() {
+  async function saveDraft() {
     if (!draft.title.trim()) {
       flash("El título es obligatorio");
       return;
@@ -207,63 +285,201 @@ export function EventosAdminPanel() {
       flash("La fecha/hora es obligatoria");
       return;
     }
+    if (draft.kind === "paid" && !draft.priceAmount) {
+      flash("Para cobrar online poné el Monto MP (COP), o dejalo y se irá a WhatsApp");
+    }
 
     const id = editingId ?? (draft.id.trim() || slugifyId(draft.title));
-    const next = draftToEvent({ ...draft, id });
-
-    setEvents((prev) => {
-      const without = prev.filter((e) => e.id !== id);
-      const normalized = next.featured
-        ? without.map((e) => ({ ...e, featured: false }))
-        : without;
-      return [...normalized, next];
+    const labels = labelsFromStartsAt(draft.startsAt);
+    const next = draftToEvent({
+      ...draft,
+      id,
+      dateLabel: draft.dateLabel.trim() || labels.dateLabel,
+      timeLabel: draft.timeLabel?.trim() || labels.timeLabel,
+      cta:
+        draft.kind === "paid" && draft.priceAmount
+          ? draft.cta || "Pagar y reservar"
+          : draft.cta,
     });
 
-    flash(editingId ? "Evento actualizado" : "Evento creado");
-    setEditingId(id);
-    setTab("eventos");
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/eventos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: next }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        event?: GalsEvent;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.event) {
+        throw new Error(data.error || "No se pudo guardar");
+      }
+      setEvents((prev) => {
+        const without = prev.filter((e) => e.id !== data.event!.id);
+        const normalized = data.event!.featured
+          ? without.map((e) => ({ ...e, featured: false }))
+          : without;
+        return [...normalized, data.event!].sort(
+          (a, b) =>
+            new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+        );
+      });
+      flash(
+        editingId
+          ? "Evento actualizado en Supabase"
+          : "Evento creado · ya está en la landing",
+      );
+      setEditingId(data.event.id);
+      setTab("eventos");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function removeEvent(id: string) {
-    if (!window.confirm("¿Eliminar este evento?")) return;
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    setRegs((prev) => prev.filter((r) => r.eventId !== id));
-    flash("Evento eliminado");
+  async function removeEvent(id: string) {
+    if (!window.confirm("¿Eliminar este evento de Supabase?")) return;
+    try {
+      const res = await fetch(`/api/admin/eventos?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo eliminar");
+      }
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+      flash("Evento eliminado");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al eliminar");
+    }
     setMenuId(null);
   }
 
-  function duplicateEvent(event: GalsEvent) {
+  async function duplicateEvent(event: GalsEvent) {
     const copy: GalsEvent = {
       ...event,
       id: slugifyId(`${event.title}-copia`),
       title: `${event.title} (copia)`,
       featured: false,
+      published: false,
     };
-    setEvents((prev) => [...prev, copy]);
-    flash("Evento duplicado");
+    try {
+      const res = await fetch("/api/admin/eventos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: copy }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        event?: GalsEvent;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.event) {
+        throw new Error(data.error || "No se pudo duplicar");
+      }
+      setEvents((prev) => [...prev, data.event!]);
+      flash("Copia creada (borrador / no publicado)");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al duplicar");
+    }
     setMenuId(null);
   }
 
-  function toggleFeatured(id: string) {
-    setEvents((prev) =>
-      prev.map((e) => ({
-        ...e,
-        featured: e.id === id ? !e.featured : false,
-      })),
-    );
+  async function toggleFeatured(id: string) {
+    const current = events.find((e) => e.id === id);
+    if (!current) return;
+    const next = { ...current, featured: !current.featured };
+    try {
+      const res = await fetch("/api/admin/eventos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: next }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        event?: GalsEvent;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.event) {
+        throw new Error(data.error || "No se pudo actualizar");
+      }
+      setEvents((prev) =>
+        prev.map((e) => ({
+          ...e,
+          featured: e.id === id ? Boolean(data.event!.featured) : false,
+        })),
+      );
+      flash("Featured actualizado");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    }
     setMenuId(null);
   }
 
-  function toggleShowPrice(id: string) {
-    setEvents((prev) =>
-      prev.map((e) =>
-        e.id === id ? { ...e, showPrice: !e.showPrice } : e,
-      ),
-    );
+  async function toggleShowPrice(id: string) {
+    const current = events.find((e) => e.id === id);
+    if (!current) return;
+    const next = { ...current, showPrice: !current.showPrice };
+    try {
+      const res = await fetch("/api/admin/eventos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: next }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        event?: GalsEvent;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.event) {
+        throw new Error(data.error || "No se pudo actualizar");
+      }
+      setEvents((prev) =>
+        prev.map((e) => (e.id === id ? data.event! : e)),
+      );
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    }
     setMenuId(null);
   }
 
-  function addRegistration() {
+  async function togglePublished(id: string) {
+    const current = events.find((e) => e.id === id);
+    if (!current) return;
+    const next = { ...current, published: !(current.published ?? true) };
+    try {
+      const res = await fetch("/api/admin/eventos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: next }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        event?: GalsEvent;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.event) {
+        throw new Error(data.error || "No se pudo actualizar");
+      }
+      setEvents((prev) =>
+        prev.map((e) => (e.id === id ? data.event! : e)),
+      );
+      flash(
+        data.event.published === false
+          ? "Evento oculto en la landing"
+          : "Evento publicado en la landing",
+      );
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    }
+    setMenuId(null);
+  }
+
+  async function addRegistration() {
     const name = regForm.name.trim();
     const whatsapp = regForm.whatsapp.trim();
     const eventId = regForm.eventId || events[0]?.id;
@@ -279,36 +495,119 @@ export function EventosAdminPanel() {
       flash("Crea un evento primero");
       return;
     }
-    const reg: AdminRegistration = {
-      id: `reg-${Date.now().toString(36)}`,
-      eventId,
-      name,
-      whatsapp,
-      source: "admin",
-      status: "nuevo",
-      createdAt: new Date().toISOString(),
-    };
-    setRegs((prev) => [reg, ...prev]);
-    setRegForm({ name: "", whatsapp: "", eventId });
-    flash("Inscrita agregada");
+    try {
+      const res = await fetch("/api/admin/eventos/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, whatsapp, eventId }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        registration?: AdminRegistration;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.registration) {
+        throw new Error(data.error || "No se pudo agregar");
+      }
+      setRegs((prev) => [data.registration!, ...prev]);
+      setRegForm({ name: "", whatsapp: "", eventId });
+      flash("Inscrita agregada en Supabase");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    }
   }
 
-  function updateRegStatus(id: string, status: AdminRegistration["status"]) {
-    setRegs((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r)),
-    );
+  async function updateRegStatus(
+    id: string,
+    status: AdminRegistration["status"],
+  ) {
+    try {
+      const res = await fetch("/api/admin/eventos/registrations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo actualizar");
+      }
+      setRegs((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status } : r)),
+      );
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    }
   }
 
-  function removeReg(id: string) {
-    setRegs((prev) => prev.filter((r) => r.id !== id));
-    flash("Inscripción eliminada");
+  async function removeReg(id: string) {
+    try {
+      const res = await fetch(
+        `/api/admin/eventos/registrations?id=${encodeURIComponent(id)}`,
+        { method: "DELETE" },
+      );
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo eliminar");
+      }
+      setRegs((prev) => prev.filter((r) => r.id !== id));
+      flash("Inscripción eliminada");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    }
   }
 
-  function resetCatalog() {
-    if (!window.confirm("¿Restablecer la agenda al catálogo del sitio?"))
-      return;
-    setEvents(seedEvents());
-    flash("Agenda restablecida");
+  async function importLandingEvents() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/eventos/seed", { method: "POST" });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        imported?: number;
+        events?: GalsEvent[];
+        error?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo importar");
+      }
+      setEvents(data.events ?? []);
+      flash(
+        `Listo: ${data.imported ?? 0} eventos de la landing en el admin`,
+      );
+      setTab("eventos");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al importar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function reloadFromSupabase() {
+    setReady(false);
+    try {
+      const [evRes, regRes] = await Promise.all([
+        fetch("/api/admin/eventos"),
+        fetch("/api/admin/eventos/registrations"),
+      ]);
+      const evData = (await evRes.json()) as {
+        ok?: boolean;
+        events?: GalsEvent[];
+        error?: string;
+      };
+      const regData = (await regRes.json()) as {
+        ok?: boolean;
+        registrations?: AdminRegistration[];
+      };
+      if (!evRes.ok || !evData.ok) {
+        throw new Error(evData.error || "Error al recargar");
+      }
+      setEvents(evData.events ?? []);
+      setRegs(regData.registrations ?? []);
+      flash("Sincronizado con Supabase");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error");
+    } finally {
+      setReady(true);
+    }
   }
 
   const tabs: { id: Tab; label: string }[] = [
@@ -321,7 +620,29 @@ export function EventosAdminPanel() {
   if (!ready) {
     return (
       <div className="flex min-h-[60svh] items-center justify-center bg-gals-blue-soft text-sm text-gals-muted">
-        Cargando panel…
+        Cargando panel desde Supabase…
+      </div>
+    );
+  }
+
+  if (loadingError) {
+    return (
+      <div className="flex min-h-[60svh] flex-col items-center justify-center gap-3 bg-gals-blue-soft px-5 text-center">
+        <p className="font-display text-xl uppercase text-gals-blue-deep">
+          No se pudo conectar
+        </p>
+        <p className="max-w-md text-sm text-gals-muted">{loadingError}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setLoadingError(null);
+            setReady(false);
+            void reloadFromSupabase();
+          }}
+          className="rounded-full bg-gals-blue-deep px-5 py-2.5 text-xs font-bold text-white uppercase"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -343,11 +664,26 @@ export function EventosAdminPanel() {
               Panel de eventos
             </h1>
             <p className="mt-2 max-w-lg text-sm text-gals-muted">
-              Gestiona la agenda y las inscritos. Los cambios se guardan en este
-              navegador hasta conectar Supabase.
+              Agenda e inscritos conectados a Supabase. Lo que guardes aparece en
+              la landing /eventos (si está publicado).
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void importLandingEvents()}
+              className="rounded-full border border-gals-blue-deep/20 bg-white/70 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-blue-deep uppercase backdrop-blur-sm transition hover:bg-white disabled:opacity-60"
+            >
+              {saving ? "Importando…" : "Cargar eventos landing"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void reloadFromSupabase()}
+              className="rounded-full border border-gals-blue-deep/20 bg-white/70 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-blue-deep uppercase backdrop-blur-sm transition hover:bg-white"
+            >
+              Sincronizar
+            </button>
             <a
               href="/eventos"
               target="_blank"
@@ -362,6 +698,17 @@ export function EventosAdminPanel() {
               className="rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase shadow-[0_8px_24px_rgba(85,104,148,0.28)] transition hover:scale-[1.02]"
             >
               + Crear evento
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void fetch("/api/admin/logout", { method: "POST" }).then(() => {
+                  window.location.href = "/admin/login";
+                });
+              }}
+              className="rounded-full border border-gals-ink/15 bg-white/50 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-muted uppercase transition hover:bg-white hover:text-gals-ink"
+            >
+              Salir
             </button>
           </div>
         </motion.header>
@@ -487,6 +834,7 @@ export function EventosAdminPanel() {
                             </p>
                             <p className="truncate text-xs text-gals-muted">
                               {eventTitle(r.eventId)}
+                              {r.email ? ` · ${r.email}` : ""}
                             </p>
                           </div>
                           <StatusPill status={r.status} />
@@ -497,12 +845,91 @@ export function EventosAdminPanel() {
                 </div>
               </div>
 
+              <div className="rounded-2xl border border-white/70 bg-white/80 p-5 shadow-[0_12px_40px_rgba(85,104,148,0.06)] backdrop-blur-sm">
+                <h2 className="font-display text-lg uppercase text-gals-blue-deep">
+                  Email de prueba
+                </h2>
+                <p className="mt-1 max-w-xl text-sm text-gals-muted">
+                  Envía la confirmación real (con asunto [PRUEBA]) para revisar
+                  diseño y copy antes de un registro.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <label className={labelClass} htmlFor="test-email-to">
+                      Destino
+                    </label>
+                    <input
+                      id="test-email-to"
+                      type="email"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      placeholder="tu@correo.com"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass} htmlFor="test-email-name">
+                      Nombre en el mail
+                    </label>
+                    <input
+                      id="test-email-name"
+                      value={testName}
+                      onChange={(e) => setTestName(e.target.value)}
+                      placeholder="Naty"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass} htmlFor="test-email-event">
+                      Evento
+                    </label>
+                    <select
+                      id="test-email-event"
+                      value={testEventId}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setTestEventId(id);
+                        const ev = events.find((x) => x.id === id);
+                        if (ev) setTestPaid(ev.kind === "paid");
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="">Preview genérico</option>
+                      {events.map((e) => (
+                        <option key={e.id} value={e.id}>
+                          {e.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col justify-end gap-2">
+                    <label className="flex items-center gap-2 text-sm text-gals-ink">
+                      <input
+                        type="checkbox"
+                        checked={testPaid}
+                        onChange={(e) => setTestPaid(e.target.checked)}
+                        className="rounded border-gals-blue-deep/30"
+                      />
+                      Variante con pago (nota MP)
+                    </label>
+                    <button
+                      type="button"
+                      disabled={sendingTestEmail}
+                      onClick={() => void sendTestEmail()}
+                      className="rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase disabled:opacity-60"
+                    >
+                      {sendingTestEmail ? "Enviando…" : "Enviar prueba"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="button"
-                onClick={resetCatalog}
+                onClick={() => void reloadFromSupabase()}
                 className="text-xs font-semibold text-gals-muted underline-offset-2 hover:text-gals-blue-deep hover:underline"
               >
-                Restablecer agenda al catálogo del sitio
+                Recargar desde Supabase
               </button>
             </motion.div>
           ) : null}
@@ -543,8 +970,23 @@ export function EventosAdminPanel() {
               {filteredEvents.length === 0 ? (
                 <EmptyState
                   title="Sin eventos"
-                  body="No hay eventos con ese filtro. Crea uno o restablece el catálogo."
-                />
+                  body={
+                    events.length === 0
+                      ? "Todavía no hay eventos en Supabase. Carga los de la landing."
+                      : "No hay eventos con ese filtro. Crea uno o cambia el filtro."
+                  }
+                >
+                  {events.length === 0 ? (
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void importLandingEvents()}
+                      className="mt-4 rounded-full bg-gals-blue-deep px-5 py-2.5 text-xs font-bold text-white uppercase"
+                    >
+                      Cargar eventos landing
+                    </button>
+                  ) : null}
+                </EmptyState>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-[0_16px_48px_rgba(85,104,148,0.08)] backdrop-blur-sm">
                   <ul>
@@ -631,21 +1073,28 @@ export function EventosAdminPanel() {
                                         label: e.featured
                                           ? "Quitar featured"
                                           : "Marcar featured",
-                                        fn: () => toggleFeatured(e.id),
+                                        fn: () => void toggleFeatured(e.id),
+                                      },
+                                      {
+                                        label:
+                                          e.published === false
+                                            ? "Publicar en landing"
+                                            : "Ocultar en landing",
+                                        fn: () => void togglePublished(e.id),
                                       },
                                       {
                                         label: e.showPrice
                                           ? "Ocultar precio"
                                           : "Mostrar precio",
-                                        fn: () => toggleShowPrice(e.id),
+                                        fn: () => void toggleShowPrice(e.id),
                                       },
                                       {
                                         label: "Duplicar",
-                                        fn: () => duplicateEvent(e),
+                                        fn: () => void duplicateEvent(e),
                                       },
                                       {
                                         label: "Eliminar",
-                                        fn: () => removeEvent(e.id),
+                                        fn: () => void removeEvent(e.id),
                                         danger: true,
                                       },
                                     ] as const
@@ -731,7 +1180,7 @@ export function EventosAdminPanel() {
                   <div className="flex items-end">
                     <button
                       type="button"
-                      onClick={addRegistration}
+                      onClick={() => void addRegistration()}
                       className="w-full rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase"
                     >
                       Guardar
@@ -767,6 +1216,8 @@ export function EventosAdminPanel() {
                   >
                     <option value="all">Todos los estados</option>
                     <option value="nuevo">Nuevo</option>
+                    <option value="pendiente_pago">Pendiente pago</option>
+                    <option value="pagado">Pagado</option>
                     <option value="confirmado">Confirmado</option>
                     <option value="cancelado">Cancelado</option>
                   </select>
@@ -774,7 +1225,7 @@ export function EventosAdminPanel() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar nombre o WhatsApp…"
+                  placeholder="Buscar nombre, email o WhatsApp…"
                   className={`${inputClass} lg:max-w-xs`}
                 />
               </div>
@@ -795,6 +1246,11 @@ export function EventosAdminPanel() {
                         <div>
                           <p className="font-semibold text-gals-ink">{r.name}</p>
                           <p className="text-xs text-gals-muted">{r.whatsapp}</p>
+                          {r.email ? (
+                            <p className="truncate text-xs text-gals-muted">
+                              {r.email}
+                            </p>
+                          ) : null}
                         </div>
                         <div>
                           <p className="text-sm text-gals-ink">
@@ -807,24 +1263,30 @@ export function EventosAdminPanel() {
                         <div className="flex flex-wrap items-center gap-2">
                           <StatusPill status={r.status} />
                           {(
-                            ["nuevo", "confirmado", "cancelado"] as const
+                            [
+                              "nuevo",
+                              "pendiente_pago",
+                              "pagado",
+                              "confirmado",
+                              "cancelado",
+                            ] as const
                           ).map((s) => (
                             <button
                               key={s}
                               type="button"
-                              onClick={() => updateRegStatus(r.id, s)}
+                              onClick={() => void updateRegStatus(r.id, s)}
                               className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase ${
                                 r.status === s
                                   ? "bg-gals-blue-deep text-white"
                                   : "bg-gals-blue-soft/60 text-gals-muted"
                               }`}
                             >
-                              {s}
+                              {s.replace("_", " ")}
                             </button>
                           ))}
                           <button
                             type="button"
-                            onClick={() => removeReg(r.id)}
+                            onClick={() => void removeReg(r.id)}
                             className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-red-600 uppercase"
                           >
                             Borrar
@@ -846,7 +1308,7 @@ export function EventosAdminPanel() {
                     {editingId ? "Editar evento" : "Crear evento"}
                   </h2>
                   <p className="text-sm text-gals-muted">
-                    Completa los campos de la agenda.
+                    Se guarda en Supabase y, si está publicado, se ve en /eventos.
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -859,10 +1321,11 @@ export function EventosAdminPanel() {
                   </button>
                   <button
                     type="button"
-                    onClick={saveDraft}
-                    className="rounded-full bg-gals-blue-deep px-5 py-2 text-[11px] font-bold text-white uppercase shadow-md"
+                    disabled={saving}
+                    onClick={() => void saveDraft()}
+                    className="rounded-full bg-gals-blue-deep px-5 py-2 text-[11px] font-bold text-white uppercase shadow-md disabled:opacity-60"
                   >
-                    Guardar
+                    {saving ? "Guardando…" : "Guardar en Supabase"}
                   </button>
                 </div>
               </div>
@@ -906,7 +1369,7 @@ export function EventosAdminPanel() {
                         cta:
                           e.target.value === "free"
                             ? "Reservar mi cupo gratis"
-                            : "Reservar mi cupo",
+                            : "Pagar y reservar",
                         price:
                           e.target.value === "free"
                             ? "Gratis"
@@ -958,16 +1421,26 @@ export function EventosAdminPanel() {
                   <input
                     className={inputClass}
                     type="datetime-local"
-                    value={draft.startsAt ? draft.startsAt.slice(0, 16) : ""}
-                    onChange={(e) =>
+                    value={toDatetimeLocalValue(draft.startsAt)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const startsAt = value ? `${value}:00-05:00` : "";
+                      const labels = labelsFromStartsAt(startsAt);
                       setDraft((d) => ({
                         ...d,
-                        startsAt: e.target.value
-                          ? `${e.target.value}:00-05:00`
-                          : "",
-                      }))
-                    }
+                        startsAt,
+                        dateLabel: d.dateLabel.trim()
+                          ? d.dateLabel
+                          : labels.dateLabel,
+                        timeLabel: d.timeLabel?.trim()
+                          ? d.timeLabel
+                          : labels.timeLabel,
+                      }));
+                    }}
                   />
+                  <p className="mt-1 text-[11px] text-gals-muted">
+                    Si dejás vacíos Fecha/Hora label, se completan solos.
+                  </p>
                 </div>
                 <div>
                   <label className={labelClass}>Lugar</label>
@@ -1012,16 +1485,12 @@ export function EventosAdminPanel() {
                     placeholder="🧘 Clase de Pilates"
                   />
                 </div>
-                <div>
-                  <label className={labelClass}>Imagen (path)</label>
-                  <input
-                    className={inputClass}
-                    value={draft.image}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, image: e.target.value }))
-                    }
-                  />
-                </div>
+                <EventCoverPicker
+                  value={draft.image}
+                  onChange={(image) => setDraft((d) => ({ ...d, image }))}
+                  labelClass={labelClass}
+                  inputClass={inputClass}
+                />
                 <div>
                   <label className={labelClass}>CTA</label>
                   <input
@@ -1044,21 +1513,49 @@ export function EventosAdminPanel() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Bewe after</label>
-                  <select
+                  <label className={labelClass}>Monto MP (COP)</label>
+                  <input
                     className={inputClass}
-                    value={draft.beweAfter}
+                    type="number"
+                    min={0}
+                    step={1000}
+                    placeholder="Ej. 60000 — vacío = sin checkout"
+                    value={draft.priceAmount ?? ""}
                     onChange={(e) =>
                       setDraft((d) => ({
                         ...d,
-                        beweAfter: e.target.value as "form" | "packs",
+                        priceAmount: e.target.value
+                          ? Number(e.target.value)
+                          : undefined,
                       }))
                     }
-                  >
-                    <option value="form">Formulario</option>
-                    <option value="packs">Packs</option>
-                  </select>
+                  />
                 </div>
+                {draft.kind === "free" ? (
+                  <div>
+                    <label className={labelClass}>Bewe after (solo gratis)</label>
+                    <select
+                      className={inputClass}
+                      value={draft.beweAfter}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          beweAfter: e.target.value as "form" | "packs",
+                        }))
+                      }
+                    >
+                      <option value="form">Formulario</option>
+                      <option value="packs">Packs</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className={labelClass}>Cobro</label>
+                    <p className="rounded-xl border border-gals-blue-deep/10 bg-gals-blue-soft/50 px-3.5 py-2.5 text-sm text-gals-ink">
+                      Con Monto MP → Checkout Mercado Pago. Sin monto → WhatsApp.
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label className={labelClass}>Cupos</label>
                   <input

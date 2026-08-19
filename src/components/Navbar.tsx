@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MENU_LINKS, INSTAGRAM, WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
+import { BEWE_BOOK_CLASS } from "@/lib/bewe";
 
 function InstagramIcon({ className = "" }: { className?: string }) {
   return (
@@ -69,14 +70,14 @@ export function Navbar() {
       <header
         className={`fixed inset-x-0 top-0 z-[60] w-full max-w-[100vw] overflow-x-clip transition-all duration-300 ${
           scrolled || !isHome
-            ? "bg-gals-cream/95 py-2 shadow-[0_1px_0_rgba(26,42,53,0.06)] backdrop-blur-md"
-            : "bg-gals-cream py-3 md:bg-transparent"
+            ? "bg-gals-cream/95 py-2.5 shadow-[0_1px_0_rgba(26,42,53,0.06)] backdrop-blur-md"
+            : "bg-gals-cream py-3.5 md:bg-transparent md:py-4"
         }`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
           <Link
             href="/"
-            className="relative z-50 flex h-11 w-28 shrink-0 items-center overflow-hidden sm:h-12 sm:w-36 lg:h-12 lg:w-40"
+            className="relative z-50 flex h-12 w-32 shrink-0 items-center justify-start overflow-visible sm:h-14 sm:w-40 lg:h-14 lg:w-44"
           >
             <Image
               src="/brand/logos/logo.png"
@@ -84,7 +85,7 @@ export function Navbar() {
               width={320}
               height={128}
               priority
-              className={`h-full w-full translate-y-1 scale-[2.85] object-contain object-center sm:translate-y-0.5 sm:scale-[3.1] lg:scale-[3.2] ${
+              className={`h-full w-full scale-[2.35] object-contain object-left sm:scale-[2.5] lg:scale-[2.55] ${
                 lightNav ? "md:brightness-0 md:invert" : ""
               }`}
             />
@@ -113,9 +114,18 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* Acciones extra solo en móvil vía menú; en PC mismo set que el cel */}
-          <div className="hidden w-28 shrink-0 lg:block" aria-hidden />
-
+          <div className="hidden shrink-0 lg:block">
+            <a
+              href={isHome ? "#horario" : "/#horario"}
+              className={`${BEWE_BOOK_CLASS} inline-flex rounded-full px-5 py-2.5 font-display text-[11px] tracking-[0.14em] uppercase transition-transform hover:scale-[1.03] ${
+                lightNav
+                  ? "bg-white text-gals-blue-deep shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+                  : "bg-gals-blue-deep text-white shadow-[0_8px_20px_rgba(26,42,53,0.18)]"
+              }`}
+            >
+              Reservar
+            </a>
+          </div>
           <div className="relative z-50 flex shrink-0 items-center gap-0.5 lg:hidden">
             <a
               href={INSTAGRAM}
@@ -197,6 +207,16 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
+                <motion.a
+                  href={isHome ? "#horario" : "/#horario"}
+                  onClick={() => setOpen(false)}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.04 * MENU_LINKS.length }}
+                  className={`${BEWE_BOOK_CLASS} mt-2 inline-flex rounded-full bg-gals-blue-deep px-8 py-3.5 font-display text-sm tracking-[0.14em] text-white uppercase`}
+                >
+                  Reservar clase
+                </motion.a>
               </div>
             </nav>
           </motion.div>

@@ -172,6 +172,8 @@ export function CreativeCapsule({
   className = "",
   image,
   textPosition = "bottom",
+  step,
+  highlighted = true,
 }: {
   title: string;
   script: string;
@@ -180,6 +182,10 @@ export function CreativeCapsule({
   className?: string;
   image?: string;
   textPosition?: "top" | "bottom";
+  /** Número del camino, ej. "01" */
+  step?: string;
+  /** Si false, se atenúa (flujo de clase). */
+  highlighted?: boolean;
 }) {
   const a = accentMap[accent];
   const isTop = textPosition === "top";
@@ -191,6 +197,11 @@ export function CreativeCapsule({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      animate={{
+        filter: highlighted
+          ? "brightness(1) saturate(1)"
+          : "brightness(0.72) saturate(0.85)",
+      }}
     >
       {image ? (
         <>
@@ -198,7 +209,7 @@ export function CreativeCapsule({
           <img
             src={image}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
           />
           <div
             className={`absolute inset-0 ${
@@ -207,6 +218,15 @@ export function CreativeCapsule({
                 : "bg-gradient-to-t from-black/75 via-black/40 to-black/20"
             }`}
           />
+          <motion.div
+            className="pointer-events-none absolute inset-0 ring-inset"
+            animate={{
+              boxShadow: highlighted
+                ? "inset 0 0 0 2px rgba(238,241,248,0.35)"
+                : "inset 0 0 0 0px rgba(238,241,248,0)",
+            }}
+            transition={{ duration: 0.45 }}
+          />
         </>
       ) : (
         <>
@@ -214,6 +234,15 @@ export function CreativeCapsule({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.25),transparent_45%)]" />
         </>
       )}
+
+      {step ? (
+        <p
+          className="absolute top-5 right-5 z-10 font-display text-sm tracking-[0.2em] text-white/90 md:top-7 md:right-7 md:text-base"
+          aria-hidden
+        >
+          {step}
+        </p>
+      ) : null}
 
       <div
         className={`relative z-10 flex h-full min-h-[220px] flex-col md:min-h-[250px] ${

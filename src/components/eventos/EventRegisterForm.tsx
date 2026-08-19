@@ -32,6 +32,7 @@ export function EventRegisterForm({
   className = "",
 }: Props) {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
@@ -49,6 +50,7 @@ export function EventRegisterForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
+          email: email.trim(),
           whatsapp: whatsapp.trim(),
           eventId,
           source,
@@ -58,17 +60,41 @@ export function EventRegisterForm({
         ok?: boolean;
         error?: string;
         beweAfter?: "form" | "packs";
+        checkoutUrl?: string;
+        needsPriceConfirm?: boolean;
       };
 
       if (!res.ok || !data.ok) {
         throw new Error(data.error || "No se pudo registrar");
       }
 
+      /** Checkout Mercado Pago */
+      if (data.checkoutUrl) {
+        setStatus("ok");
+        setMessage("Te llevamos a Mercado Pago para completar el pago…");
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
       setStatus("ok");
-      setMessage("¡Listo! Continuamos tu reserva.");
       setName("");
+      setEmail("");
       setWhatsapp("");
 
+      if (data.needsPriceConfirm) {
+        setMessage(
+          "¡Listo! Te contactamos por WhatsApp para confirmar precio y cupo.",
+        );
+        const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+          `Hola! Quiero reservar el evento (${eventId}). Mi nombre es ${name.trim()}.`,
+        )}`;
+        window.setTimeout(() => {
+          window.open(url, "_blank", "noopener,noreferrer");
+        }, 400);
+        return;
+      }
+
+      setMessage("¡Listo! Te enviamos la confirmación a tu correo.");
       const after = data.beweAfter ?? beweAfter;
       openBeweWidget(after === "packs" ? { path: "packs" } : { path: "form" });
 
@@ -114,6 +140,20 @@ export function EventRegisterForm({
         />
       </div>
       <div>
+        <label className={label}>Correo *</label>
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={status === "loading"}
+          placeholder="tu@correo.com"
+          className={field}
+        />
+      </div>
+      <div>
         <label className={label}>WhatsApp *</label>
         <div className="flex gap-2">
           <span
@@ -148,7 +188,7 @@ export function EventRegisterForm({
             : "bg-gals-blue-deep text-white"
         }`}
       >
-        {status === "loading" ? "Enviando…" : cta}
+        {status === "loading" ? "Preparando…" : cta}
       </button>
 
       {message ? (

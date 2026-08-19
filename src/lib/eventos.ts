@@ -40,162 +40,250 @@ export type GalsEvent = {
   afterEvent?: { name: string; price: string }[];
   /** Precio del evento (texto, ej. "$120.000"). */
   price?: string;
+  /** Monto COP para Mercado Pago (obligatorio en eventos paid cobrables). */
+  priceAmount?: number;
   /** Si true, se muestra el precio en las tarjetas de la landing. */
   showPrice?: boolean;
+  /** Solo admin / DB — si false no aparece en la landing. */
+  published?: boolean;
+  /** Cupo máximo opcional (admin). */
+  capacity?: number;
   cta: string;
-  /** Tras enviar form: abre form Bewe o packs Bewe. */
+  /**
+   * Tras lead gratis: abre form/packs Bewe.
+   * En eventos paid el cobro va por Mercado Pago.
+   */
   beweAfter: "form" | "packs";
 };
 
+const STUDIO = `GAL'S Studio · ${ADDRESS}`;
+
 export const FREE_EVENTS: GalsEvent[] = [
   {
-    id: "community-pilates-morning",
+    id: "clase-clientas-sep",
     kind: "free",
-    title: "Community Pilates Morning",
-    eyebrow: "Evento gratis",
-    dateLabel: "7 de agosto",
-    timeLabel: "10AM",
-    place: "Parque cercano al studio · Bogotá",
-    headline: "Llevamos GAL'S fuera del studio",
-    subhead: "Pilates · meditación · café/té · filosofía GAL'S",
+    title: "Clase con clientas",
+    eyebrow: "Solo clientas",
+    dateLabel: "5 de septiembre",
+    timeLabel: "8:30AM",
+    place: STUDIO,
+    headline: "Empezamos el día juntas",
+    subhead: "Un espacio especial para nuestras clientas, con intención",
     concept:
-      "Llevar la experiencia GAL'S fuera del estudio (parque cercano). Incluye clase de pilates, meditación guiada, café/té y presentación de la filosofía GAL'S.",
+      "Un espacio especial para nuestras clientas: nos movemos juntas para empezar el día con intención.",
     signupPitch:
-      "Una mañana afuera para volver a sentirte en tu cuerpo: pilates, meditación y café con mujeres que están en la misma. Cupo gratis, guárdalo antes de que se llene.",
+      "Si ya eres GAL'S, este cupo es para ti. Déjanos tus datos y te confirmamos el lugar.",
     image: "/media/capsules/pilates.jpg",
-    startsAt: "2026-08-07T10:00:00-05:00",
+    startsAt: "2026-09-05T08:30:00-05:00",
     why: [
-      { emoji: "🧘", label: "Clase de Pilates" },
-      { emoji: "🕊️", label: "Meditación guiada" },
-      { emoji: "☕", label: "Café / té" },
-      { emoji: "🩶", label: "Filosofía GAL'S" },
+      { emoji: "🧘", label: "Movimiento en comunidad" },
+      { emoji: "☀️", label: "8:30 am" },
+      { emoji: "🩶", label: "Solo clientas" },
+      { emoji: "👯", label: "Empezar el día juntas" },
     ],
-    cta: "Reservar mi cupo gratis",
+    cta: "Reservar mi cupo",
     beweAfter: "form",
-    price: "Gratis",
-    showPrice: true,
-  },
-  {
-    id: "blue-pilates-party",
-    kind: "free",
-    title: "Blue Pilates Party",
-    eyebrow: "Evento gratis",
-    dateLabel: "17 de agosto",
-    timeLabel: "10AM",
-    place: "GAL'S Studio · Calle 97",
-    headline: "Edición especial en azul",
-    subhead: "Dress code azul/blanco · playlist · contenido para redes",
-    concept:
-      "Edición especial con dress code azul/blanco, playlist especial y contenido para redes.",
-    signupPitch:
-      "La party más GAL'S del mes: viste de azul/blanco, muévete con playlist buena y sal con fotos que sí quieres publicar. Es gratis, solo falta tu nombre en la lista.",
-    image: "/media/eventos/girls-talk-hormonas.jpg",
-    startsAt: "2026-08-17T10:00:00-05:00",
-    why: [
-      { emoji: "💙", label: "Dress code azul/blanco" },
-      { emoji: "🎵", label: "Playlist especial" },
-      { emoji: "📸", label: "Contenido para redes" },
-      { emoji: "👯", label: "Comunidad real" },
-    ],
-    cta: "Reservar mi cupo gratis",
-    beweAfter: "form",
-    price: "Gratis",
+    price: "Incluido en tu plan",
     showPrice: true,
   },
 ];
 
 export const PAID_EVENTS: GalsEvent[] = [
   {
-    id: "back-to-routine",
-    kind: "paid",
-    title: "Back to Routine",
-    eyebrow: "Experiencia paga",
-    dateLabel: "5 de agosto",
-    timeLabel: "6PM",
-    place: `GAL'S Studio · ${ADDRESS}`,
-    headline: "Vuelve a tu rutina",
-    subhead:
-      "2 horas para retomar tu movimiento y tu alimentación, sin culpa y sin extremos",
-    signupPitch:
-      "Si llevas semanas (o meses) posponiendo tu rutina: estas 2 horas son el empujón. Pilates, alimentación sin culpa y un plan claro para no volver a empezar desde cero.",
-    image: "/media/capsules/whois-1.jpg",
-    startsAt: "2026-08-05T18:00:00-05:00",
-    stats: [
-      { value: "+100", label: "Alumnas" },
-      { value: "6PM", label: "Inicio" },
-      { value: "2h", label: "Duración" },
-    ],
-    why: [
-      { emoji: "🧘", label: "Clase de Pilates" },
-      { emoji: "🥗", label: "Workshop de Alimentación" },
-      { emoji: "📋", label: "Tu Plan a la Medida" },
-      { emoji: "✨", label: "Nuevos Planes GAL'S" },
-      { emoji: "🧠", label: "Journaling Guiado" },
-      { emoji: "👯", label: "Comunidad Real" },
-    ],
-    afterEvent: [
-      { name: "Semana GAL'S", price: "$80.000" },
-      { name: "Membresía Ritual", price: "$380.000" },
-    ],
-    price: "$80.000",
-    showPrice: true,
-    cta: "Reservar mi cupo",
-    beweAfter: "packs",
-  },
-  {
-    id: "pilates-sculpt-color-lab",
-    kind: "paid",
-    title: "Pilates Sculpt & Color Lab",
-    eyebrow: "Experiencia paga",
-    dateLabel: "13 de agosto",
-    place: `GAL'S Studio · ${ADDRESS}`,
-    headline: "Siéntete bien por dentro y por fuera",
-    subhead:
-      "Clase de Pilates Sculpt + workshop de colorimetría e imagen personal",
-    signupPitch:
-      "Entrenas y además sales sabiendo qué colores te favorecen de verdad. Pilates Sculpt + colorimetría en una sola experiencia: cuerpo activado e imagen con criterio.",
-    image: "/media/capsules/_DSC4460.jpg",
-    startsAt: "2026-08-13T10:00:00-05:00",
-    why: [
-      { emoji: "🔥", label: "Pilates Sculpt (50-60 min)" },
-      { emoji: "🎨", label: "Colorimetría e Imagen" },
-      { emoji: "👗", label: "Aplícalo a tu Estilo" },
-      { emoji: "🧥", label: "Closet Funcional" },
-      { emoji: "✨", label: "Alianza Exclusiva" },
-      { emoji: "👯", label: "Comunidad Real" },
-    ],
-    price: "$120.000",
-    showPrice: true,
-    cta: "Reservar mi cupo",
-    beweAfter: "packs",
-  },
-  {
-    id: "girls-talk-hormonas",
+    id: "pilates-yin-yoga-ago",
     kind: "paid",
     featured: true,
-    title: "Girls Talk: Hormonas & Movimiento",
-    eyebrow: "Experiencia paga · protagonista",
-    dateLabel: "29 de agosto",
-    timeLabel: "9:30AM",
-    place: `GAL'S Studio · ${ADDRESS}`,
-    headline: "Entiende por fin tu cuerpo y tu ciclo",
+    title: "Pilates & Yin Yoga",
+    eyebrow: "Experiencia · 60 min",
+    dateLabel: "22 de agosto",
+    timeLabel: "Sábado",
+    place: STUDIO,
+    headline: "Mueve el cuerpo y encuentra tu paz",
     subhead:
-      "Disfruta de nuestra charla con una invitada especial: nutrición y salud ginecológica para volver a escucharte con calma",
+      "Una práctica suave para calmarte y conectar con la vibración del amor",
+    concept:
+      "Mueve el cuerpo y encuentra tu paz interna. Una práctica suave para calmarte y conectar con la vibración del amor: la que te llena para dar más y más al mundo que lo necesita.",
     signupPitch:
-      "Si entrenas igual todo el mes y no entiendes por qué un día te sientes imparable y otro no: aquí lo vas a clarificar. Habla con una experta, haz tus preguntas y sal con una forma real de moverte según tu ciclo.",
-    image: "/media/eventos/blue-pilates-party.jpg",
-    startsAt: "2026-08-29T09:30:00-05:00",
+      "60 minutos para bajar revoluciones. Público $60.000 · clientas: incluido en tu plan. Si vienes de afuera, paga aquí y asegura tu cupo.",
+    image: "/media/capsules/yin-yoga.jpg",
+    startsAt: "2026-08-22T10:00:00-05:00",
     why: [
-      { emoji: "🩸", label: "Tu Ciclo Hormonal" },
-      { emoji: "🏃‍♀️", label: "Entrena Según tu Fase" },
-      { emoji: "🥗", label: "Alimentación Amigable" },
-      { emoji: "🧘", label: "Pilates y Salud Hormonal" },
-      { emoji: "💬", label: "Espacio de Preguntas" },
-      { emoji: "👯", label: "Comunidad Real" },
+      { emoji: "🧘", label: "Pilates + Yin" },
+      { emoji: "🕊️", label: "Calma y conexión" },
+      { emoji: "⏱️", label: "60 min" },
+      { emoji: "🩶", label: "Clientas: en tu plan" },
     ],
-    price: "$90.000",
+    price: "$60.000",
+    priceAmount: 60000,
+    showPrice: true,
+    cta: "Pagar y reservar",
+    beweAfter: "packs",
+  },
+  {
+    id: "pilates-color-lab-ago",
+    kind: "paid",
+    title: "Pilates & Color Lab",
+    eyebrow: "Experiencia sensorial",
+    dateLabel: "28 de agosto",
+    timeLabel: "Viernes",
+    place: STUDIO,
+    headline: "Movimiento y color se encuentran",
+    subhead:
+      "Pilates envuelto en una experiencia sensorial donde cada tono guía tu práctica",
+    concept:
+      "Movimiento y color se encuentran. Pilates envuelto en una experiencia sensorial donde cada tono guía la energía de tu práctica.",
+    signupPitch:
+      "Una noche distinta: pilates + color. Déjanos tus datos y te llevamos al pago para asegurar cupo.",
+    image: "/media/capsules/_DSC4460.jpg",
+    startsAt: "2026-08-28T18:00:00-05:00",
+    why: [
+      { emoji: "🎨", label: "Color Lab" },
+      { emoji: "🔥", label: "Pilates" },
+      { emoji: "✨", label: "Experiencia sensorial" },
+      { emoji: "👯", label: "Comunidad" },
+    ],
+    /** Precio pendiente de confirmar en el PDF */
+    price: "Por confirmar",
     showPrice: true,
     cta: "Reservar mi cupo",
+    beweAfter: "packs",
+  },
+  {
+    id: "cycle-power-ago",
+    kind: "paid",
+    title: "Cycle & Power",
+    eyebrow: "Cardio + fuerza",
+    dateLabel: "29 de agosto",
+    timeLabel: "Sábado",
+    place: STUDIO,
+    headline: "Sube el ritmo",
+    subhead:
+      "Cardio sobre la bici y trabajo de fuerza para encender tu potencia",
+    concept:
+      "Sube el ritmo. Cardio sobre la bici y trabajo de fuerza para encender tu potencia y salir con el corazón a mil.",
+    signupPitch:
+      "Si quieres sudar y salir con el corazón a mil, este es tu sábado. Confirmamos precio al reservar.",
+    image: "/media/capsules/sculpt.jpg",
+    startsAt: "2026-08-29T10:00:00-05:00",
+    why: [
+      { emoji: "🚴", label: "Cycle" },
+      { emoji: "💪", label: "Fuerza" },
+      { emoji: "🔥", label: "Cardio" },
+      { emoji: "🩶", label: "Potencia" },
+    ],
+    price: "Por confirmar",
+    showPrice: true,
+    cta: "Reservar mi cupo",
+    beweAfter: "packs",
+  },
+  {
+    id: "luz-interior-velas",
+    kind: "paid",
+    title: "Luz Interior · Pilates & Velas",
+    eyebrow: "Práctica íntima",
+    dateLabel: "5 de septiembre",
+    timeLabel: "10:30AM",
+    place: STUDIO,
+    headline: "Pilates a la luz de las velas",
+    subhead: "Bajamos el ritmo, encendemos la calma y cerramos en calidez",
+    concept:
+      "Pilates a la luz de las velas. Bajamos el ritmo, encendemos la calma y cerramos con una práctica cálida e íntima.",
+    signupPitch:
+      "Una mañana íntima para volver a ti. Déjanos tus datos y te guiamos al pago.",
+    image: "/media/experiencias/wellness-experiences.jpg",
+    startsAt: "2026-09-05T10:30:00-05:00",
+    why: [
+      { emoji: "🕯️", label: "Velas" },
+      { emoji: "🧘", label: "Pilates" },
+      { emoji: "🌙", label: "Calma" },
+      { emoji: "🩶", label: "Espacio íntimo" },
+    ],
+    price: "Por confirmar",
+    showPrice: true,
+    cta: "Reservar mi cupo",
+    beweAfter: "packs",
+  },
+  {
+    id: "taller-anaka",
+    kind: "paid",
+    title: "Taller con Anaka",
+    eyebrow: "Taller especial",
+    dateLabel: "12 de septiembre",
+    timeLabel: "Sábado",
+    place: STUDIO,
+    headline: "Cuerpo, respiración y presencia",
+    subhead: "Encuentro guiado por Anaka · cupos limitados",
+    concept:
+      "Un encuentro guiado por Anaka para profundizar en cuerpo, respiración y presencia. Cupos limitados.",
+    signupPitch:
+      "Cupos limitados. Déjanos tus datos y te confirmamos pago y lugar.",
+    image: "/media/capsules/experiencias-gals.jpg",
+    startsAt: "2026-09-12T10:00:00-05:00",
+    why: [
+      { emoji: "🌬️", label: "Respiración" },
+      { emoji: "🧘", label: "Presencia" },
+      { emoji: "✨", label: "Invitada Anaka" },
+      { emoji: "🎟️", label: "Cupos limitados" },
+    ],
+    price: "Por confirmar",
+    showPrice: true,
+    cta: "Reservar mi cupo",
+    beweAfter: "packs",
+  },
+  {
+    id: "blue-paty-amor-amistad",
+    kind: "paid",
+    title: "Blue Paty · Amor y Amistad",
+    eyebrow: "Celebración",
+    dateLabel: "19 de septiembre",
+    timeLabel: "Sábado",
+    place: STUDIO,
+    headline: "Celebramos en clave azul",
+    subhead: "Trae a tu persona favorita y reconecten juntas",
+    concept:
+      "Celebramos el amor y la amistad en clave azul. Trae a tu persona favorita y compartan un día pensado para reconectar y consentirse.",
+    signupPitch:
+      "Trae a tu persona favorita. Reserva tu cupo y te confirmamos detalles de pago.",
+    image: "/media/eventos/blue-pilates-party.jpg",
+    startsAt: "2026-09-19T10:00:00-05:00",
+    why: [
+      { emoji: "💙", label: "Dress code azul" },
+      { emoji: "👯", label: "Amor y amistad" },
+      { emoji: "🎉", label: "Celebración" },
+      { emoji: "🩶", label: "Comunidad GAL'S" },
+    ],
+    price: "Por confirmar",
+    showPrice: true,
+    cta: "Reservar mi cupo",
+    beweAfter: "packs",
+  },
+  {
+    id: "bowl-balance-sep",
+    kind: "paid",
+    title: "Bowl & Balance",
+    eyebrow: "Miembros Gals + público",
+    dateLabel: "26 de septiembre",
+    timeLabel: "Sábado",
+    place: STUDIO,
+    headline: "Movernos y nutrirnos en comunidad",
+    subhead:
+      "Pilates, arma tu bowl y descubre lo nuevo de la tienda",
+    concept:
+      "Una mañana para movernos y nutrirnos en comunidad: fluye en tu clase de pilates, arma tu propio bowl con ingredientes frescos y quédate a descubrir lo nuevo de la tienda.",
+    signupPitch:
+      "Público $99.000 · Gals $40.000. El pago online es tarifa público; si eres miembro, escríbenos por WhatsApp para tu tarifa.",
+    image: "/media/alimentacion/nati-bowl.png",
+    startsAt: "2026-09-26T10:00:00-05:00",
+    why: [
+      { emoji: "🧘", label: "Clase de pilates" },
+      { emoji: "🥗", label: "Arma tu bowl" },
+      { emoji: "🛍️", label: "Tienda GAL'S" },
+      { emoji: "👯", label: "Comunidad" },
+    ],
+    price: "$99.000",
+    priceAmount: 99000,
+    showPrice: true,
+    cta: "Pagar y reservar",
     beweAfter: "packs",
   },
 ];
@@ -210,37 +298,68 @@ export function isEventUpcoming(event: GalsEvent, now = new Date()) {
   return bogotaDay(new Date(event.startsAt)) >= bogotaDay(now);
 }
 
-export function getActiveFreeEvents(now = new Date()) {
-  return FREE_EVENTS.filter((e) => isEventUpcoming(e, now));
+export function getActiveFreeEvents(
+  now = new Date(),
+  list: readonly GalsEvent[] = FREE_EVENTS,
+) {
+  return list.filter((e) => e.kind === "free" && isEventUpcoming(e, now));
 }
 
-export function getActivePaidEvents(now = new Date()) {
-  return PAID_EVENTS.filter((e) => isEventUpcoming(e, now)).sort(
-    (a, b) =>
-      new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
-  );
+export function getActivePaidEvents(
+  now = new Date(),
+  list: readonly GalsEvent[] = PAID_EVENTS,
+) {
+  return list
+    .filter((e) => e.kind === "paid" && isEventUpcoming(e, now))
+    .sort(
+      (a, b) =>
+        new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+    );
 }
 
 /** Próximo evento pago (prioriza flagged featured si sigue activo). */
-export function getFeaturedEvent(now = new Date()) {
-  const active = getActivePaidEvents(now);
+export function getFeaturedEvent(
+  now = new Date(),
+  list: readonly GalsEvent[] = PAID_EVENTS,
+) {
+  const active = getActivePaidEvents(now, list);
   if (active.length === 0) return undefined;
   return active.find((e) => e.featured) ?? active[0];
 }
 
 /** Próximo evento cuyo startsAt aún no llega — prioriza eventos de pago. */
-export function getNextLiveEvent(now = new Date()) {
+export function getNextLiveEvent(
+  now = new Date(),
+  list: readonly GalsEvent[] = [...PAID_EVENTS, ...FREE_EVENTS],
+) {
   const t = now.getTime();
-  const upcoming = (list: readonly GalsEvent[]) =>
-    list
-      .filter((e) => new Date(e.startsAt).getTime() > t)
-      .sort(
-        (a, b) =>
-          new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
-      );
-  return upcoming(PAID_EVENTS)[0] ?? upcoming(FREE_EVENTS)[0];
+  const upcoming = list
+    .filter((e) => new Date(e.startsAt).getTime() > t)
+    .sort(
+      (a, b) =>
+        new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+    );
+  return (
+    upcoming.find((e) => e.kind === "paid") ??
+    upcoming.find((e) => e.kind === "free")
+  );
 }
 
-export function findEvent(id: string) {
-  return [...FREE_EVENTS, ...PAID_EVENTS].find((e) => e.id === id);
+export function findEvent(
+  id: string,
+  list: readonly GalsEvent[] = [...FREE_EVENTS, ...PAID_EVENTS],
+) {
+  return list.find((e) => e.id === id);
+}
+
+/** Monto a cobrar en Mercado Pago. */
+export function getEventPriceAmount(event: GalsEvent): number | null {
+  if (typeof event.priceAmount === "number" && event.priceAmount > 0) {
+    return event.priceAmount;
+  }
+  if (event.kind !== "paid") return null;
+  const fromLabel = event.price?.replace(/[^\d]/g, "");
+  if (!fromLabel) return null;
+  const n = Number(fromLabel);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }

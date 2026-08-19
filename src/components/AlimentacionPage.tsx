@@ -1,11 +1,41 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ALIMENTACION, ytThumb, ytWatch } from "@/lib/alimentacion";
 import { ImageSticker, STICKER_ASSETS } from "@/components/capsules/Stickers";
 
 const data = ALIMENTACION;
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const weekMotion = {
+  initial: { opacity: 0, y: 18 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.35, ease: EASE },
+};
+
+const softFloat = {
+  y: [0, -10, -3, -12, 0],
+  rotate: [-2, -0.6, -3.2, -1.4, -2],
+};
+
+const softFloatTransition = {
+  duration: 6.2,
+  repeat: Infinity,
+  ease: "easeInOut" as const,
+};
+
+const scriptFloat = {
+  y: [0, -6, -2, -8, 0],
+};
+
+const scriptFloatTransition = {
+  duration: 7.5,
+  repeat: Infinity,
+  ease: "easeInOut" as const,
+};
 
 function DriveButton({
   href,
@@ -34,33 +64,64 @@ function DriveButton({
   );
 }
 
-function WeekNav() {
+function WeekNav({
+  activeWeek,
+  onSelect,
+}: {
+  activeWeek: string;
+  onSelect: (id: string) => void;
+}) {
   return (
+    <LayoutGroup id="alimentacion-weeks">
     <nav
       aria-label="Semanas del método"
       className="sticky top-[4.25rem] z-30 -mx-4 mb-2 overflow-x-auto bg-[#f4f5f7]/90 px-4 py-3 backdrop-blur-md md:top-[5rem] md:-mx-0 md:mb-4 md:rounded-2xl md:border md:border-[#e6e8ee] md:bg-white/90 md:px-4 md:py-3.5"
     >
       <div className="flex min-w-max gap-2 md:flex-wrap md:justify-center">
-        {data.weekNav.map((w) => (
-          <a
-            key={w.id}
-            href={`#${w.id}`}
-            className="rounded-full bg-gals-blue-deep/90 px-3.5 py-2 text-xs font-semibold text-white hover:bg-gals-blue-deep"
-          >
-            {w.id === "empezar" ? (
-              w.hint
-            ) : (
-              <>
-                Semana {w.label}
-                <span className="ml-1 font-normal text-white/75">
-                  · {w.hint}
-                </span>
-              </>
-            )}
-          </a>
-        ))}
+        {data.weekNav.map((w) => {
+          const active = activeWeek === w.id;
+          return (
+            <motion.button
+              key={w.id}
+              type="button"
+              onClick={() => onSelect(w.id)}
+              aria-pressed={active}
+              whileTap={{ scale: 0.97 }}
+              className={`relative rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${
+                active
+                  ? "text-white"
+                  : "bg-white text-gals-blue-deep ring-1 ring-gals-blue-deep/15 hover:bg-gals-blue-soft"
+              }`}
+            >
+              {active ? (
+                <motion.span
+                  layoutId="week-pill"
+                  className="absolute inset-0 rounded-full bg-gals-blue-deep shadow-md"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              ) : null}
+              <span className="relative z-10">
+                {w.id === "empezar" ? (
+                  w.hint
+                ) : (
+                  <>
+                    Semana {w.label}
+                    <span
+                      className={`ml-1 font-normal ${
+                        active ? "text-white/75" : "text-gals-muted"
+                      }`}
+                    >
+                      · {w.hint}
+                    </span>
+                  </>
+                )}
+              </span>
+            </motion.button>
+          );
+        })}
       </div>
     </nav>
+    </LayoutGroup>
   );
 }
 
@@ -160,7 +221,13 @@ function SectionTitle({
   large?: boolean;
 }) {
   return (
-    <header className={className}>
+    <motion.header
+      className={className}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.45 }}
+      transition={{ duration: 0.55, ease: EASE }}
+    >
       {eyebrow ? (
         <p
           className={`font-semibold tracking-[0.16em] text-gals-blue-deep uppercase ${
@@ -188,7 +255,7 @@ function SectionTitle({
           {subtitle}
         </p>
       ) : null}
-    </header>
+    </motion.header>
   );
 }
 
@@ -215,8 +282,9 @@ function VideoCard({
       initial={{ opacity: 0, y: 28, rotate: rotate - 5 }}
       whileInView={{ opacity: 1, y: 0, rotate }}
       viewport={{ once: true, amount: 0.35 }}
-      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.65, ease: EASE }}
       whileHover={{ scale: 1.02, rotate: rotate + 1.5 }}
+      whileTap={{ scale: 0.99 }}
     >
       <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gals-blue-soft">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -240,7 +308,7 @@ function VideoCard({
   );
 }
 
-function WeekMap() {
+function WeekMap({ onSelect }: { onSelect: (id: string) => void }) {
   const accents = [
     "from-gals-blue-soft to-white",
     "from-[#eaf5ee] to-white",
@@ -248,43 +316,41 @@ function WeekMap() {
     "from-[#f0eef8] to-white",
     "from-[#eef6f8] to-white",
   ];
-  const rotates = [-2.2, 1.8, -1.4, 2.4, -1.8];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6 lg:gap-7">
       {data.weekGuide.map((w, i) => (
-        <motion.a
+        <motion.button
           key={w.id}
-          href={`#${w.id}`}
-          className={`group relative overflow-hidden rounded-[1.6rem] bg-gradient-to-br p-5 shadow-[0_10px_32px_rgba(85,104,148,0.1)] sm:p-6 xl:p-5 ${accents[i % accents.length]}`}
-          style={{ rotate: `${rotates[i % rotates.length]}deg` }}
+          type="button"
+          onClick={() => onSelect(w.id)}
+          className={`group relative flex min-h-[220px] flex-col overflow-hidden rounded-[1.6rem] bg-gradient-to-br p-6 text-left shadow-[0_10px_32px_rgba(85,104,148,0.08)] sm:min-h-[240px] sm:p-7 lg:col-span-2 ${accents[i % accents.length]} ${
+            i === 3 ? "lg:col-start-2" : ""
+          }`}
           initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.5, delay: i * 0.06 }}
-          whileHover={{ scale: 1.02, rotate: 0 }}
+          transition={{ duration: 0.5, delay: i * 0.08, ease: EASE }}
+          whileHover={{ y: -4, scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold tracking-[0.16em] text-gals-blue-deep/80 uppercase">
-                Semana {w.week}
-              </p>
-              <p className="mt-2 font-display text-xl tracking-tight text-gals-ink uppercase md:text-2xl">
-                {w.title}
-              </p>
-            </div>
-            <span className="font-script text-2xl text-gals-blue-deep">
-              {w.hint}
-            </span>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-gals-muted md:text-[15px]">
+          <p className="text-[11px] font-semibold tracking-[0.16em] text-gals-blue-deep/80 uppercase">
+            Semana {w.week}
+          </p>
+          <p className="mt-2 font-script text-xl leading-none text-gals-blue-deep sm:text-2xl">
+            {w.hint}
+          </p>
+          <p className="mt-3 font-display text-xl tracking-tight text-gals-ink uppercase sm:text-2xl">
+            {w.title}
+          </p>
+          <p className="mt-3 flex-1 text-sm leading-relaxed text-gals-muted">
             {w.body}
           </p>
-          <p className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-gals-blue-deep transition-transform group-hover:translate-x-1">
+          <p className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-gals-blue-deep transition-transform group-hover:translate-x-1">
             Entrar a esta semana
             <span aria-hidden>→</span>
           </p>
-        </motion.a>
+        </motion.button>
       ))}
     </div>
   );
@@ -361,11 +427,30 @@ function AudioPlayerCard({
       </p>
 
       <div className="mt-6 flex items-center gap-4">
-        <button
+        <motion.button
           type="button"
           onClick={toggle}
           aria-label={playing ? "Pausar" : "Reproducir"}
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-white shadow-[0_10px_24px_rgba(85,104,148,0.35)] transition-transform hover:scale-105 ${
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          animate={
+            playing
+              ? {
+                  boxShadow: [
+                    "0 10px 24px rgba(85,104,148,0.35)",
+                    "0 12px 32px rgba(85,104,148,0.55)",
+                    "0 10px 24px rgba(85,104,148,0.35)",
+                  ],
+                }
+              : { boxShadow: "0 10px 24px rgba(85,104,148,0.35)" }
+          }
+          transition={{
+            boxShadow: { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+            type: "spring",
+            stiffness: 400,
+            damping: 22,
+          }}
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-white ${
             playing ? "bg-gals-blue" : "bg-gals-blue-deep"
           }`}
         >
@@ -377,23 +462,32 @@ function AudioPlayerCard({
           ) : (
             <span className="ml-0.5 text-lg">▶</span>
           )}
-        </button>
+        </motion.button>
 
         <div className="min-w-0 flex-1">
-          <div
-            className="mb-2 flex h-8 items-end gap-[3px]"
-            aria-hidden
-          >
+          <div className="mb-2 flex h-8 items-end gap-[3px]" aria-hidden>
             {wave.map((h, i) => (
-              <span
+              <motion.span
                 key={i}
-                className={`w-1.5 rounded-full transition-colors ${
+                className={`origin-bottom w-1.5 rounded-full ${
                   playing ? "bg-gals-blue-deep" : "bg-gals-blue/45"
-                } ${playing ? "animate-pulse" : ""}`}
-                style={{
-                  height: h,
-                  animationDelay: playing ? `${i * 70}ms` : undefined,
-                }}
+                }`}
+                style={{ height: h }}
+                animate={
+                  playing
+                    ? { scaleY: [0.45, 1.15, 0.55, 1, 0.7] }
+                    : { scaleY: 1 }
+                }
+                transition={
+                  playing
+                    ? {
+                        duration: 0.85 + (i % 4) * 0.12,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: i * 0.05,
+                      }
+                    : { duration: 0.25 }
+                }
               />
             ))}
           </div>
@@ -471,26 +565,40 @@ function RecommendationsBlock() {
       <div className="grid items-start gap-8 md:grid-cols-[minmax(180px,260px)_1fr] md:gap-10 lg:gap-12">
         <motion.div
           className="relative mx-auto w-full max-w-[240px] md:sticky md:top-28 md:mx-0 md:max-w-none"
-          initial={{ opacity: 0, y: 24, rotate: -6 }}
-          whileInView={{ opacity: 1, y: 0, rotate: -2 }}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, ease: EASE }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={data.heroImage}
-            alt=""
-            className="h-auto w-full object-contain drop-shadow-[0_20px_36px_rgba(85,104,148,0.25)]"
-          />
-          <p className="mt-3 text-center font-script text-xl text-gals-blue-deep md:hidden">
+          <motion.div
+            className="origin-center"
+            animate={softFloat}
+            transition={softFloatTransition}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={data.heroImage}
+              alt=""
+              className="h-auto w-full object-contain mix-blend-lighten drop-shadow-[0_20px_36px_rgba(85,104,148,0.25)]"
+            />
+          </motion.div>
+          <motion.p
+            className="mt-3 text-center font-script text-xl text-gals-blue-deep md:hidden"
+            animate={scriptFloat}
+            transition={{ ...scriptFloatTransition, delay: 0.4 }}
+          >
             Comer también puede sentirse suave
-          </p>
+          </motion.p>
         </motion.div>
 
         <div className="min-w-0">
-          <p className="mb-5 hidden font-script text-2xl text-gals-blue-deep md:block md:text-3xl">
+          <motion.p
+            className="mb-5 hidden font-script text-2xl text-gals-blue-deep md:block md:text-3xl"
+            animate={scriptFloat}
+            transition={{ ...scriptFloatTransition, delay: 0.2 }}
+          >
             Comer también puede sentirse suave
-          </p>
+          </motion.p>
 
           <div className="space-y-3">
             {data.recommendations.map((r, i) => {
@@ -640,9 +748,10 @@ function MarketList() {
                   const on = Boolean(checked[key]);
                   return (
                     <li key={key}>
-                      <button
+                      <motion.button
                         type="button"
                         onClick={() => toggle(key)}
+                        whileTap={{ scale: 0.94 }}
                         className={`rounded-full border px-3.5 py-1.5 text-left text-sm transition-colors ${
                           on
                             ? "border-gals-blue-deep bg-gals-blue-deep text-white line-through decoration-white/50"
@@ -650,7 +759,7 @@ function MarketList() {
                         }`}
                       >
                         {item}
-                      </button>
+                      </motion.button>
                     </li>
                   );
                 })}
@@ -659,28 +768,45 @@ function MarketList() {
 
             {c.name === "Semillas y frutos secos" ? (
               <div className="flex flex-col items-center gap-4 py-2 md:flex-row md:items-center md:justify-center md:gap-10 md:py-6">
-                <p className="max-w-md text-center font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:max-w-xs md:text-left md:text-5xl">
+                <motion.p
+                  className="max-w-md text-center font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:max-w-xs md:text-left md:text-5xl"
+                  animate={scriptFloat}
+                  transition={{ ...scriptFloatTransition, delay: 0.15 }}
+                >
                   Elige con calma:
-                </p>
+                </motion.p>
                 <motion.div
                   className="relative z-10 mx-auto w-full max-w-[240px] md:max-w-[300px] md:shrink-0"
                   initial={{ opacity: 0, x: -80 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0.35 }}
-                  transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.85, ease: EASE }}
                 >
-                  <div className="overflow-hidden rounded-[1.5rem] bg-white p-2.5 shadow-[0_18px_44px_rgba(85,104,148,0.18)]">
+                  <motion.div
+                    className="overflow-hidden rounded-[1.5rem] bg-white p-2.5 shadow-[0_18px_44px_rgba(85,104,148,0.18)]"
+                    animate={{ y: [0, -6, -1, -8, 0] }}
+                    transition={{
+                      duration: 5.8,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.3,
+                    }}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={data.marketImage}
                       alt=""
-                      className="aspect-[3/4] w-full rounded-[1.15rem] object-cover"
+                      className="aspect-[3/4] w-full rounded-[1.15rem] object-cover object-top"
                     />
-                  </div>
+                  </motion.div>
                 </motion.div>
-                <p className="max-w-md text-center font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:text-5xl">
+                <motion.p
+                  className="max-w-md text-center font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:text-5xl"
+                  animate={scriptFloat}
+                  transition={{ ...scriptFloatTransition, delay: 0.55 }}
+                >
                   lo que entra al carrito también te cuida
-                </p>
+                </motion.p>
               </div>
             ) : null}
           </div>
@@ -752,14 +878,25 @@ function IntentionsMap() {
 }
 
 export function AlimentacionPage() {
+  const [activeWeek, setActiveWeek] = useState("empezar");
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const selectWeek = (id: string) => {
+    setActiveWeek(id);
+    window.requestAnimationFrame(() => {
+      contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
   return (
     <div className="relative overflow-x-clip pb-16 md:pb-24">
       <section className="relative overflow-hidden pt-20 pb-16 md:flex md:min-h-[72vh] md:items-center md:pt-28 md:pb-28">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <motion.img
           src={data.heroBg}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover object-center md:object-[center_30%]"
+          className="absolute inset-0 h-full w-full origin-center object-cover object-center md:object-[center_30%]"
+          animate={{ scale: [1, 1.04, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         <div
           className="absolute inset-0 bg-gradient-to-r from-[#f4f5f7]/92 via-[#f4f5f7]/72 to-[#f4f5f7]/35 md:from-[#f4f5f7]/95 md:via-[#f4f5f7]/60 md:to-transparent"
@@ -812,40 +949,91 @@ export function AlimentacionPage() {
 
         <div className="relative mx-auto w-full max-w-6xl px-4 py-12 pb-16 md:max-w-7xl md:px-10 md:py-16 md:pb-20">
           <div className="max-w-2xl md:max-w-xl lg:max-w-2xl">
-            <p className="text-xs font-semibold tracking-[0.18em] text-gals-blue-deep uppercase">
+            <motion.p
+              className="text-xs font-semibold tracking-[0.18em] text-gals-blue-deep uppercase"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+            >
               {data.subtitle}
-            </p>
-            <h1 className="mt-2 font-display text-4xl tracking-tight text-gals-ink uppercase md:text-5xl lg:text-6xl">
+            </motion.p>
+            <motion.h1
+              className="mt-2 font-display text-4xl tracking-tight text-gals-ink uppercase md:text-5xl lg:text-6xl"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.08, ease: EASE }}
+            >
               {data.title}
-            </h1>
-            <p className="mt-2 font-script text-2xl text-gals-blue-deep md:text-3xl lg:text-4xl">
+            </motion.h1>
+            <motion.p
+              className="mt-2 font-script text-2xl text-gals-blue-deep md:text-3xl lg:text-4xl"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: [0, -6, -2, -8, 0] }}
+              transition={{
+                opacity: { duration: 0.55, delay: 0.16, ease: EASE },
+                y: {
+                  duration: 7.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.9,
+                },
+              }}
+            >
               Comer con presencia
-            </p>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-gals-muted md:text-base lg:text-lg">
+            </motion.p>
+            <motion.p
+              className="mt-4 max-w-xl text-sm leading-relaxed text-gals-muted md:text-base lg:text-lg"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.24, ease: EASE }}
+            >
               {data.intro}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a
-                href="#empezar"
+            </motion.p>
+            <motion.div
+              className="mt-6 flex flex-wrap gap-3"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.32, ease: EASE }}
+            >
+              <motion.button
+                type="button"
+                onClick={() => selectWeek("empezar")}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 className="rounded-full bg-gals-blue-deep px-5 py-3 text-sm font-semibold text-white md:px-6 md:py-3.5"
               >
                 Empezar
-              </a>
-              <a
-                href="#semana-0"
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={() => selectWeek("semana-0")}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 className="rounded-full border border-gals-ink/80 bg-white/80 px-5 py-3 text-sm font-semibold text-gals-ink backdrop-blur-sm md:px-6 md:py-3.5"
               >
                 Ir al mercado
-              </a>
-            </div>
+              </motion.button>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl space-y-16 px-4 pt-8 md:max-w-7xl md:space-y-20 md:px-10 md:pt-14">
-        <WeekNav />
+      <div
+        ref={contentRef}
+        className="mx-auto max-w-6xl space-y-10 px-4 pt-8 scroll-mt-28 md:max-w-7xl md:space-y-12 md:px-10 md:pt-14"
+      >
+        <WeekNav activeWeek={activeWeek} onSelect={selectWeek} />
 
-        <section id="empezar" className="scroll-mt-28">
+        <AnimatePresence mode="wait">
+        {activeWeek === "empezar" ? (
+        <motion.section
+          key="empezar"
+          id="empezar"
+          className="scroll-mt-28"
+          {...weekMotion}
+        >
           <SectionTitle
             title="Por qué esto importa"
             subtitle="No es una dieta más. Es aprender a elegir con más conciencia, escuchar tu cuerpo y sostener el movimiento desde adentro. Cuando la comida acompaña, todo el método se siente más liviano."
@@ -856,13 +1044,16 @@ export function AlimentacionPage() {
           <div className="mt-14 md:mt-20">
             <SectionTitle
               title="Tu camino por semanas"
-              subtitle="Cinco momentos para ir a tu ritmo. Entra por el que necesites hoy."
+              subtitle="Elige una semana abajo. Solo ves esa; cuando quieras, cambias desde el menú de arriba."
               className="mb-5 md:max-w-3xl"
             />
-            <WeekMap />
+            <WeekMap onSelect={selectWeek} />
           </div>
-        </section>
+        </motion.section>
+        ) : null}
 
+        {activeWeek === "semana-0" ? (
+        <motion.div key="semana-0" {...weekMotion}>
         <WeekShell
           id="semana-0"
           eyebrow="Semana 0"
@@ -870,49 +1061,62 @@ export function AlimentacionPage() {
           subtitle="Esta semana no es sobre comer perfecto: es armar tu base. Llenas la nevera con intención, revisas lo que ya tienes y cocinas con calma."
           largeTitle
         >
-          <div className="mb-8 max-w-2xl space-y-3 rounded-2xl bg-gals-blue-soft/70 p-5 sm:p-6 md:mb-10 md:max-w-3xl md:p-8">
-            <p className="font-script text-2xl text-gals-blue-deep md:text-3xl">
-              De qué trata esta semana
-            </p>
-            <p className="text-sm leading-relaxed text-gals-ink md:text-base">
-              Semana 0 es el aterrizaje: armas tu canasta, marcas lo que ya está
-              en casa y bajas la lista completa si la quieres imprimir. Después
-              miras la clase de cocina para llevar el método a la olla.
-            </p>
-          </div>
-
           <div className="relative mb-10 overflow-x-clip md:mb-14">
-            <div className="md:grid md:grid-cols-[1.15fr_0.85fr] md:items-center md:gap-12 lg:gap-16">
-              <p className="relative z-10 max-w-lg font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:max-w-none md:text-5xl lg:text-6xl">
-                Empezar por la despensa también es cuidarte
-              </p>
+            <div className="md:grid md:grid-cols-[1.15fr_0.85fr] md:items-center md:gap-10 lg:gap-14">
+              <div>
+                <div className="mb-8 max-w-2xl space-y-3 rounded-2xl bg-gals-blue-soft/70 p-5 sm:p-6 md:mb-8 md:max-w-none md:p-8">
+                  <p className="font-script text-2xl text-gals-blue-deep md:text-3xl">
+                    De qué trata esta semana
+                  </p>
+                  <p className="text-sm leading-relaxed text-gals-ink md:text-base">
+                    Semana 0 es el aterrizaje: armas tu canasta, marcas lo que ya
+                    está en casa y bajas la lista completa si la quieres imprimir.
+                    Después miras la clase de cocina para llevar el método a la
+                    olla.
+                  </p>
+                </div>
+
+                <motion.p
+                  className="max-w-xl font-script text-3xl leading-snug text-gals-blue-deep sm:text-4xl md:max-w-none md:text-5xl lg:text-6xl"
+                  animate={scriptFloat}
+                  transition={scriptFloatTransition}
+                >
+                  Empezar por la despensa también es cuidarte
+                </motion.p>
+
+                <div className="mt-6 md:mt-8">
+                  <p className="mb-3 max-w-xl text-sm leading-relaxed text-gals-muted md:text-base">
+                    Abajo tienes la canasta por categorías, empezando por lo
+                    fresco. Si quieres la lista completa para llevarla al
+                    mercado, descárgala aquí.
+                  </p>
+                  <DriveButton
+                    href={data.driveFolders.week0 || undefined}
+                    label="Descargar lista"
+                  />
+                </div>
+              </div>
+
               <motion.div
-                className="relative z-10 mx-auto mt-4 w-[min(52vw,200px)] sm:w-[210px] md:mt-0 md:w-[280px] md:justify-self-end lg:w-[320px]"
-                initial={{ opacity: 0, x: "-55vw" }}
+                className="relative z-10 mx-auto mt-8 w-[min(58vw,220px)] sm:w-[240px] md:mt-0 md:w-full md:max-w-[300px] md:justify-self-end lg:max-w-[340px]"
+                initial={{ opacity: 0, x: 48 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.85, ease: EASE }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={data.cartImage}
-                  alt="Al mercado con presencia"
-                  className="h-auto w-full object-contain drop-shadow-[0_18px_36px_rgba(85,104,148,0.22)]"
-                />
+                <motion.div
+                  animate={softFloat}
+                  transition={softFloatTransition}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={data.marketImage}
+                    alt="Armar la canasta con calma"
+                    className="h-auto w-full object-contain mix-blend-lighten drop-shadow-[0_18px_36px_rgba(85,104,148,0.22)]"
+                  />
+                </motion.div>
               </motion.div>
             </div>
-          </div>
-
-          <div className="mb-5">
-            <p className="mb-3 max-w-xl text-sm leading-relaxed text-gals-muted md:text-base">
-              Abajo tienes la canasta por categorías, empezando por lo fresco.
-              Si quieres la lista completa para llevarla al mercado, descárgala
-              aquí.
-            </p>
-            <DriveButton
-              href={data.driveFolders.week0 || undefined}
-              label="Descargar lista"
-            />
           </div>
 
           <MarketList />
@@ -923,7 +1127,11 @@ export function AlimentacionPage() {
             <VideoCard video={data.week0Video} rotate={3} />
           </div>
         </WeekShell>
+        </motion.div>
+        ) : null}
 
+        {activeWeek === "semana-1" ? (
+        <motion.div key="semana-1" {...weekMotion}>
         <WeekShell
           id="semana-1"
           eyebrow="Semana 1"
@@ -1024,7 +1232,11 @@ export function AlimentacionPage() {
             </div>
           </div>
         </WeekShell>
+        </motion.div>
+        ) : null}
 
+        {activeWeek === "semana-2" ? (
+        <motion.div key="semana-2" {...weekMotion}>
         <WeekShell
           id="semana-2"
           eyebrow="Semana 2"
@@ -1081,8 +1293,16 @@ export function AlimentacionPage() {
             </div>
           </div>
         </WeekShell>
+        </motion.div>
+        ) : null}
 
-        <section id="semana-3" className="relative scroll-mt-28 overflow-visible">
+        {activeWeek === "semana-3" ? (
+        <motion.section
+          key="semana-3"
+          id="semana-3"
+          className="relative scroll-mt-28 overflow-visible"
+          {...weekMotion}
+        >
           <div className="relative z-10 mb-10 md:mb-14">
             <div className="flex items-end gap-2 sm:items-center sm:gap-5 md:grid md:grid-cols-[minmax(220px,340px)_1fr] md:items-center md:gap-12 lg:gap-16">
               <motion.div
@@ -1090,14 +1310,19 @@ export function AlimentacionPage() {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, amount: 0.35 }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.55, ease: EASE }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={data.joyImage}
-                  alt="Disfrutar la comida sin culpa"
-                  className="h-auto w-full object-contain object-left drop-shadow-[0_16px_28px_rgba(85,104,148,0.22)]"
-                />
+                <motion.div
+                  animate={softFloat}
+                  transition={softFloatTransition}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={data.joyImage}
+                    alt="Disfrutar la comida sin culpa"
+                    className="h-auto w-full object-contain object-left mix-blend-lighten drop-shadow-[0_16px_28px_rgba(85,104,148,0.22)]"
+                  />
+                </motion.div>
                 <ImageSticker
                   src={STICKER_ASSETS.flor}
                   className="-right-2 top-4 z-[3] md:right-2 md:top-6"
@@ -1120,17 +1345,24 @@ export function AlimentacionPage() {
                   Esta semana vive aquí: no hay material descargable. Solo
                   escucha, a tu ritmo.
                 </p>
-                <p className="mt-4 max-w-sm font-script text-xl text-gals-blue-deep sm:text-2xl md:mt-6 md:max-w-md md:text-3xl lg:text-4xl">
+                <motion.p
+                  className="mt-4 max-w-sm font-script text-xl text-gals-blue-deep sm:text-2xl md:mt-6 md:max-w-md md:text-3xl lg:text-4xl"
+                  animate={scriptFloat}
+                  transition={{ ...scriptFloatTransition, delay: 0.35 }}
+                >
                   Permitirte disfrutar también es parte del método
-                </p>
+                </motion.p>
               </div>
             </div>
           </div>
           <div className="relative z-10">
             <AudioCards />
           </div>
-        </section>
+        </motion.section>
+        ) : null}
 
+        {activeWeek === "semana-4" ? (
+        <motion.div key="semana-4" {...weekMotion}>
         <WeekShell
           id="semana-4"
           eyebrow="Semana 4"
@@ -1161,6 +1393,9 @@ export function AlimentacionPage() {
           </div>
           <RecommendationsBlock />
         </WeekShell>
+        </motion.div>
+        ) : null}
+        </AnimatePresence>
 
         <section className="rounded-2xl border border-[#e6e8ee] bg-white p-6 text-center md:mx-auto md:max-w-3xl md:p-10">
           <p className="font-display text-2xl tracking-tight text-gals-ink uppercase md:text-3xl">
@@ -1170,12 +1405,15 @@ export function AlimentacionPage() {
             En el studio el movimiento y esta forma de comer se encuentran.
             Cuando te sientas lista, estamos.
           </p>
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22 }}
             className={`${data.ctaBewe} mt-5 inline-flex rounded-full bg-gals-blue-deep px-6 py-3 text-sm font-semibold text-white md:mt-6 md:px-8 md:py-3.5`}
           >
             {data.ctaLabel}
-          </button>
+          </motion.button>
         </section>
       </div>
     </div>

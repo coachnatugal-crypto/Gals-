@@ -2,13 +2,55 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ImageSticker, MoonSticker, StarSticker, STICKER_ASSETS } from "@/components/capsules/Stickers";
+import { ImageSticker, StarSticker, STICKER_ASSETS } from "@/components/capsules/Stickers";
 import { HERO_VIDEO_URL } from "@/lib/constants";
+
+const WHOIS_IMAGES = [
+  "/media/capsules/whois-atras.jpg",
+  "/media/capsules/whois-2.jpg",
+] as const;
+
+function useRotatingIndex(length: number, intervalMs: number, enabled = true) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (!enabled || length < 2) return;
+    const id = window.setInterval(() => {
+      setIndex((prev) => (prev + 1) % length);
+    }, intervalMs);
+    return () => window.clearInterval(id);
+  }, [enabled, length, intervalMs]);
+  return index;
+}
+
+function CrossfadeImage({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+}) {
+  return (
+    <AnimatePresence initial={false}>
+      <motion.img
+        key={src}
+        src={src}
+        alt={alt}
+        className="absolute inset-0 h-full w-full object-cover"
+        initial={{ opacity: 0, scale: 1.06 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.02 }}
+        transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+      />
+    </AnimatePresence>
+  );
+}
 
 export function WhoIs() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const [focused, setFocused] = useState(false);
+  const backIndex = useRotatingIndex(WHOIS_IMAGES.length, 5200);
+  const frontIndex = (backIndex + 1) % WHOIS_IMAGES.length;
 
   const toggleMute = () => {
     const el = videoRef.current;
@@ -56,13 +98,6 @@ export function WhoIs() {
         size={40}
         color="rgba(255,255,255,0.5)"
       />
-      <MoonSticker
-        className="absolute top-24 left-6 hidden opacity-50 md:block md:left-12"
-        size={48}
-        rotate={-15}
-        float
-        color="rgba(238,241,248,0.75)"
-      />
 
       {/* Oscurece el exterior al enfocar el video (solo mobile) */}
       <AnimatePresence>
@@ -93,7 +128,7 @@ export function WhoIs() {
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              who is
+              what is
             </motion.p>
 
             <div className="overflow-visible px-2 pb-2 pt-1">
@@ -210,7 +245,7 @@ export function WhoIs() {
           </div>
         </div>
 
-        {/* ——— DESKTOP: collage de imágenes (como estaba) ——— */}
+        {/* ——— DESKTOP: collage de imágenes con crossfade ——— */}
         <div className="relative mx-auto hidden h-[560px] w-full md:block lg:h-[600px]">
           <motion.div
             className="absolute top-0 left-0 h-[64%] w-[78%] overflow-hidden rounded-[2rem] shadow-xl md:rounded-[2.4rem]"
@@ -230,11 +265,9 @@ export function WhoIs() {
             }}
             whileHover={{ scale: 1.03 }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/media/capsules/whois-atras.jpg"
+            <CrossfadeImage
+              src={WHOIS_IMAGES[backIndex]}
               alt="GAL'S Studio"
-              className="h-full w-full object-cover"
             />
           </motion.div>
           <motion.div
@@ -270,28 +303,28 @@ export function WhoIs() {
             }}
             whileHover={{ scale: 1.03 }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/media/capsules/whois-2.jpg"
+            <CrossfadeImage
+              src={WHOIS_IMAGES[frontIndex]}
               alt="GAL'S Studio"
-              className="h-full w-full object-cover"
             />
           </motion.div>
+
+          {/* Script editorial: fuera del solape de las fotos */}
           <motion.p
-            className="absolute top-[40%] right-[0%] z-20 font-script text-5xl text-white lg:text-6xl"
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            className="pointer-events-none absolute top-[6%] -right-1 z-20 rotate-[-8deg] font-script text-[3.35rem] leading-none text-gals-cream [text-shadow:0_1px_0_rgba(40,50,80,0.45),0_4px_18px_rgba(0,0,0,0.35)] lg:top-[4%] lg:right-0 lg:text-6xl"
+            initial={{ opacity: 0, y: -10, rotate: -12 }}
+            whileInView={{ opacity: 1, y: 0, rotate: -8 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.28, duration: 0.55 }}
           >
-            who is
+            what is
           </motion.p>
           <motion.p
-            className="absolute bottom-0 left-[6%] z-20 font-script text-6xl text-white lg:text-7xl"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            className="pointer-events-none absolute bottom-1 left-[2%] z-20 rotate-[4deg] font-script text-[3.75rem] leading-none text-gals-cream [text-shadow:0_1px_0_rgba(40,50,80,0.45),0_4px_18px_rgba(0,0,0,0.35)] lg:bottom-0 lg:left-[4%] lg:text-7xl"
+            initial={{ opacity: 0, x: -16, rotate: 0 }}
+            whileInView={{ opacity: 1, x: 0, rotate: 4 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.4, duration: 0.55 }}
           >
             gals?
           </motion.p>
@@ -337,20 +370,47 @@ export function WhoIs() {
           </div>
 
           {/* Espacio para hongos abajo a la derecha */}
-          <div className="h-16 sm:h-20 md:h-16" aria-hidden />
+          <div className="h-16 sm:h-20 md:h-36 lg:h-44" aria-hidden />
         </div>
       </div>
 
-      {/* Hongos al borde derecho, al lado del botón */}
+      {/* Flor arriba a la izquierda (desktop) */}
+      <ImageSticker
+        src={STICKER_ASSETS.flor}
+        className="top-10 left-4 hidden md:block lg:top-12 lg:left-8"
+        size={140}
+        height={160}
+        rotate={-10}
+        blend={false}
+      />
+      <ImageSticker
+        src={STICKER_ASSETS.flor}
+        className="top-6 left-2 md:hidden"
+        size={64}
+        height={80}
+        rotate={-12}
+        blend={false}
+      />
+
+      {/* Hongos al borde derecho */}
       <div
-        className="pointer-events-none absolute bottom-0 left-1/2 z-[1] h-[140px] w-screen max-w-[100vw] -translate-x-1/2 sm:h-[160px]"
+        className="pointer-events-none absolute bottom-0 left-1/2 z-[1] h-[140px] w-screen max-w-[100vw] -translate-x-1/2 sm:h-[160px] md:h-[300px] lg:h-[340px]"
         aria-hidden
       >
         <ImageSticker
           src={STICKER_ASSETS.hongos}
-          className="right-0 bottom-0 [&_img]:object-bottom"
+          className="right-0 bottom-0 md:hidden [&_img]:object-bottom"
           size={88}
           height={140}
+          rotate={0}
+          blend={false}
+          objectPosition="right"
+        />
+        <ImageSticker
+          src={STICKER_ASSETS.hongos}
+          className="right-2 bottom-0 hidden md:block lg:right-4 [&_img]:object-bottom"
+          size={220}
+          height={320}
           rotate={0}
           blend={false}
           objectPosition="right"
