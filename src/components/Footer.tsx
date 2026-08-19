@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="border-t border-gals-silver/30 bg-white py-5">
+    <footer id="page-end" className="border-t border-gals-silver/30 bg-white py-5">
       <div className="mx-auto flex max-w-6xl justify-center px-5 md:px-8">
         <a
           href="/"

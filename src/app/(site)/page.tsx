@@ -18,6 +18,7 @@ export default function HomePage() {
     <>
       <ProgramEventsPopup
         storageKey="gals-home-experiencia-popup-seen"
+        trigger="enter-and-end"
       />
       <Hero />
       <div className="hidden md:block">

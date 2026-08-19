@@ -11,10 +11,11 @@ export const metadata: Metadata = {
 export default function AlimentacionRoutePage() {
   return (
     <div className="min-h-screen bg-[#f4f5f7]">
-      <AlimentacionPage />
       <ProgramEventsPopup
         storageKey="gals-alimentacion-eventos-popup-seen"
+        trigger="enter-and-end"
       />
+      <AlimentacionPage />
     </div>
   );
 }

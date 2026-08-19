@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 export default function ProgramaPage() {
   return (
     <div className="bg-[#f4f5f7]">
-      <ProgramEventsPopup />
+      <ProgramEventsPopup
+        storageKey="gals-programa-eventos-popup-seen"
+        trigger="enter-and-end"
+      />
       <ProgramChallenge />
     </div>
   );

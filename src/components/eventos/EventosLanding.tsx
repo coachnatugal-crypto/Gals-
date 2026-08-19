@@ -17,6 +17,7 @@ import {
 import { BEWE_FORM_CLASS } from "@/lib/bewe";
 import { ADDRESS } from "@/lib/constants";
 import { STICKER_ASSETS } from "@/components/capsules/Stickers";
+import { ProgramEventsPopup } from "@/components/ProgramEventsPopup";
 
 const fadeUp = {
   initial: { opacity: 0, y: 28 },
@@ -769,6 +770,10 @@ export function EventosLanding({
 
   return (
     <div className="relative min-h-full overflow-x-clip bg-gals-cream text-gals-ink">
+      <ProgramEventsPopup
+        storageKey="gals-eventos-experiencia-popup-seen"
+        trigger="enter-and-end"
+      />
       {pagoBanner ? (
         <div className="relative z-40 border-b border-gals-blue-deep/15 bg-gals-blue-deep px-4 py-3 text-center text-sm text-white">
           {pagoBanner}
@@ -948,6 +953,7 @@ export function EventosLanding({
 
       <RegisterModal target={register} onClose={() => setRegister(null)} />
       <ExitPopup onOpenRegister={setRegister} />
+      <div id="page-end" className="h-px w-full" aria-hidden />
     </div>
   );
 }

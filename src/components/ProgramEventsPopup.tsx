@@ -10,30 +10,88 @@ const BG = "/media/eventos/popup-eventos.jpg";
 type Props = {
   /** Clave sessionStorage para no repetir en la misma sesión. */
   storageKey?: string;
+  /**
+   * `enter`: al cargar.
+   * `end`: al llegar a `#page-end`.
+   * `enter-and-end`: ambos (mismo popup).
+   */
+  trigger?: "enter" | "end" | "enter-and-end";
 };
 
-/** Popup de entrada: invita a la Semana GAL'S y a la comunidad. */
+/** Popup: invita a la Semana GAL'S y a la comunidad. */
 export function ProgramEventsPopup({
   storageKey = "gals-programa-eventos-popup-seen",
+  trigger = "enter",
 }: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(storageKey) === "1") return;
-    } catch {
-      /* ignore */
+    const alreadySeen = () => {
+      try {
+        return sessionStorage.getItem(storageKey) === "1";
+      } catch {
+        return false;
+      }
+    };
+
+    if (alreadySeen()) return;
+
+    const show = () => {
+      if (alreadySeen()) return;
+      setOpen(true);
+    };
+
+    const cleanups: Array<() => void> = [];
+
+    if (trigger === "enter" || trigger === "enter-and-end") {
+      const t = window.setTimeout(show, 550);
+      cleanups.push(() => window.clearTimeout(t));
     }
-    const t = window.setTimeout(() => setOpen(true), 550);
-    return () => window.clearTimeout(t);
-  }, [storageKey]);
+
+    if (trigger === "end" || trigger === "enter-and-end") {
+      const target = document.getElementById("page-end");
+      if (target) {
+        let shownByEnd = false;
+        const io = new IntersectionObserver(
+          (entries) => {
+            const hit = entries.some((e) => e.isIntersecting);
+            if (!hit || shownByEnd || alreadySeen()) return;
+            shownByEnd = true;
+            show();
+            io.disconnect();
+          },
+          { threshold: 0.35, rootMargin: "0px 0px -8% 0px" },
+        );
+        io.observe(target);
+        cleanups.push(() => io.disconnect());
+      }
+    }
+
+    return () => {
+      cleanups.forEach((fn) => fn());
+    };
+  }, [storageKey, trigger]);
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const scrollY = window.scrollY;
+    const { style } = document.body;
+    const prev = {
+      overflow: style.overflow,
+      position: style.position,
+      top: style.top,
+      width: style.width,
+    };
+    style.overflow = "hidden";
+    style.position = "fixed";
+    style.top = `-${scrollY}px`;
+    style.width = "100%";
     return () => {
-      document.body.style.overflow = prev;
+      style.overflow = prev.overflow;
+      style.position = prev.position;
+      style.top = prev.top;
+      style.width = prev.width;
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
