@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { ADDRESS } from "@/lib/constants";
 import type { GalsEvent } from "@/lib/eventos";
 import { fetchEventById } from "@/lib/eventos-db";
-import {
-  isValidEmail,
-  sendEventRegistrationEmail,
-} from "@/lib/resend";
+import { buildEventRegistrationEmailHtml } from "@/lib/resend";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 
 const SAMPLE_EVENT: GalsEvent = {
@@ -27,16 +24,9 @@ const SAMPLE_EVENT: GalsEvent = {
   priceAmount: 60000,
 };
 
+/** Devuelve HTML del mail de confirmación (sin enviar). */
 export async function POST(request: Request) {
-  if (!process.env.RESEND_API_KEY?.trim()) {
-    return NextResponse.json(
-      { ok: false, error: "RESEND_API_KEY no configurada" },
-      { status: 503 },
-    );
-  }
-
   let body: {
-    to?: string;
     name?: string;
     eventId?: string;
     paid?: boolean;
@@ -50,17 +40,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const to = body.to?.trim().toLowerCase() ?? "";
-  if (!isValidEmail(to)) {
-    return NextResponse.json(
-      { ok: false, error: "Email inválido" },
-      { status: 400 },
-    );
-  }
-
   const name = body.name?.trim() || "GAL'S";
   let event: GalsEvent = SAMPLE_EVENT;
-  /** Pruebas: siempre variante sin nota MP (más simple / estable). */
   const paid = false;
 
   if (body.eventId?.trim()) {
@@ -80,25 +61,13 @@ export async function POST(request: Request) {
     event = fromDb;
   }
 
-  const sent = await sendEventRegistrationEmail({
-    to,
-    name,
-    event,
-    paid,
-    test: true,
-  });
-
-  if (!sent) {
-    return NextResponse.json(
-      { ok: false, error: "Resend no pudo enviar el correo" },
-      { status: 502 },
-    );
-  }
+  const html = buildEventRegistrationEmailHtml({ name, event, paid });
 
   return NextResponse.json({
     ok: true,
-    to,
+    html,
     eventId: event.id,
     eventTitle: event.title,
+    subject: `GAL'S · Confirmación · ${event.title}`,
   });
 }

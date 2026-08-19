@@ -205,8 +205,10 @@ export function EventosAdminPanel() {
   const [testEmail, setTestEmail] = useState("");
   const [testName, setTestName] = useState("Naty");
   const [testEventId, setTestEventId] = useState("");
-  const [testPaid, setTestPaid] = useState(false);
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState<string | null>(null);
+  const [emailPreviewSubject, setEmailPreviewSubject] = useState("");
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -401,7 +403,6 @@ export function EventosAdminPanel() {
           to: testEmail.trim(),
           name: testName.trim() || "GAL'S",
           eventId: testEventId || undefined,
-          paid: testPaid,
         }),
       });
       const data = (await res.json()) as {
@@ -419,6 +420,35 @@ export function EventosAdminPanel() {
       flash(err instanceof Error ? err.message : "Error al enviar prueba");
     } finally {
       setSendingTestEmail(false);
+    }
+  }
+
+  async function loadEmailPreview() {
+    setLoadingPreview(true);
+    try {
+      const res = await fetch("/api/admin/eventos/email-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: testName.trim() || "GAL'S",
+          eventId: testEventId || undefined,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        html?: string;
+        subject?: string;
+      };
+      if (!res.ok || !data.ok || !data.html) {
+        throw new Error(data.error || "No se pudo generar el preview");
+      }
+      setEmailPreviewHtml(data.html);
+      setEmailPreviewSubject(data.subject || "Confirmación GAL'S");
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Error al cargar preview");
+    } finally {
+      setLoadingPreview(false);
     }
   }
 
@@ -1128,12 +1158,7 @@ export function EventosAdminPanel() {
                       <select
                         id="test-email-event"
                         value={testEventId}
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          setTestEventId(id);
-                          const ev = events.find((x) => x.id === id);
-                          if (ev) setTestPaid(ev.kind === "paid");
-                        }}
+                        onChange={(e) => setTestEventId(e.target.value)}
                         className={inputClass}
                       >
                         <option value="">Preview genérico</option>
@@ -1145,22 +1170,24 @@ export function EventosAdminPanel() {
                       </select>
                     </div>
                     <div className="flex flex-col justify-end gap-2">
-                      <label className="flex items-center gap-2 text-sm text-gals-ink">
-                        <input
-                          type="checkbox"
-                          checked={testPaid}
-                          onChange={(e) => setTestPaid(e.target.checked)}
-                        />
-                        Variante con pago
-                      </label>
-                      <button
-                        type="button"
-                        disabled={sendingTestEmail}
-                        onClick={() => void sendTestEmail()}
-                        className="rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase disabled:opacity-60"
-                      >
-                        {sendingTestEmail ? "Enviando…" : "Enviar prueba"}
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={loadingPreview}
+                          onClick={() => void loadEmailPreview()}
+                          className="rounded-full border border-gals-blue-deep/25 bg-white px-4 py-2.5 text-[11px] font-bold tracking-wide text-gals-blue-deep uppercase disabled:opacity-60"
+                        >
+                          {loadingPreview ? "Cargando…" : "Ver preview"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={sendingTestEmail}
+                          onClick={() => void sendTestEmail()}
+                          className="rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase disabled:opacity-60"
+                        >
+                          {sendingTestEmail ? "Enviando…" : "Enviar prueba"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : null}
@@ -2008,6 +2035,47 @@ export function EventosAdminPanel() {
                   Eliminar
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {emailPreviewHtml ? (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-gals-ink/45 p-3 sm:p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+              initial={{ y: 16, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 10, opacity: 0 }}
+            >
+              <div className="flex items-start justify-between gap-3 border-b border-gals-blue-deep/10 px-4 py-3 sm:px-5">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold tracking-[0.16em] text-gals-muted uppercase">
+                    Preview del correo
+                  </p>
+                  <p className="truncate text-sm font-semibold text-gals-ink">
+                    {emailPreviewSubject}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEmailPreviewHtml(null)}
+                  className="rounded-full px-3 py-1.5 text-[11px] font-semibold text-gals-muted uppercase hover:bg-gals-blue-soft"
+                >
+                  Cerrar
+                </button>
+              </div>
+              <iframe
+                title="Preview email GAL'S"
+                srcDoc={emailPreviewHtml}
+                className="min-h-[70vh] w-full flex-1 border-0 bg-[#eef1f8]"
+              />
             </motion.div>
           </motion.div>
         ) : null}
