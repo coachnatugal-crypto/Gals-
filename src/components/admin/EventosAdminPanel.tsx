@@ -59,7 +59,7 @@ function StatCard({
 function StatusPill({ status }: { status: AdminRegistration["status"] }) {
   const styles: Record<AdminRegistration["status"], string> = {
     nuevo: "bg-gals-blue-soft text-gals-blue-deep",
-    pendiente_pago: "bg-amber-100 text-amber-900",
+    pendiente_pago: "bg-amber-100 text-amber-900 ring-1 ring-amber-200",
     pagado: "bg-gals-green-soft text-gals-ink",
     confirmado: "bg-gals-green-soft text-gals-ink",
     cancelado: "bg-gals-ink/8 text-gals-muted",
@@ -69,6 +69,29 @@ function StatusPill({ status }: { status: AdminRegistration["status"] }) {
       className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase ${styles[status]}`}
     >
       {status.replace("_", " ")}
+    </span>
+  );
+}
+
+function Chip({
+  children,
+  tone = "muted",
+}: {
+  children: ReactNode;
+  tone?: "muted" | "blue" | "green" | "amber" | "ink";
+}) {
+  const tones = {
+    muted: "bg-gals-ink/6 text-gals-muted",
+    blue: "bg-gals-blue-soft text-gals-blue-deep",
+    green: "bg-gals-green-soft text-gals-ink",
+    amber: "bg-amber-100 text-amber-900",
+    ink: "bg-gals-blue-deep text-white",
+  };
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wide uppercase ${tones[tone]}`}
+    >
+      {children}
     </span>
   );
 }
@@ -91,6 +114,64 @@ function EmptyState({
   );
 }
 
+function SectionCard({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_12px_40px_rgba(85,104,148,0.06)] backdrop-blur-sm md:p-6">
+      <div className="mb-4 border-b border-gals-blue-deep/8 pb-3">
+        <h3 className="font-display text-lg uppercase text-gals-blue-deep">
+          {title}
+        </h3>
+        {hint ? <p className="mt-1 text-xs text-gals-muted">{hint}</p> : null}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">{children}</div>
+    </section>
+  );
+}
+
+function waLink(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : null;
+}
+
+function exportRegsCsv(
+  rows: AdminRegistration[],
+  eventTitle: (id: string) => string,
+) {
+  const header = ["nombre", "email", "whatsapp", "evento", "estado", "fecha"];
+  const lines = [
+    header.join(","),
+    ...rows.map((r) =>
+      [
+        r.name,
+        r.email ?? "",
+        r.whatsapp,
+        eventTitle(r.eventId),
+        r.status,
+        r.createdAt,
+      ]
+        .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+        .join(","),
+    ),
+  ];
+  const blob = new Blob([lines.join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `gals-inscritos-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function EventosAdminPanel() {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("eventos");
@@ -106,6 +187,13 @@ export function EventosAdminPanel() {
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [headerMoreOpen, setHeaderMoreOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "event" | "reg";
+    id: string;
+    label: string;
+  } | null>(null);
+  const [testEmailOpen, setTestEmailOpen] = useState(false);
   const [regForm, setRegForm] = useState({
     name: "",
     whatsapp: "",
@@ -140,9 +228,7 @@ export function EventosAdminPanel() {
         };
         if (cancelled) return;
         if (!evRes.ok || !evData.ok) {
-          throw new Error(
-            evData.error || "No se pudieron cargar eventos",
-          );
+          throw new Error(evData.error || "No se pudieron cargar eventos");
         }
         setEvents(evData.events ?? []);
         setRegs(regData.ok ? (regData.registrations ?? []) : []);
@@ -164,28 +250,100 @@ export function EventosAdminPanel() {
 
   useEffect(() => {
     if (!toast) return;
-    const id = window.setTimeout(() => setToast(null), 2200);
+    const ms = /error|no se pudo|inválid/i.test(toast) ? 4200 : 2800;
+    const id = window.setTimeout(() => setToast(null), ms);
     return () => window.clearTimeout(id);
   }, [toast]);
 
   useEffect(() => {
-    const close = () => setMenuId(null);
+    const close = () => {
+      setMenuId(null);
+      setHeaderMoreOpen(false);
+    };
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
   }, []);
 
   const [nowTs] = useState(() => Date.now());
+
+  const regCountByEvent = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of regs) {
+      if (r.status === "cancelado") continue;
+      map.set(r.eventId, (map.get(r.eventId) ?? 0) + 1);
+    }
+    return map;
+  }, [regs]);
+
+  const publishedCount = useMemo(
+    () => events.filter((e) => e.published !== false).length,
+    [events],
+  );
+
   const upcomingCount = useMemo(
     () =>
       events.filter((e) => new Date(e.startsAt).getTime() >= nowTs).length,
     [events, nowTs],
   );
 
+  const pendingPayCount = useMemo(
+    () => regs.filter((r) => r.status === "pendiente_pago").length,
+    [regs],
+  );
+
+  const fullCapacityCount = useMemo(() => {
+    return events.filter((e) => {
+      if (!e.capacity || e.capacity <= 0) return false;
+      return (regCountByEvent.get(e.id) ?? 0) >= e.capacity;
+    }).length;
+  }, [events, regCountByEvent]);
+
+  const attentionItems = useMemo(() => {
+    const items: { id: string; text: string; action?: () => void }[] = [];
+    for (const e of events) {
+      if (
+        e.kind === "paid" &&
+        !e.priceAmount &&
+        new Date(e.startsAt).getTime() >= nowTs
+      ) {
+        items.push({
+          id: `price-${e.id}`,
+          text: `${e.title}: pago sin Monto MP (irá a WhatsApp)`,
+          action: () => openEdit(e),
+        });
+      }
+      if (
+        e.published === false &&
+        new Date(e.startsAt).getTime() >= nowTs &&
+        new Date(e.startsAt).getTime() - nowTs < 1000 * 60 * 60 * 24 * 14
+      ) {
+        items.push({
+          id: `draft-${e.id}`,
+          text: `${e.title}: borrador con fecha cercana`,
+          action: () => openEdit(e),
+        });
+      }
+    }
+    if (pendingPayCount > 0) {
+      items.push({
+        id: "pending-pay",
+        text: `${pendingPayCount} inscripción(es) pendiente de pago`,
+        action: () => {
+          setFilterStatus("pendiente_pago");
+          setTab("inscritos");
+        },
+      });
+    }
+    return items.slice(0, 8);
+    // openEdit is stable enough via closure; avoid eslint noise
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, nowTs, pendingPayCount]);
+
   const filteredEvents = useMemo(() => {
     return events
       .filter((e) => (filterKind === "all" ? true : e.kind === filterKind))
       .filter((e) => {
-        if (!search.trim()) return true;
+        if (!search.trim() || tab === "inscritos") return true;
         const q = search.toLowerCase();
         return (
           e.title.toLowerCase().includes(q) ||
@@ -197,7 +355,7 @@ export function EventosAdminPanel() {
         (a, b) =>
           new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
       );
-  }, [events, filterKind, search]);
+  }, [events, filterKind, search, tab]);
 
   const filteredRegs = useMemo(() => {
     return regs
@@ -208,7 +366,7 @@ export function EventosAdminPanel() {
         filterStatus === "all" ? true : r.status === filterStatus,
       )
       .filter((r) => {
-        if (!search.trim()) return true;
+        if (!search.trim() || tab === "eventos") return true;
         const q = search.toLowerCase();
         return (
           r.name.toLowerCase().includes(q) ||
@@ -220,10 +378,14 @@ export function EventosAdminPanel() {
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
-  }, [regs, filterEventId, filterStatus, search]);
+  }, [regs, filterEventId, filterStatus, search, tab]);
 
   const eventTitle = (id: string) =>
     events.find((e) => e.id === id)?.title ?? id;
+
+  function flash(msg: string) {
+    setToast(msg);
+  }
 
   async function sendTestEmail() {
     if (!testEmail.trim()) {
@@ -260,10 +422,6 @@ export function EventosAdminPanel() {
     }
   }
 
-  function flash(msg: string) {
-    setToast(msg);
-  }
-
   function openCreate(kind: EventKind = "paid") {
     setEditingId(null);
     setDraft(emptyDraft(kind));
@@ -286,7 +444,9 @@ export function EventosAdminPanel() {
       return;
     }
     if (draft.kind === "paid" && !draft.priceAmount) {
-      flash("Para cobrar online poné el Monto MP (COP), o dejalo y se irá a WhatsApp");
+      flash(
+        "Para cobrar online poné el Monto MP (COP), o dejalo y se irá a WhatsApp",
+      );
     }
 
     const id = editingId ?? (draft.id.trim() || slugifyId(draft.title));
@@ -328,9 +488,9 @@ export function EventosAdminPanel() {
         );
       });
       flash(
-        editingId
-          ? "Evento actualizado en Supabase"
-          : "Evento creado · ya está en la landing",
+        data.event.published === false
+          ? "Guardado como borrador"
+          : "Publicado en /eventos",
       );
       setEditingId(data.event.id);
       setTab("eventos");
@@ -342,7 +502,6 @@ export function EventosAdminPanel() {
   }
 
   async function removeEvent(id: string) {
-    if (!window.confirm("¿Eliminar este evento de Supabase?")) return;
     try {
       const res = await fetch(`/api/admin/eventos?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
@@ -357,6 +516,7 @@ export function EventosAdminPanel() {
       flash(err instanceof Error ? err.message : "Error al eliminar");
     }
     setMenuId(null);
+    setDeleteTarget(null);
   }
 
   async function duplicateEvent(event: GalsEvent) {
@@ -382,7 +542,7 @@ export function EventosAdminPanel() {
         throw new Error(data.error || "No se pudo duplicar");
       }
       setEvents((prev) => [...prev, data.event!]);
-      flash("Copia creada (borrador / no publicado)");
+      flash("Copia creada (borrador)");
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error al duplicar");
     }
@@ -438,9 +598,7 @@ export function EventosAdminPanel() {
       if (!res.ok || !data.ok || !data.event) {
         throw new Error(data.error || "No se pudo actualizar");
       }
-      setEvents((prev) =>
-        prev.map((e) => (e.id === id ? data.event! : e)),
-      );
+      setEvents((prev) => prev.map((e) => (e.id === id ? data.event! : e)));
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error");
     }
@@ -465,13 +623,11 @@ export function EventosAdminPanel() {
       if (!res.ok || !data.ok || !data.event) {
         throw new Error(data.error || "No se pudo actualizar");
       }
-      setEvents((prev) =>
-        prev.map((e) => (e.id === id ? data.event! : e)),
-      );
+      setEvents((prev) => prev.map((e) => (e.id === id ? data.event! : e)));
       flash(
         data.event.published === false
-          ? "Evento oculto en la landing"
-          : "Evento publicado en la landing",
+          ? "Oculto en la landing"
+          : "Publicado en /eventos",
       );
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error");
@@ -511,7 +667,7 @@ export function EventosAdminPanel() {
       }
       setRegs((prev) => [data.registration!, ...prev]);
       setRegForm({ name: "", whatsapp: "", eventId });
-      flash("Inscrita agregada en Supabase");
+      flash("Inscrita agregada");
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error");
     }
@@ -554,10 +710,12 @@ export function EventosAdminPanel() {
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error");
     }
+    setDeleteTarget(null);
   }
 
   async function importLandingEvents() {
     setSaving(true);
+    setHeaderMoreOpen(false);
     try {
       const res = await fetch("/api/admin/eventos/seed", { method: "POST" });
       const data = (await res.json()) as {
@@ -570,9 +728,7 @@ export function EventosAdminPanel() {
         throw new Error(data.error || "No se pudo importar");
       }
       setEvents(data.events ?? []);
-      flash(
-        `Listo: ${data.imported ?? 0} eventos de la landing en el admin`,
-      );
+      flash(`Listo: ${data.imported ?? 0} eventos cargados`);
       setTab("eventos");
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error al importar");
@@ -583,6 +739,7 @@ export function EventosAdminPanel() {
 
   async function reloadFromSupabase() {
     setReady(false);
+    setHeaderMoreOpen(false);
     try {
       const [evRes, regRes] = await Promise.all([
         fetch("/api/admin/eventos"),
@@ -602,7 +759,7 @@ export function EventosAdminPanel() {
       }
       setEvents(evData.events ?? []);
       setRegs(regData.registrations ?? []);
-      flash("Sincronizado con Supabase");
+      flash("Agenda sincronizada");
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error");
     } finally {
@@ -619,8 +776,19 @@ export function EventosAdminPanel() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-[60svh] items-center justify-center bg-gals-blue-soft text-sm text-gals-muted">
-        Cargando panel desde Supabase…
+      <div className="min-h-[60svh] bg-gals-blue-soft px-4 py-10">
+        <div className="mx-auto max-w-6xl space-y-4">
+          <div className="h-10 w-56 animate-pulse rounded-lg bg-white/50" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-24 animate-pulse rounded-2xl bg-white/50"
+              />
+            ))}
+          </div>
+          <div className="h-48 animate-pulse rounded-2xl bg-white/50" />
+        </div>
       </div>
     );
   }
@@ -648,7 +816,7 @@ export function EventosAdminPanel() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-gals-blue-soft via-[#f3f5fb] to-gals-mist">
+    <div className="min-h-full bg-gradient-to-b from-gals-blue-soft via-[#f3f5fb] to-gals-mist pb-24">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
         <motion.header
           className="flex flex-col gap-5 border-b border-gals-blue-deep/10 pb-6 sm:flex-row sm:items-end sm:justify-between"
@@ -657,33 +825,20 @@ export function EventosAdminPanel() {
           transition={{ duration: 0.45 }}
         >
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.22em] text-gals-blue-deep uppercase">
-              GAL&apos;S Studio · Admin
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-semibold tracking-[0.22em] text-gals-blue-deep uppercase">
+                GAL&apos;S Studio
+              </p>
+              <Chip tone="ink">Admin</Chip>
+            </div>
             <h1 className="mt-1 font-display text-3xl tracking-tight text-gals-ink uppercase md:text-4xl">
               Panel de eventos
             </h1>
             <p className="mt-2 max-w-lg text-sm text-gals-muted">
-              Agenda e inscritos conectados a Supabase. Lo que guardes aparece en
-              la landing /eventos (si está publicado).
+              Publicá, cobrá e inscritos en un solo lugar.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void importLandingEvents()}
-              className="rounded-full border border-gals-blue-deep/20 bg-white/70 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-blue-deep uppercase backdrop-blur-sm transition hover:bg-white disabled:opacity-60"
-            >
-              {saving ? "Importando…" : "Cargar eventos landing"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void reloadFromSupabase()}
-              className="rounded-full border border-gals-blue-deep/20 bg-white/70 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-blue-deep uppercase backdrop-blur-sm transition hover:bg-white"
-            >
-              Sincronizar
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
             <a
               href="/eventos"
               target="_blank"
@@ -699,17 +854,59 @@ export function EventosAdminPanel() {
             >
               + Crear evento
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                void fetch("/api/admin/logout", { method: "POST" }).then(() => {
-                  window.location.href = "/admin/login";
-                });
-              }}
-              className="rounded-full border border-gals-ink/15 bg-white/50 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-muted uppercase transition hover:bg-white hover:text-gals-ink"
-            >
-              Salir
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setHeaderMoreOpen((v) => !v);
+                }}
+                className="rounded-full border border-gals-blue-deep/15 bg-white/60 px-4 py-2.5 text-[11px] font-semibold tracking-wide text-gals-muted uppercase"
+              >
+                Más
+              </button>
+              <AnimatePresence>
+                {headerMoreOpen ? (
+                  <motion.div
+                    className="absolute right-0 z-30 mt-1.5 w-52 overflow-hidden rounded-xl border border-gals-blue-deep/10 bg-white py-1 shadow-xl"
+                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void reloadFromSupabase()}
+                      className="block w-full px-3.5 py-2.5 text-left text-xs font-medium text-gals-ink hover:bg-gals-blue-soft"
+                    >
+                      Sincronizar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void importLandingEvents()}
+                      className="block w-full px-3.5 py-2.5 text-left text-xs font-medium text-gals-ink hover:bg-gals-blue-soft disabled:opacity-60"
+                    >
+                      {saving ? "Importando…" : "Cargar eventos landing"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void fetch("/api/admin/logout", {
+                          method: "POST",
+                        }).then(() => {
+                          window.location.href = "/admin/login";
+                        });
+                      }}
+                      className="block w-full px-3.5 py-2.5 text-left text-xs font-medium text-gals-muted hover:bg-gals-blue-soft"
+                    >
+                      Salir
+                    </button>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.header>
 
@@ -737,19 +934,50 @@ export function EventosAdminPanel() {
           {tab === "resumen" ? (
             <motion.div key="resumen" className="mt-8 space-y-6" {...fade}>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Eventos" value={events.length} delay={0} />
-                <StatCard label="Próximos" value={upcomingCount} delay={0.05} />
+                <StatCard label="Próximos" value={upcomingCount} delay={0} />
                 <StatCard
-                  label="Inscritos"
-                  value={regs.filter((r) => r.status !== "cancelado").length}
+                  label="Publicados"
+                  value={publishedCount}
+                  delay={0.05}
+                />
+                <StatCard
+                  label="Pendientes pago"
+                  value={pendingPayCount}
                   delay={0.1}
                 />
                 <StatCard
-                  label="Nuevos"
-                  value={regs.filter((r) => r.status === "nuevo").length}
+                  label="Cupos llenos"
+                  value={fullCapacityCount}
                   delay={0.15}
                 />
               </div>
+
+              {attentionItems.length > 0 ? (
+                <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 p-5">
+                  <h2 className="font-display text-lg uppercase text-amber-900">
+                    Atención
+                  </h2>
+                  <ul className="mt-3 space-y-2">
+                    {attentionItems.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 text-sm text-amber-950"
+                      >
+                        <span>{item.text}</span>
+                        {item.action ? (
+                          <button
+                            type="button"
+                            onClick={item.action}
+                            className="shrink-0 text-xs font-semibold uppercase underline-offset-2 hover:underline"
+                          >
+                            Ver
+                          </button>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="rounded-2xl border border-white/70 bg-white/80 p-5 shadow-[0_12px_40px_rgba(85,104,148,0.06)] backdrop-blur-sm">
@@ -765,41 +993,45 @@ export function EventosAdminPanel() {
                       Ver todos
                     </button>
                   </div>
-                  {filteredEvents.length === 0 ? (
+                  {events.filter((e) => new Date(e.startsAt).getTime() >= nowTs)
+                    .length === 0 ? (
                     <p className="mt-6 text-sm text-gals-muted">
-                      No hay eventos en la agenda.
+                      No hay próximos en la agenda.
                     </p>
                   ) : (
                     <ul className="mt-4 space-y-3">
-                      {filteredEvents.slice(0, 5).map((e) => (
-                        <li
-                          key={e.id}
-                          className="flex items-center gap-3 border-b border-gals-blue-deep/8 pb-3 last:border-0"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={e.image}
-                            alt=""
-                            className="h-11 w-11 rounded-lg object-cover"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-gals-ink">
-                              {e.title}
-                            </p>
-                            <p className="text-xs text-gals-muted">
-                              {e.dateLabel}
-                              {e.timeLabel ? ` · ${e.timeLabel}` : ""}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => openEdit(e)}
-                            className="text-xs font-semibold text-gals-blue-deep"
+                      {events
+                        .filter((e) => new Date(e.startsAt).getTime() >= nowTs)
+                        .slice(0, 5)
+                        .map((e) => (
+                          <li
+                            key={e.id}
+                            className="flex items-center gap-3 border-b border-gals-blue-deep/8 pb-3 last:border-0"
                           >
-                            Editar
-                          </button>
-                        </li>
-                      ))}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={e.image}
+                              alt=""
+                              className="h-11 w-11 rounded-lg object-cover"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-semibold text-gals-ink">
+                                {e.title}
+                              </p>
+                              <p className="text-xs text-gals-muted">
+                                {e.dateLabel}
+                                {e.timeLabel ? ` · ${e.timeLabel}` : ""}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => openEdit(e)}
+                              className="text-xs font-semibold text-gals-blue-deep"
+                            >
+                              Editar
+                            </button>
+                          </li>
+                        ))}
                     </ul>
                   )}
                 </div>
@@ -819,7 +1051,7 @@ export function EventosAdminPanel() {
                   </div>
                   {regs.length === 0 ? (
                     <p className="mt-6 text-sm text-gals-muted">
-                      Aún no hay inscritos registrados.
+                      Aún no hay inscritos.
                     </p>
                   ) : (
                     <ul className="mt-4 space-y-3">
@@ -845,92 +1077,94 @@ export function EventosAdminPanel() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/70 bg-white/80 p-5 shadow-[0_12px_40px_rgba(85,104,148,0.06)] backdrop-blur-sm">
-                <h2 className="font-display text-lg uppercase text-gals-blue-deep">
-                  Email de prueba
-                </h2>
-                <p className="mt-1 max-w-xl text-sm text-gals-muted">
-                  Envía la confirmación real (con asunto [PRUEBA]) para revisar
-                  diseño y copy antes de un registro.
-                </p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-4">
+                <button
+                  type="button"
+                  onClick={() => setTestEmailOpen((v) => !v)}
+                  className="flex w-full items-center justify-between gap-3 text-left"
+                >
                   <div>
-                    <label className={labelClass} htmlFor="test-email-to">
-                      Destino
-                    </label>
-                    <input
-                      id="test-email-to"
-                      type="email"
-                      value={testEmail}
-                      onChange={(e) => setTestEmail(e.target.value)}
-                      placeholder="tu@correo.com"
-                      className={inputClass}
-                    />
+                    <p className="text-[10px] font-semibold tracking-[0.16em] text-gals-muted uppercase">
+                      Herramienta
+                    </p>
+                    <p className="font-display text-base uppercase text-gals-blue-deep">
+                      Email de prueba
+                    </p>
                   </div>
-                  <div>
-                    <label className={labelClass} htmlFor="test-email-name">
-                      Nombre en el mail
-                    </label>
-                    <input
-                      id="test-email-name"
-                      value={testName}
-                      onChange={(e) => setTestName(e.target.value)}
-                      placeholder="Naty"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass} htmlFor="test-email-event">
-                      Evento
-                    </label>
-                    <select
-                      id="test-email-event"
-                      value={testEventId}
-                      onChange={(e) => {
-                        const id = e.target.value;
-                        setTestEventId(id);
-                        const ev = events.find((x) => x.id === id);
-                        if (ev) setTestPaid(ev.kind === "paid");
-                      }}
-                      className={inputClass}
-                    >
-                      <option value="">Preview genérico</option>
-                      {events.map((e) => (
-                        <option key={e.id} value={e.id}>
-                          {e.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex flex-col justify-end gap-2">
-                    <label className="flex items-center gap-2 text-sm text-gals-ink">
+                  <span className="text-xs font-semibold text-gals-muted uppercase">
+                    {testEmailOpen ? "Ocultar" : "Abrir"}
+                  </span>
+                </button>
+                {testEmailOpen ? (
+                  <div className="mt-4 grid gap-3 border-t border-gals-blue-deep/8 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <label className={labelClass} htmlFor="test-email-to">
+                        Destino
+                      </label>
                       <input
-                        type="checkbox"
-                        checked={testPaid}
-                        onChange={(e) => setTestPaid(e.target.checked)}
-                        className="rounded border-gals-blue-deep/30"
+                        id="test-email-to"
+                        type="email"
+                        value={testEmail}
+                        onChange={(e) => setTestEmail(e.target.value)}
+                        placeholder="tu@correo.com"
+                        className={inputClass}
                       />
-                      Variante con pago (nota MP)
-                    </label>
-                    <button
-                      type="button"
-                      disabled={sendingTestEmail}
-                      onClick={() => void sendTestEmail()}
-                      className="rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase disabled:opacity-60"
-                    >
-                      {sendingTestEmail ? "Enviando…" : "Enviar prueba"}
-                    </button>
+                    </div>
+                    <div>
+                      <label className={labelClass} htmlFor="test-email-name">
+                        Nombre en el mail
+                      </label>
+                      <input
+                        id="test-email-name"
+                        value={testName}
+                        onChange={(e) => setTestName(e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass} htmlFor="test-email-event">
+                        Evento
+                      </label>
+                      <select
+                        id="test-email-event"
+                        value={testEventId}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setTestEventId(id);
+                          const ev = events.find((x) => x.id === id);
+                          if (ev) setTestPaid(ev.kind === "paid");
+                        }}
+                        className={inputClass}
+                      >
+                        <option value="">Preview genérico</option>
+                        {events.map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col justify-end gap-2">
+                      <label className="flex items-center gap-2 text-sm text-gals-ink">
+                        <input
+                          type="checkbox"
+                          checked={testPaid}
+                          onChange={(e) => setTestPaid(e.target.checked)}
+                        />
+                        Variante con pago
+                      </label>
+                      <button
+                        type="button"
+                        disabled={sendingTestEmail}
+                        onClick={() => void sendTestEmail()}
+                        className="rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-bold tracking-wide text-white uppercase disabled:opacity-60"
+                      >
+                        {sendingTestEmail ? "Enviando…" : "Enviar prueba"}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </div>
-
-              <button
-                type="button"
-                onClick={() => void reloadFromSupabase()}
-                className="text-xs font-semibold text-gals-muted underline-offset-2 hover:text-gals-blue-deep hover:underline"
-              >
-                Recargar desde Supabase
-              </button>
             </motion.div>
           ) : null}
 
@@ -972,153 +1206,169 @@ export function EventosAdminPanel() {
                   title="Sin eventos"
                   body={
                     events.length === 0
-                      ? "Todavía no hay eventos en Supabase. Carga los de la landing."
-                      : "No hay eventos con ese filtro. Crea uno o cambia el filtro."
+                      ? "Todavía no hay eventos. Creá uno o cargá los de la landing."
+                      : "No hay eventos con ese filtro."
                   }
                 >
-                  {events.length === 0 ? (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
                     <button
                       type="button"
-                      disabled={saving}
-                      onClick={() => void importLandingEvents()}
-                      className="mt-4 rounded-full bg-gals-blue-deep px-5 py-2.5 text-xs font-bold text-white uppercase"
+                      onClick={() => openCreate("paid")}
+                      className="rounded-full bg-gals-blue-deep px-5 py-2.5 text-xs font-bold text-white uppercase"
                     >
-                      Cargar eventos landing
+                      + Crear evento
                     </button>
-                  ) : null}
+                    {events.length === 0 ? (
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => void importLandingEvents()}
+                        className="rounded-full border border-gals-blue-deep/20 bg-white px-5 py-2.5 text-xs font-semibold text-gals-blue-deep uppercase"
+                      >
+                        Cargar eventos landing
+                      </button>
+                    ) : null}
+                  </div>
                 </EmptyState>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-[0_16px_48px_rgba(85,104,148,0.08)] backdrop-blur-sm">
                   <ul>
-                    {filteredEvents.map((e, i) => (
-                      <motion.li
-                        key={e.id}
-                        className="grid gap-4 border-b border-gals-blue-deep/8 px-4 py-4 last:border-0 sm:px-5 md:grid-cols-[1fr_auto] md:items-center"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                      >
-                        <div className="flex min-w-0 items-start gap-3.5">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={e.image}
-                            alt=""
-                            className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-gals-blue-deep/10"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-semibold text-gals-ink">
-                                {e.title}
+                    {filteredEvents.map((e, i) => {
+                      const taken = regCountByEvent.get(e.id) ?? 0;
+                      const published = e.published !== false;
+                      return (
+                        <motion.li
+                          key={e.id}
+                          className="grid gap-4 border-b border-gals-blue-deep/8 px-4 py-4 last:border-0 sm:px-5 md:grid-cols-[1fr_auto] md:items-center"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                        >
+                          <div className="flex min-w-0 items-start gap-3.5">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={e.image}
+                              alt=""
+                              className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-gals-blue-deep/10"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-gals-ink">
+                                  {e.title}
+                                </p>
+                                <Chip
+                                  tone={e.kind === "free" ? "green" : "blue"}
+                                >
+                                  {e.kind === "free" ? "Gratis" : "Pago"}
+                                </Chip>
+                                <Chip tone={published ? "green" : "amber"}>
+                                  {published ? "Publicado" : "Borrador"}
+                                </Chip>
+                                {e.featured ? (
+                                  <Chip tone="ink">Featured</Chip>
+                                ) : null}
+                              </div>
+                              <p className="mt-0.5 text-xs text-gals-muted">
+                                {e.dateLabel}
+                                {e.timeLabel ? ` · ${e.timeLabel}` : ""}
+                                {" · "}
+                                {e.capacity
+                                  ? `Cupo ${taken}/${e.capacity}`
+                                  : `Inscritos ${taken} · sin límite`}
+                                {e.showPrice && e.price
+                                  ? ` · ${e.price}`
+                                  : e.price
+                                    ? " · precio oculto"
+                                    : ""}
                               </p>
-                              {e.featured ? (
-                                <span className="rounded-full bg-gals-blue-soft px-2 py-0.5 text-[9px] font-bold tracking-wide text-gals-blue-deep uppercase">
-                                  Featured
-                                </span>
-                              ) : null}
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
-                                  e.kind === "free"
-                                    ? "bg-gals-green-soft text-gals-ink"
-                                    : "bg-gals-blue-soft text-gals-blue-deep"
-                                }`}
-                              >
-                                {e.kind === "free" ? "Gratis" : "Pago"}
-                              </span>
                             </div>
-                            <p className="mt-0.5 truncate text-xs text-gals-muted">
-                              {e.dateLabel}
-                              {e.timeLabel ? ` · ${e.timeLabel}` : ""}
-                              {e.showPrice && e.price ? ` · ${e.price}` : ""}
-                              {!e.showPrice && e.price
-                                ? " · precio oculto"
-                                : ""}
-                            </p>
-                            <p className="mt-1 line-clamp-1 text-sm text-gals-muted">
-                              {e.headline}
-                            </p>
                           </div>
-                        </div>
 
-                        <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                          <button
-                            type="button"
-                            onClick={() => openEdit(e)}
-                            className="rounded-full bg-gals-blue-deep px-4 py-2 text-[11px] font-semibold text-white uppercase transition hover:scale-[1.02]"
-                          >
-                            Editar
-                          </button>
-                          <div className="relative">
+                          <div className="flex flex-wrap items-center gap-2 md:justify-end">
                             <button
                               type="button"
-                              onClick={(ev) => {
-                                ev.stopPropagation();
-                                setMenuId(menuId === e.id ? null : e.id);
-                              }}
-                              className="rounded-full bg-white px-3 py-2 text-[11px] font-semibold text-gals-muted ring-1 ring-gals-blue-deep/15 uppercase"
+                              onClick={() => openEdit(e)}
+                              className="rounded-full bg-gals-blue-deep px-4 py-2 text-[11px] font-semibold text-white uppercase transition hover:scale-[1.02]"
                             >
-                              Más
+                              Editar
                             </button>
-                            <AnimatePresence>
-                              {menuId === e.id ? (
-                                <motion.div
-                                  className="absolute right-0 z-20 mt-1.5 w-44 overflow-hidden rounded-xl border border-gals-blue-deep/10 bg-white py-1 shadow-xl"
-                                  initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: -4 }}
-                                  onClick={(ev) => ev.stopPropagation()}
-                                >
-                                  {(
-                                    [
-                                      {
-                                        label: e.featured
-                                          ? "Quitar featured"
-                                          : "Marcar featured",
-                                        fn: () => void toggleFeatured(e.id),
-                                      },
-                                      {
-                                        label:
-                                          e.published === false
-                                            ? "Publicar en landing"
-                                            : "Ocultar en landing",
-                                        fn: () => void togglePublished(e.id),
-                                      },
-                                      {
-                                        label: e.showPrice
-                                          ? "Ocultar precio"
-                                          : "Mostrar precio",
-                                        fn: () => void toggleShowPrice(e.id),
-                                      },
-                                      {
-                                        label: "Duplicar",
-                                        fn: () => void duplicateEvent(e),
-                                      },
-                                      {
-                                        label: "Eliminar",
-                                        fn: () => void removeEvent(e.id),
-                                        danger: true,
-                                      },
-                                    ] as const
-                                  ).map((item) => (
+                            <button
+                              type="button"
+                              onClick={() => void togglePublished(e.id)}
+                              className={`rounded-full px-3 py-2 text-[11px] font-semibold uppercase ring-1 ${
+                                published
+                                  ? "bg-white text-gals-muted ring-gals-blue-deep/15"
+                                  : "bg-gals-green-soft text-gals-ink ring-transparent"
+                              }`}
+                            >
+                              {published ? "Ocultar" : "Publicar"}
+                            </button>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  setMenuId(menuId === e.id ? null : e.id);
+                                }}
+                                className="rounded-full bg-white px-3 py-2 text-[11px] font-semibold text-gals-muted ring-1 ring-gals-blue-deep/15 uppercase"
+                              >
+                                Más
+                              </button>
+                              <AnimatePresence>
+                                {menuId === e.id ? (
+                                  <motion.div
+                                    className="absolute right-0 z-20 mt-1.5 w-44 overflow-hidden rounded-xl border border-gals-blue-deep/10 bg-white py-1 shadow-xl"
+                                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    onClick={(ev) => ev.stopPropagation()}
+                                  >
                                     <button
-                                      key={item.label}
                                       type="button"
-                                      onClick={item.fn}
-                                      className={`block w-full px-3.5 py-2 text-left text-xs font-medium ${
-                                        "danger" in item && item.danger
-                                          ? "text-red-600 hover:bg-red-50"
-                                          : "text-gals-ink hover:bg-gals-blue-soft"
-                                      }`}
+                                      onClick={() => void toggleFeatured(e.id)}
+                                      className="block w-full px-3.5 py-2 text-left text-xs font-medium text-gals-ink hover:bg-gals-blue-soft"
                                     >
-                                      {item.label}
+                                      {e.featured
+                                        ? "Quitar featured"
+                                        : "Marcar featured"}
                                     </button>
-                                  ))}
-                                </motion.div>
-                              ) : null}
-                            </AnimatePresence>
+                                    <button
+                                      type="button"
+                                      onClick={() => void toggleShowPrice(e.id)}
+                                      className="block w-full px-3.5 py-2 text-left text-xs font-medium text-gals-ink hover:bg-gals-blue-soft"
+                                    >
+                                      {e.showPrice
+                                        ? "Ocultar precio"
+                                        : "Mostrar precio"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => void duplicateEvent(e)}
+                                      className="block w-full px-3.5 py-2 text-left text-xs font-medium text-gals-ink hover:bg-gals-blue-soft"
+                                    >
+                                      Duplicar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDeleteTarget({
+                                          type: "event",
+                                          id: e.id,
+                                          label: e.title,
+                                        })
+                                      }
+                                      className="block w-full px-3.5 py-2 text-left text-xs font-medium text-red-600 hover:bg-red-50"
+                                    >
+                                      Eliminar
+                                    </button>
+                                  </motion.div>
+                                ) : null}
+                              </AnimatePresence>
+                            </div>
                           </div>
-                        </div>
-                      </motion.li>
-                    ))}
+                        </motion.li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
@@ -1131,9 +1381,6 @@ export function EventosAdminPanel() {
                 <h2 className="font-display text-lg uppercase text-gals-blue-deep">
                   Agregar inscrita
                 </h2>
-                <p className="mt-1 text-xs text-gals-muted">
-                  Solo se guarda lo que escribas aquí.
-                </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <label className={labelClass}>Nombre</label>
@@ -1190,7 +1437,7 @@ export function EventosAdminPanel() {
               </div>
 
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <select
                     value={filterEventId}
                     onChange={(e) => setFilterEventId(e.target.value)}
@@ -1221,13 +1468,27 @@ export function EventosAdminPanel() {
                     <option value="confirmado">Confirmado</option>
                     <option value="cancelado">Cancelado</option>
                   </select>
+                  <p className="text-xs font-semibold text-gals-muted tabular-nums">
+                    {filteredRegs.length} resultado
+                    {filteredRegs.length === 1 ? "" : "s"}
+                  </p>
                 </div>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar nombre, email o WhatsApp…"
-                  className={`${inputClass} lg:max-w-xs`}
-                />
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar nombre, email o WhatsApp…"
+                    className={`${inputClass} lg:max-w-xs`}
+                  />
+                  <button
+                    type="button"
+                    disabled={filteredRegs.length === 0}
+                    onClick={() => exportRegsCsv(filteredRegs, eventTitle)}
+                    className="rounded-full border border-gals-blue-deep/20 bg-white px-4 py-2.5 text-[11px] font-semibold text-gals-blue-deep uppercase disabled:opacity-50"
+                  >
+                    Export CSV
+                  </button>
+                </div>
               </div>
 
               {filteredRegs.length === 0 ? (
@@ -1236,101 +1497,121 @@ export function EventosAdminPanel() {
                   body="Cuando alguien se registre o agregues una inscrita aquí, aparecerá en esta lista."
                 />
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-[0_12px_40px_rgba(85,104,148,0.06)]">
-                  <ul>
-                    {filteredRegs.map((r) => (
-                      <li
-                        key={r.id}
-                        className="grid gap-3 border-b border-gals-blue-deep/8 px-4 py-4 last:border-0 md:grid-cols-[1.1fr_1fr_auto] md:items-center"
-                      >
-                        <div>
-                          <p className="font-semibold text-gals-ink">{r.name}</p>
-                          <p className="text-xs text-gals-muted">{r.whatsapp}</p>
-                          {r.email ? (
-                            <p className="truncate text-xs text-gals-muted">
-                              {r.email}
-                            </p>
-                          ) : null}
-                        </div>
-                        <div>
-                          <p className="text-sm text-gals-ink">
-                            {eventTitle(r.eventId)}
-                          </p>
-                          <p className="text-xs text-gals-muted">
-                            {formatWhen(r.createdAt)}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <StatusPill status={r.status} />
-                          {(
-                            [
-                              "nuevo",
-                              "pendiente_pago",
-                              "pagado",
-                              "confirmado",
-                              "cancelado",
-                            ] as const
-                          ).map((s) => (
-                            <button
-                              key={s}
-                              type="button"
-                              onClick={() => void updateRegStatus(r.id, s)}
-                              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase ${
-                                r.status === s
-                                  ? "bg-gals-blue-deep text-white"
-                                  : "bg-gals-blue-soft/60 text-gals-muted"
-                              }`}
-                            >
-                              {s.replace("_", " ")}
-                            </button>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() => void removeReg(r.id)}
-                            className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-red-600 uppercase"
+                <div className="overflow-x-auto rounded-2xl border border-white/70 bg-white/85 shadow-[0_12px_40px_rgba(85,104,148,0.06)]">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-gals-blue-deep/10 text-[10px] font-semibold tracking-[0.14em] text-gals-muted uppercase">
+                      <tr>
+                        <th className="px-4 py-3">Nombre</th>
+                        <th className="px-4 py-3">Contacto</th>
+                        <th className="px-4 py-3">Evento</th>
+                        <th className="px-4 py-3">Estado</th>
+                        <th className="px-4 py-3">Fecha</th>
+                        <th className="px-4 py-3" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRegs.map((r) => {
+                        const wa = waLink(r.whatsapp);
+                        return (
+                          <tr
+                            key={r.id}
+                            className="border-b border-gals-blue-deep/8 last:border-0"
                           >
-                            Borrar
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                            <td className="px-4 py-3 font-semibold text-gals-ink">
+                              {r.name}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-gals-muted">
+                              <div className="flex flex-col gap-1">
+                                {r.email ? (
+                                  <a
+                                    href={`mailto:${r.email}`}
+                                    className="text-gals-blue-deep hover:underline"
+                                  >
+                                    {r.email}
+                                  </a>
+                                ) : (
+                                  <span>—</span>
+                                )}
+                                {wa ? (
+                                  <a
+                                    href={wa}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-gals-blue-deep hover:underline"
+                                  >
+                                    {r.whatsapp}
+                                  </a>
+                                ) : (
+                                  <span>{r.whatsapp}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-gals-ink">
+                              {eventTitle(r.eventId)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-col gap-2">
+                                <StatusPill status={r.status} />
+                                <select
+                                  value={r.status}
+                                  onChange={(e) =>
+                                    void updateRegStatus(
+                                      r.id,
+                                      e.target.value as AdminRegistration["status"],
+                                    )
+                                  }
+                                  className="rounded-lg border border-gals-blue-deep/12 bg-white px-2 py-1 text-[10px] uppercase"
+                                >
+                                  <option value="nuevo">Nuevo</option>
+                                  <option value="pendiente_pago">
+                                    Pendiente pago
+                                  </option>
+                                  <option value="pagado">Pagado</option>
+                                  <option value="confirmado">Confirmado</option>
+                                  <option value="cancelado">Cancelado</option>
+                                </select>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-gals-muted whitespace-nowrap">
+                              {formatWhen(r.createdAt)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDeleteTarget({
+                                    type: "reg",
+                                    id: r.id,
+                                    label: r.name,
+                                  })
+                                }
+                                className="text-[10px] font-semibold text-red-600 uppercase"
+                              >
+                                Borrar
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </motion.div>
           ) : null}
 
           {tab === "editor" ? (
-            <motion.div key="editor" className="mt-8" {...fade}>
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="font-display text-2xl uppercase text-gals-blue-deep">
-                    {editingId ? "Editar evento" : "Crear evento"}
-                  </h2>
-                  <p className="text-sm text-gals-muted">
-                    Se guarda en Supabase y, si está publicado, se ve en /eventos.
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTab("eventos")}
-                    className="rounded-full border border-gals-blue-deep/15 bg-white px-4 py-2 text-[11px] font-semibold uppercase"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={() => void saveDraft()}
-                    className="rounded-full bg-gals-blue-deep px-5 py-2 text-[11px] font-bold text-white uppercase shadow-md disabled:opacity-60"
-                  >
-                    {saving ? "Guardando…" : "Guardar en Supabase"}
-                  </button>
-                </div>
+            <motion.div key="editor" className="mt-8 space-y-4 pb-8" {...fade}>
+              <div>
+                <h2 className="font-display text-2xl uppercase text-gals-blue-deep">
+                  {editingId ? "Editar evento" : "Crear evento"}
+                </h2>
+                <p className="text-sm text-gals-muted">
+                  Completá por bloques. Si está publicado, se ve en /eventos.
+                </p>
               </div>
 
-              <div className="grid gap-4 rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_16px_48px_rgba(85,104,148,0.08)] backdrop-blur-sm md:grid-cols-2 md:p-6">
+              <SectionCard title="1. Básico" hint="Identidad y fecha del evento">
                 <div>
                   <label className={labelClass}>Título</label>
                   <input
@@ -1338,16 +1619,6 @@ export function EventosAdminPanel() {
                     value={draft.title}
                     onChange={(e) =>
                       setDraft((d) => ({ ...d, title: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Headline</label>
-                  <input
-                    className={inputClass}
-                    value={draft.headline}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, headline: e.target.value }))
                     }
                   />
                 </div>
@@ -1395,6 +1666,29 @@ export function EventosAdminPanel() {
                   />
                 </div>
                 <div>
+                  <label className={labelClass}>Fecha/hora (Bogotá)</label>
+                  <input
+                    className={inputClass}
+                    type="datetime-local"
+                    value={toDatetimeLocalValue(draft.startsAt)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const startsAt = value ? `${value}:00-05:00` : "";
+                      const labels = labelsFromStartsAt(startsAt);
+                      setDraft((d) => ({
+                        ...d,
+                        startsAt,
+                        dateLabel: d.dateLabel.trim()
+                          ? d.dateLabel
+                          : labels.dateLabel,
+                        timeLabel: d.timeLabel?.trim()
+                          ? d.timeLabel
+                          : labels.timeLabel,
+                      }));
+                    }}
+                  />
+                </div>
+                <div>
                   <label className={labelClass}>Fecha (label)</label>
                   <input
                     className={inputClass}
@@ -1417,38 +1711,46 @@ export function EventosAdminPanel() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Fecha/hora (Bogotá)</label>
-                  <input
-                    className={inputClass}
-                    type="datetime-local"
-                    value={toDatetimeLocalValue(draft.startsAt)}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const startsAt = value ? `${value}:00-05:00` : "";
-                      const labels = labelsFromStartsAt(startsAt);
-                      setDraft((d) => ({
-                        ...d,
-                        startsAt,
-                        dateLabel: d.dateLabel.trim()
-                          ? d.dateLabel
-                          : labels.dateLabel,
-                        timeLabel: d.timeLabel?.trim()
-                          ? d.timeLabel
-                          : labels.timeLabel,
-                      }));
-                    }}
-                  />
-                  <p className="mt-1 text-[11px] text-gals-muted">
-                    Si dejás vacíos Fecha/Hora label, se completan solos.
-                  </p>
-                </div>
-                <div>
                   <label className={labelClass}>Lugar</label>
                   <input
                     className={inputClass}
                     value={draft.place}
                     onChange={(e) =>
                       setDraft((d) => ({ ...d, place: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>CTA</label>
+                  <input
+                    className={inputClass}
+                    value={draft.cta}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, cta: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <EventCoverPicker
+                    value={draft.image}
+                    onChange={(image) => setDraft((d) => ({ ...d, image }))}
+                    labelClass={labelClass}
+                    inputClass={inputClass}
+                  />
+                </div>
+              </SectionCard>
+
+              <SectionCard
+                title="2. Copy"
+                hint="Textos que ve la clienta en la landing y el modal"
+              >
+                <div>
+                  <label className={labelClass}>Headline</label>
+                  <input
+                    className={inputClass}
+                    value={draft.headline}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, headline: e.target.value }))
                     }
                   />
                 </div>
@@ -1473,6 +1775,17 @@ export function EventosAdminPanel() {
                   />
                 </div>
                 <div className="md:col-span-2">
+                  <label className={labelClass}>Pitch del modal (signup)</label>
+                  <textarea
+                    className={`${inputClass} min-h-[72px]`}
+                    value={draft.signupPitch ?? ""}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, signupPitch: e.target.value }))
+                    }
+                    placeholder="Texto persuasivo al reservar"
+                  />
+                </div>
+                <div className="md:col-span-2">
                   <label className={labelClass}>
                     Includes (una por línea: emoji + texto)
                   </label>
@@ -1485,24 +1798,14 @@ export function EventosAdminPanel() {
                     placeholder="🧘 Clase de Pilates"
                   />
                 </div>
-                <EventCoverPicker
-                  value={draft.image}
-                  onChange={(image) => setDraft((d) => ({ ...d, image }))}
-                  labelClass={labelClass}
-                  inputClass={inputClass}
-                />
+              </SectionCard>
+
+              <SectionCard
+                title="3. Precio / Mercado Pago"
+                hint="Sin monto MP, el lead de pago va a WhatsApp"
+              >
                 <div>
-                  <label className={labelClass}>CTA</label>
-                  <input
-                    className={inputClass}
-                    value={draft.cta}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, cta: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Precio</label>
+                  <label className={labelClass}>Precio (texto)</label>
                   <input
                     className={inputClass}
                     placeholder="$120.000 o Gratis"
@@ -1519,7 +1822,7 @@ export function EventosAdminPanel() {
                     type="number"
                     min={0}
                     step={1000}
-                    placeholder="Ej. 60000 — vacío = sin checkout"
+                    placeholder="Ej. 60000"
                     value={draft.priceAmount ?? ""}
                     onChange={(e) =>
                       setDraft((d) => ({
@@ -1531,9 +1834,14 @@ export function EventosAdminPanel() {
                     }
                   />
                 </div>
+                {draft.kind === "paid" && !draft.priceAmount ? (
+                  <p className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900">
+                    Falta Monto MP: se registrará como lead y no abrirá checkout.
+                  </p>
+                ) : null}
                 {draft.kind === "free" ? (
                   <div>
-                    <label className={labelClass}>Bewe after (solo gratis)</label>
+                    <label className={labelClass}>Bewe after</label>
                     <select
                       className={inputClass}
                       value={draft.beweAfter}
@@ -1552,10 +1860,26 @@ export function EventosAdminPanel() {
                   <div>
                     <label className={labelClass}>Cobro</label>
                     <p className="rounded-xl border border-gals-blue-deep/10 bg-gals-blue-soft/50 px-3.5 py-2.5 text-sm text-gals-ink">
-                      Con Monto MP → Checkout Mercado Pago. Sin monto → WhatsApp.
+                      Con Monto MP → Checkout Mercado Pago.
                     </p>
                   </div>
                 )}
+                <label className="flex items-center gap-2 text-sm text-gals-ink md:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={!!draft.showPrice}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        showPrice: e.target.checked,
+                      }))
+                    }
+                  />
+                  Mostrar precio en tarjeta
+                </label>
+              </SectionCard>
+
+              <SectionCard title="4. Publicación" hint="Visibilidad y cupos">
                 <div>
                   <label className={labelClass}>Cupos</label>
                   <input
@@ -1574,7 +1898,7 @@ export function EventosAdminPanel() {
                     }
                   />
                 </div>
-                <div className="flex flex-wrap items-end gap-5 md:col-span-2">
+                <div className="flex flex-wrap items-end gap-5">
                   <label className="flex items-center gap-2 text-sm text-gals-ink">
                     <input
                       type="checkbox"
@@ -1591,19 +1915,6 @@ export function EventosAdminPanel() {
                   <label className="flex items-center gap-2 text-sm text-gals-ink">
                     <input
                       type="checkbox"
-                      checked={!!draft.showPrice}
-                      onChange={(e) =>
-                        setDraft((d) => ({
-                          ...d,
-                          showPrice: e.target.checked,
-                        }))
-                      }
-                    />
-                    Mostrar precio en tarjeta
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-gals-ink">
-                    <input
-                      type="checkbox"
                       checked={draft.published}
                       onChange={(e) =>
                         setDraft((d) => ({
@@ -1612,19 +1923,100 @@ export function EventosAdminPanel() {
                         }))
                       }
                     />
-                    Publicado
+                    Publicado en landing
                   </label>
                 </div>
-              </div>
+              </SectionCard>
             </motion.div>
           ) : null}
         </AnimatePresence>
       </div>
 
+      {tab === "editor" ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gals-blue-deep/10 bg-white/90 px-4 py-3 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+            <a
+              href="/eventos"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-semibold text-gals-blue-deep uppercase underline-offset-2 hover:underline"
+            >
+              Vista previa landing
+            </a>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setTab("eventos")}
+                className="rounded-full border border-gals-blue-deep/15 bg-white px-4 py-2 text-[11px] font-semibold uppercase"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void saveDraft()}
+                className="rounded-full bg-gals-blue-deep px-5 py-2 text-[11px] font-bold text-white uppercase shadow-md disabled:opacity-60"
+              >
+                {saving ? "Guardando…" : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <AnimatePresence>
+        {deleteTarget ? (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gals-ink/40 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 8, opacity: 0 }}
+            >
+              <p className="font-display text-xl uppercase text-gals-blue-deep">
+                Confirmar
+              </p>
+              <p className="mt-2 text-sm text-gals-muted">
+                ¿Eliminar {deleteTarget.type === "event" ? "el evento" : "a"}{" "}
+                <strong className="text-gals-ink">{deleteTarget.label}</strong>?
+                Esta acción no se puede deshacer.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="rounded-full px-4 py-2 text-[11px] font-semibold uppercase text-gals-muted"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (deleteTarget.type === "event") {
+                      void removeEvent(deleteTarget.id);
+                    } else {
+                      void removeReg(deleteTarget.id);
+                    }
+                  }}
+                  className="rounded-full bg-red-600 px-4 py-2 text-[11px] font-bold text-white uppercase"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       <AnimatePresence>
         {toast ? (
           <motion.div
-            className="fixed right-4 bottom-4 z-50 rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-semibold tracking-wide text-white uppercase shadow-lg"
+            className="fixed right-4 bottom-4 z-50 max-w-sm rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-semibold tracking-wide text-white uppercase shadow-lg"
             initial={{ opacity: 0, y: 12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8 }}

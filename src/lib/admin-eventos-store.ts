@@ -98,6 +98,7 @@ export function emptyDraft(kind: EventKind = "paid"): AdminEventDraft {
     headline: "",
     subhead: "",
     concept: "",
+    signupPitch: "",
     image: "/media/capsules/pilates.jpg",
     startsAt: "",
     cta: kind === "free" ? "Reservar mi cupo gratis" : "Pagar y reservar",
