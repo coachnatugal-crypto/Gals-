@@ -7,7 +7,7 @@ import {
   WHATSAPP_NUMBER,
 } from "@/lib/constants";
 import { ytWatch } from "@/lib/program";
-import { BEWE_BOOK_CLASS, BEWE_SUBS_CLASS } from "@/lib/bewe";
+import { BEWE_BOOK_CLASS } from "@/lib/bewe";
 
 export const YOUTUBE_CHANNEL_URL =
   "https://www.youtube.com/@Gals_nataliagalvis/videos";
@@ -81,31 +81,14 @@ export const TREE_FEATURE_CARDS: TreeFeatureCard[] = [
   },
   {
     id: "clase-plan",
-    title: "Reservar o unirte",
-    blurb: "Clase suelta o plan — elige cómo quieres moverte.",
+    title: "Reservar clase",
+    blurb:
+      "Agenda tu clase en el studio. Elige el horario que mejor te quede.",
     image: "/media/community/welcome-popup.jpg",
     position: "object-[32%_58%]",
     bgFill: true,
     cta: "Reservar",
-    dual: [
-      {
-        title: "Reservar clase",
-        blurb:
-          "Agenda tu clase en el studio o descarga la app si prefieres gestionar todo desde el celular.",
-        cta: "Reservar",
-        href: "/#horario",
-        secondaryCta: "App",
-        secondaryHref: APP_DOWNLOAD_URL,
-        secondaryExternal: true,
-      },
-      {
-        title: "Inscríbete a un plan",
-        blurb:
-          "Membresías y bonos para moverte con constancia. Elige el ritmo que va contigo.",
-        cta: "Ver planes",
-        beweClass: BEWE_SUBS_CLASS,
-      },
-    ],
+    href: "/#horario",
   },
   {
     id: "reto",

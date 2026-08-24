@@ -6,7 +6,8 @@ import { AppQrHint } from "@/components/AppQrHint";
 
 /**
  * Reserva / horario embebido (widget Bewe: clases).
- * Sin BW.on('load') — en Next DOMContentLoaded ya pasó.
+ * Re-init en cada mount: al llegar desde /tree (SPA) el nodo nace vacío
+ * pero el flag global podía quedar en true y dejar la caja en blanco.
  */
 export function BeweSchedule() {
   const [ready, setReady] = useState(false);
@@ -15,6 +16,15 @@ export function BeweSchedule() {
   useEffect(() => {
     let cancelled = false;
     let attempts = 0;
+
+    const scrollToHorario = () => {
+      if (window.location.hash !== "#horario") return;
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById("horario")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
 
     const tryInit = () => {
       if (cancelled) return;
@@ -30,7 +40,9 @@ export function BeweSchedule() {
         return;
       }
 
-      if (!window.__beweClassesEmbedded) {
+      const empty = el.childElementCount === 0;
+      if (empty) {
+        window.__beweClassesEmbedded = false;
         window.BW.init(BEWE_CLASSES_EMBED, {
           center: BEWE_CENTER_ID,
           section: "classes",
@@ -39,12 +51,18 @@ export function BeweSchedule() {
         window.__beweClassesEmbedded = true;
       }
 
-      setReady(true);
+      if (!cancelled) {
+        setReady(true);
+        scrollToHorario();
+      }
     };
 
     tryInit();
+
     return () => {
       cancelled = true;
+      // Permite reinicializar si el usuario vuelve a la home vía SPA
+      window.__beweClassesEmbedded = false;
     };
   }, []);
 
@@ -67,7 +85,7 @@ export function BeweSchedule() {
         </p>
       ) : null}
 
-      <div className="flex flex-col items-center gap-4 px-2 pb-2 pt-1 sm:gap-5">
+      <div className="flex flex-col items-center gap-4 px-2 pt-1 pb-2 sm:gap-5">
         <button
           type="button"
           className={`${BEWE_BOOK_CLASS} inline-flex rounded-full bg-gals-blue px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03]`}
