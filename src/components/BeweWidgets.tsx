@@ -13,6 +13,7 @@ import {
   BEWE_WIDGET_SCRIPT,
   openBeweWidget,
 } from "@/lib/bewe";
+import { trackMeta } from "@/lib/meta-pixel";
 
 /**
  * Delegación de clic: BW.on('click', selector) solo engancha el primer match.
@@ -28,6 +29,10 @@ function wireClickWidgets() {
 
     if (target.closest(`.${BEWE_BOOK_CLASS}`)) {
       event.preventDefault();
+      trackMeta("Schedule", {
+        content_name: "reservar_clase_bewe",
+        content_category: "clases",
+      });
       openBeweWidget({ section: "classes" });
       return;
     }
@@ -40,18 +45,30 @@ function wireClickWidgets() {
 
     if (target.closest(`.${BEWE_SUBS_CLASS}`)) {
       event.preventDefault();
+      trackMeta("Subscribe", {
+        content_name: "ver_planes_membresia",
+        content_category: "planes",
+      });
       openBeweWidget({ path: "subscriptions" });
       return;
     }
 
     if (target.closest(`.${BEWE_PACKS_CLASS}`)) {
       event.preventDefault();
+      trackMeta("AddToCart", {
+        content_name: "ver_packs_bewe",
+        content_category: "packs",
+      });
       openBeweWidget({ path: "packs" });
       return;
     }
 
     if (target.closest(`.${BEWE_FORM_CLASS}`)) {
       event.preventDefault();
+      trackMeta("Lead", {
+        content_name: "formulario_lead_bewe",
+        content_category: "bewe",
+      });
       openBeweWidget({ path: "form" });
     }
   });

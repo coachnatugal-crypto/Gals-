@@ -16,6 +16,7 @@ import {
 } from "@/lib/eventos";
 import { BEWE_FORM_CLASS } from "@/lib/bewe";
 import { ADDRESS } from "@/lib/constants";
+import { trackMeta } from "@/lib/meta-pixel";
 import { STICKER_ASSETS } from "@/components/capsules/Stickers";
 import { ProgramEventsPopup } from "@/components/ProgramEventsPopup";
 
@@ -720,6 +721,23 @@ export function EventosLanding({
   const searchParams = useSearchParams();
   const [register, setRegister] = useState<RegisterTarget | null>(null);
   const [pagoDismissed, setPagoDismissed] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("pago") !== "ok") return;
+    const key = "gals-meta-purchase-eventos";
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      /* ignore */
+    }
+    trackMeta("Purchase", {
+      content_name: "pago_evento_ok",
+      content_category: "eventos",
+      currency: "COP",
+      status: "completed",
+    });
+  }, [searchParams]);
 
   const pagoBanner = useMemo(() => {
     if (pagoDismissed) return null;

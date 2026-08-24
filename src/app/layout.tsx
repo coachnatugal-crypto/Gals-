@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Caveat, Poppins } from "next/font/google";
+import { MetaPixel } from "@/components/MetaPixel";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -23,7 +24,8 @@ const caveat = Caveat({
   display: "swap",
 });
 
-const SITE_URL = "https://gals-smoky.vercel.app";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.galswellnes.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -81,6 +83,7 @@ export default function RootLayout({
       className={`${poppins.variable} ${archivoBlack.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full max-w-[100vw] overflow-x-clip bg-gals-cream font-sans text-gals-ink">
+        <MetaPixel />
         {children}
       </body>
     </html>

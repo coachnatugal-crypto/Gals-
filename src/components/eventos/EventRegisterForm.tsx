@@ -7,6 +7,7 @@ import {
   type GalsEvent,
 } from "@/lib/eventos";
 import { WHATSAPP_NUMBER } from "@/lib/constants";
+import { trackMeta } from "@/lib/meta-pixel";
 
 type Status = "idle" | "loading" | "ok" | "error";
 
@@ -72,6 +73,17 @@ export function EventRegisterForm({
 
       /** Checkout Mercado Pago */
       if (data.checkoutUrl) {
+        trackMeta("Lead", {
+          content_name: "lead_evento_pago",
+          content_category: "eventos",
+          content_ids: [eventId],
+        });
+        trackMeta("InitiateCheckout", {
+          content_name: "checkout_evento_mercadopago",
+          content_category: "eventos",
+          content_ids: [eventId],
+          currency: "COP",
+        });
         setStatus("ok");
         setMessage("Te llevamos a Mercado Pago para completar el pago…");
         window.location.href = data.checkoutUrl;
@@ -82,6 +94,18 @@ export function EventRegisterForm({
       setName("");
       setEmail("");
       setWhatsapp("");
+
+      trackMeta("Lead", {
+        content_name: "lead_evento_gratis",
+        content_category: "eventos",
+        content_ids: [eventId],
+      });
+      trackMeta("CompleteRegistration", {
+        content_name: "registro_evento_completado",
+        content_category: "eventos",
+        content_ids: [eventId],
+        status: "completed",
+      });
 
       if (data.needsPriceConfirm) {
         setMessage(
