@@ -205,7 +205,7 @@ export function AppQrHint({
         className={`flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4 ${className}`}
       >
         <p className={`text-center text-sm sm:text-left ${labelClassName}`}>
-          Si prefieres, usa la app
+          Instala la app y escanea el QR
         </p>
 
         <div className="flex items-center gap-3 rounded-2xl border border-gals-silver/50 bg-white px-3 py-2.5 shadow-[0_8px_24px_rgba(85,104,148,0.1)]">
