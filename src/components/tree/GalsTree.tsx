@@ -414,22 +414,18 @@ function WhatsAppIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** Pastilla Inicio (homepage) + ícono WA. */
+/** Ícono WA (comunidad). */
 function ReserveWhatsRow({ className = "" }: { className?: string }) {
   const reduced = useReducedMotion();
 
   return (
     <motion.div
-      className={`relative z-10 mx-auto mt-5 flex items-center justify-center gap-3 px-5 sm:mt-6 ${className}`}
+      className={`relative z-10 mx-auto mt-5 flex items-center justify-center px-5 sm:mt-6 ${className}`}
       initial={reduced ? false : { opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.45, ease: easeOut }}
     >
-      <Link href="/" className={pillPrimary}>
-        Explorar
-      </Link>
-
       <a
         href={WHATSAPP_COMMUNITY_URL}
         target="_blank"

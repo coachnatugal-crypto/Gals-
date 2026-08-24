@@ -69,6 +69,17 @@ export type TreeFeatureCard = {
 
 export const TREE_FEATURE_CARDS: TreeFeatureCard[] = [
   {
+    id: "asi-es-gals",
+    title: "Así es GAL'S",
+    blurb:
+      "Así se siente entrenar, compartir y pertenecer en GAL'S.",
+    image: "/media/capsules/experiencias-gals.jpg",
+    position: "object-[center_40%]",
+    bgFill: true,
+    cta: "Explorar",
+    href: "/",
+  },
+  {
     id: "eventos",
     title: "Eventos",
     blurb:
