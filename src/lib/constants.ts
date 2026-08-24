@@ -38,9 +38,42 @@ export const WHATSAPP_NUMBER = "573187869587";
 export const WHATSAPP_MESSAGE =
   "Hola GAL'S ✨ Quiero saber más sobre las clases / membresías. ¿Me ayudan?";
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
-/** Comunidad de WhatsApp (grupo) */
-export const WHATSAPP_COMMUNITY_URL =
-  "https://chat.whatsapp.com/H7EELRoEQvG34ac0NHuhOq";
+/**
+ * Comunidades WhatsApp.
+ * Free = solo CTAs públicos del sitio (no se envía con planes pagos).
+ * Plus / VIP = acceso exclusivo al pagar Transformación / Unlimited.
+ */
+export const WHATSAPP_COMMUNITIES = {
+  free: "https://chat.whatsapp.com/H7EELRoEQvG34ac0NHuhOq", // GALS Free (sitio)
+  plus: "https://chat.whatsapp.com/IC0wC2qqQJ9Hz9mPvYG3Ij", // GAL's Plus
+  vip: "https://chat.whatsapp.com/K81XzbpTItH4I34eqtQF9a", // GAL's VIP
+} as const;
+
+/** Comunidad pública (Free) — CTAs del sitio, no ligada a planes pagos */
+export const WHATSAPP_COMMUNITY_URL = WHATSAPP_COMMUNITIES.free;
+
+/**
+ * Acceso WhatsApp exclusivo por membresía paga.
+ * Ritual / Semana → sin grupo exclusivo.
+ * Transformación → Plus | Unlimited → VIP
+ */
+export const PLAN_WHATSAPP_ACCESS = {
+  semana: null,
+  ritual: null,
+  transformacion: "plus",
+  ilimitada: "vip",
+} as const;
+
+export type PaidWhatsAppTier = NonNullable<
+  (typeof PLAN_WHATSAPP_ACCESS)[keyof typeof PLAN_WHATSAPP_ACCESS]
+>;
+
+export function getPlanWhatsAppUrl(
+  planId: keyof typeof PLAN_WHATSAPP_ACCESS,
+): string | null {
+  const tier = PLAN_WHATSAPP_ACCESS[planId];
+  return tier ? WHATSAPP_COMMUNITIES[tier] : null;
+}
 export const EMAIL = "coach.natugal@gmail.com";
 export const PHONE_DISPLAY = "+57 318 786 9587";
 export const ADDRESS = "Calle 97 #10-28, Chicó Reservado, Bogotá";
@@ -108,13 +141,13 @@ export const ECOSYSTEM = [
     id: "experiencias",
     title: "Eventos & experiencias",
     description:
-      "Talleres y encuentros con descuento según tu nivel: Ritual 10%, Transformación 15%, Ilimitada 20%.",
+      "Talleres y encuentros con descuento según tu nivel: Ritual 10%, Transformación 15%, Unlimited 20%.",
   },
   {
     id: "kit",
     title: "Kit digital Natalia",
     description:
-      "Incluido en Transformación e Ilimitada: rutinas de mat, secuencia matutina, audio de meditación y guía anti-inflamatoria 3 días.",
+      "Incluido en Transformación y Unlimited: rutinas de mat, secuencia matutina, audio de meditación y guía anti-inflamatoria 3 días.",
   },
   {
     id: "comunidad",
@@ -150,7 +183,6 @@ export const PLANS = [
     bullets: [
       "Clases que mezclan pilates, barre y yin yoga",
       "Renovación automática",
-      "Acceso a la comunidad de WhatsApp GAL'S",
       "10% de descuento en eventos y experiencias",
     ],
     featured: false,
@@ -168,6 +200,7 @@ export const PLANS = [
       "Kit de bienvenida digital de Natalia (rutina de mat pilates, secuencia matutina, audio de meditación, guía antiinflamatoria de 3 días)",
       "Guía nueva de Natalia cada mes (movimiento, alimentación, hábitos o bienestar emocional)",
       "Sesión grupal de preguntas con Natalia: respuestas en audio, una vez al mes",
+      "Comunidad GAL's Plus: contenido y avisos exclusivos",
       "15% de descuento en eventos y experiencias",
     ],
     featured: true,
@@ -175,22 +208,24 @@ export const PLANS = [
   },
   {
     id: "ilimitada",
-    name: "Membresía Ilimitada",
-    tag: "Premium · círculo íntimo · 17 cupos",
-    classes: "Clases ilimitadas",
+    name: "GALS Unlimited",
+    tag: "Tu transformación completa",
+    classes: "17 clases / mes",
     price: "$680.000/mes",
-    description: "Círculo íntimo · 17 cupos",
+    description:
+      "Más que un plan de clases: un proceso para cuerpo, mente y energía.",
     bullets: [
-      "Clases que mezclan pilates, barre y yin yoga",
-      "Sesión semanal: podcast de mindset",
-      "Plan de movimiento en casa diseñado por Natalia cada mes",
-      "Collab mensual rotativo: nutricionista funcional, psicóloga especialista en bienestar, coach de hábitos y propósito",
-      "Asesoría de 20 min con la nutricionista del círculo GAL'S, con 20% de descuento en consultas posteriores",
-      "20% de descuento en todos los eventos y experiencias",
-      "GAL'S VIP en la comunidad: sé la primera en enterarte de todo aquí en GAL'S",
+      "17 clases al mes para entrenar a tu ritmo",
+      "Sesión de inicio de 20 min con la nutricionista Mafe Cerquera (+20% para continuar con ella)",
+      "Ebook de alimentación cada 3 meses",
+      "Audio semanal de mindset",
+      "Comunidad GAL's VIP: sé la primera en enterarte de todo y contenido exclusivo",
+      "Eventos de comunidad GALS, gratis",
+      "20% de descuento en experiencias y eventos",
+      "Trae a una invitada gratis cada mes",
     ],
     featured: false,
-    cta: "Quiero mis clases ilimitadas",
+    cta: "Quiero Unlimited",
   },
 ] as const;
 

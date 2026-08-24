@@ -34,7 +34,14 @@ function storeCopy(kind: StoreKind) {
  * QR → tienda de apps (page.link Bewe).
  * “Ver cómo” abre el video explicativo.
  */
-export function AppQrHint({ className = "" }: { className?: string }) {
+export function AppQrHint({
+  className = "",
+  labelClassName = "text-gals-muted",
+}: {
+  className?: string;
+  /** Color del texto “Si prefieres…” (útil sobre fondos oscuros). */
+  labelClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [store, setStore] = useState<StoreKind>("other");
@@ -197,7 +204,7 @@ export function AppQrHint({ className = "" }: { className?: string }) {
       <div
         className={`flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4 ${className}`}
       >
-        <p className="text-center text-sm text-gals-muted sm:text-left">
+        <p className={`text-center text-sm sm:text-left ${labelClassName}`}>
           Si prefieres, usa la app
         </p>
 

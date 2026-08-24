@@ -174,6 +174,9 @@ export function CreativeCapsule({
   textPosition = "bottom",
   step,
   highlighted = true,
+  showRing = true,
+  /** Reserva espacio inferior (pestañas de puzzle). */
+  safeBottom = false,
 }: {
   title: string;
   script: string;
@@ -182,17 +185,19 @@ export function CreativeCapsule({
   className?: string;
   image?: string;
   textPosition?: "top" | "bottom";
-  /** Número del camino, ej. "01" */
   step?: string;
-  /** Si false, se atenúa (flujo de clase). */
   highlighted?: boolean;
+  showRing?: boolean;
+  safeBottom?: boolean;
 }) {
   const a = accentMap[accent];
   const isTop = textPosition === "top";
 
   return (
     <motion.article
-      className={`group relative min-h-[260px] overflow-hidden p-6 md:min-h-[300px] md:p-8 ${className}`}
+      className={`group relative min-h-[260px] overflow-hidden p-6 md:min-h-[300px] md:p-8 ${
+        safeBottom ? "pb-24 md:pb-28" : ""
+      } ${className}`}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -200,7 +205,7 @@ export function CreativeCapsule({
       animate={{
         filter: highlighted
           ? "brightness(1) saturate(1)"
-          : "brightness(0.72) saturate(0.85)",
+          : "brightness(0.78) saturate(0.9)",
       }}
     >
       {image ? (
@@ -214,19 +219,23 @@ export function CreativeCapsule({
           <div
             className={`absolute inset-0 ${
               isTop
-                ? "bg-gradient-to-b from-black/75 via-black/35 to-black/10"
-                : "bg-gradient-to-t from-black/75 via-black/40 to-black/20"
+                ? "bg-gradient-to-b from-black/70 via-black/30 to-transparent"
+                : safeBottom
+                  ? "bg-gradient-to-t from-black/55 via-black/30 to-black/15"
+                  : "bg-gradient-to-t from-black/70 via-black/35 to-black/15"
             }`}
           />
-          <motion.div
-            className="pointer-events-none absolute inset-0 ring-inset"
-            animate={{
-              boxShadow: highlighted
-                ? "inset 0 0 0 2px rgba(238,241,248,0.35)"
-                : "inset 0 0 0 0px rgba(238,241,248,0)",
-            }}
-            transition={{ duration: 0.45 }}
-          />
+          {showRing ? (
+            <motion.div
+              className="pointer-events-none absolute inset-0 ring-inset"
+              animate={{
+                boxShadow: highlighted
+                  ? "inset 0 0 0 2px rgba(238,241,248,0.35)"
+                  : "inset 0 0 0 0px rgba(238,241,248,0)",
+              }}
+              transition={{ duration: 0.45 }}
+            />
+          ) : null}
         </>
       ) : (
         <>

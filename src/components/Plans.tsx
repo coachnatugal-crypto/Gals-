@@ -159,7 +159,7 @@ function WelcomeKitBanner() {
           Kit de bienvenida digital
         </span>
         {" — "}
-        solo en Transformación e Ilimitada: rutinas, meditación y guía
+        solo en Transformación y Unlimited: rutinas, meditación y guía
         antiinflamatoria.
       </p>
     </motion.div>
@@ -218,7 +218,7 @@ export function Plans() {
             </p>
             <p className="mx-auto mt-4 max-w-md text-base text-gals-muted md:max-w-xl md:text-lg">
               La Semana GAL&apos;S es una forma suave de llegar. Cuando te
-              sientas lista, Ritual, Transformación o Ilimitada te esperan.
+              sientas lista, Ritual, Transformación o Unlimited te esperan.
             </p>
           </motion.div>
 

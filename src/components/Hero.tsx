@@ -358,7 +358,7 @@ export function HeroIntro() {
               />
             </motion.div>
             <motion.p
-              className="pointer-events-none absolute top-[38%] right-0 z-20 font-script text-4xl text-gals-blue-deep"
+              className="pointer-events-none absolute top-[12%] right-0 z-20 font-script text-4xl text-gals-blue-deep sm:top-[10%] sm:text-[2.75rem]"
               initial={{ opacity: 0, x: 16 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
