@@ -31,7 +31,7 @@ const PROGRAMS = [
     blurb:
       "Guías, audios y prácticas para elegir con más calma qué comes y cómo te sienta.",
     meta: "Método Body In Flow",
-    image: "/media/alimentacion/nati-mercado.png",
+    image: "/media/alimentacion/nati-original-03.jpg",
     imagePosition: "object-center",
     rotate: 2.5,
     sticker: STICKER_ASSETS.flor,

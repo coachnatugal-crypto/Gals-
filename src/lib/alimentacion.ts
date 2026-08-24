@@ -12,10 +12,12 @@ export const ALIMENTACION = {
   slug: "alimentacion",
   title: "Alimentación consciente",
   subtitle: "Método Body In Flow · con Nati",
-  heroImage: "/media/alimentacion/nati-bowl.png",
+  heroImage: "/media/alimentacion/nati-original-01.jpg",
   heroBg: "/media/alimentacion/hero-bg.png",
-  marketImage: "/media/alimentacion/nati-mercado.png",
-  joyImage: "/media/alimentacion/nati-waffle.png",
+  marketImage: "/media/alimentacion/nati-original-02.jpg",
+  joyImage: "/media/alimentacion/nati-original-04.jpg",
+  /** Foto extra (tono juguetón) — FreePrograms / cards */
+  playImage: "/media/alimentacion/nati-original-03.jpg",
   plateImage: "/media/alimentacion/plato-nutricion.png?v=2",
   /** Mockup laptop+celular de la guía Come como te mueves */
   guideMockup: "/media/alimentacion/guia-mockup.png",

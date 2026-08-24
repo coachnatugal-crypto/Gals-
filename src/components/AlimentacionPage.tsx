@@ -37,6 +37,33 @@ const scriptFloatTransition = {
   ease: "easeInOut" as const,
 };
 
+/** Marco blanco tipo foto — evita el look “cutout / IA flotante”. */
+function FramedPhoto({
+  src,
+  alt,
+  className = "",
+  imgClassName = "aspect-[3/4] object-cover object-[center_20%]",
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  imgClassName?: string;
+}) {
+  return (
+    <div
+      className={`overflow-hidden rounded-[1.5rem] bg-white p-2.5 shadow-[0_18px_44px_rgba(85,104,148,0.18)] ${className}`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        className={`h-auto w-full rounded-[1.15rem] ${imgClassName}`}
+        draggable={false}
+      />
+    </div>
+  );
+}
+
 function DriveButton({
   href,
   label = "Abrir material descargable",
@@ -575,11 +602,9 @@ function RecommendationsBlock() {
             animate={softFloat}
             transition={softFloatTransition}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <FramedPhoto
               src={data.heroImage}
-              alt=""
-              className="h-auto w-full object-contain mix-blend-lighten drop-shadow-[0_20px_36px_rgba(85,104,148,0.25)]"
+              alt="Nati con alimentación consciente"
             />
           </motion.div>
           <motion.p
@@ -783,7 +808,6 @@ function MarketList() {
                   transition={{ duration: 0.85, ease: EASE }}
                 >
                   <motion.div
-                    className="overflow-hidden rounded-[1.5rem] bg-white p-2.5 shadow-[0_18px_44px_rgba(85,104,148,0.18)]"
                     animate={{ y: [0, -6, -1, -8, 0] }}
                     transition={{
                       duration: 5.8,
@@ -792,11 +816,9 @@ function MarketList() {
                       delay: 0.3,
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <FramedPhoto
                       src={data.marketImage}
-                      alt=""
-                      className="aspect-[3/4] w-full rounded-[1.15rem] object-cover object-top"
+                      alt="Elegir con calma en la cocina"
                     />
                   </motion.div>
                 </motion.div>
@@ -1108,11 +1130,9 @@ export function AlimentacionPage() {
                   animate={softFloat}
                   transition={softFloatTransition}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <FramedPhoto
                     src={data.marketImage}
                     alt="Armar la canasta con calma"
-                    className="h-auto w-full object-contain mix-blend-lighten drop-shadow-[0_18px_36px_rgba(85,104,148,0.22)]"
                   />
                 </motion.div>
               </motion.div>
@@ -1316,11 +1336,9 @@ export function AlimentacionPage() {
                   animate={softFloat}
                   transition={softFloatTransition}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <FramedPhoto
                     src={data.joyImage}
                     alt="Disfrutar la comida sin culpa"
-                    className="h-auto w-full object-contain object-left mix-blend-lighten drop-shadow-[0_16px_28px_rgba(85,104,148,0.22)]"
                   />
                 </motion.div>
                 <ImageSticker

@@ -3,8 +3,8 @@ import {
   APP_DOWNLOAD_URL,
   INSTAGRAM,
   PHONE_DISPLAY,
+  WHATSAPP_COMMUNITY_URL,
   WHATSAPP_NUMBER,
-  WHATSAPP_URL,
 } from "@/lib/constants";
 import { ytWatch } from "@/lib/program";
 import { BEWE_BOOK_CLASS, BEWE_SUBS_CLASS } from "@/lib/bewe";
@@ -82,7 +82,7 @@ export const TREE_FEATURE_CARDS: TreeFeatureCard[] = [
   {
     id: "clase-plan",
     title: "Reservar o unirte",
-    blurb: "Clase suelta o plan — elegí cómo querés moverte.",
+    blurb: "Clase suelta o plan — elige cómo quieres moverte.",
     image: "/media/community/welcome-popup.jpg",
     position: "object-[32%_58%]",
     bgFill: true,
@@ -91,7 +91,7 @@ export const TREE_FEATURE_CARDS: TreeFeatureCard[] = [
       {
         title: "Reservar clase",
         blurb:
-          "Agendá tu clase en el studio o descargá la app si preferís gestionar todo desde el celular.",
+          "Agenda tu clase en el studio o descarga la app si prefieres gestionar todo desde el celular.",
         cta: "Reservar",
         href: "/#horario",
         secondaryCta: "App",
@@ -101,7 +101,7 @@ export const TREE_FEATURE_CARDS: TreeFeatureCard[] = [
       {
         title: "Inscríbete a un plan",
         blurb:
-          "Membresías y bonos para moverte con constancia. Elegí el ritmo que va con vos.",
+          "Membresías y bonos para moverte con constancia. Elige el ritmo que va contigo.",
         cta: "Ver planes",
         beweClass: BEWE_SUBS_CLASS,
       },
@@ -135,7 +135,7 @@ export const TREE_FOOTER_LINKS: TreeLink[] = [
   {
     id: "whatsapp",
     label: "WhatsApp",
-    href: WHATSAPP_URL,
+    href: WHATSAPP_COMMUNITY_URL,
     external: true,
   },
   {
