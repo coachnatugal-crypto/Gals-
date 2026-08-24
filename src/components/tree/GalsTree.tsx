@@ -414,7 +414,7 @@ function WhatsAppIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** Pastilla Reservar + ícono WA. */
+/** Pastilla Inicio (homepage) + ícono WA. */
 function ReserveWhatsRow({ className = "" }: { className?: string }) {
   const reduced = useReducedMotion();
 
@@ -426,8 +426,8 @@ function ReserveWhatsRow({ className = "" }: { className?: string }) {
       viewport={{ once: true }}
       transition={{ duration: 0.45, ease: easeOut }}
     >
-      <Link href="/#horario" className={pillPrimary}>
-        Reservar
+      <Link href="/" className={pillPrimary}>
+        Explorar
       </Link>
 
       <a
