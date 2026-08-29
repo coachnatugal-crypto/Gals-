@@ -655,3 +655,101 @@ export async function sendBulkEventEmail(input: {
     return false;
   }
 }
+
+/** Correo de acceso a comunidad WhatsApp (Plus / VIP). */
+export function buildCommunityAccessEmailHtml(input: {
+  name: string;
+  planLabel: string;
+  groupUrl: string;
+  groupName: string;
+}) {
+  const first =
+    input.name.trim().split(/\s+/)[0] || input.name.trim() || "GAL'S";
+  const site = getSiteUrl();
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<body style="margin:0;padding:0;background:#f5f6fb;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f6fb;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e8ecf4;">
+          <tr>
+            <td style="background:#556894;padding:28px 28px 22px;color:#fff;">
+              <p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;opacity:0.8;">GAL'S Studio</p>
+              <h1 style="margin:10px 0 0;font-family:Georgia,serif;font-size:26px;line-height:1.2;">Tu comunidad exclusiva</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;font-family:Helvetica,Arial,sans-serif;color:#1a2a35;">
+              <p style="margin:0 0 14px;font-size:16px;line-height:1.5;">Hola ${escapeHtml(first)} 🩶</p>
+              <p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#5c6b78;">
+                Gracias por ser parte de <strong style="color:#1a2a35;">${escapeHtml(input.planLabel)}</strong>.
+                Aquí tienes el acceso a tu grupo de WhatsApp exclusivo
+                <strong style="color:#1a2a35;">${escapeHtml(input.groupName)}</strong>.
+              </p>
+              <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#5c6b78;">
+                Entra cuando quieras, preséntate y conéctate con la comunidad.
+              </p>
+              <a href="${escapeHtml(input.groupUrl)}"
+                style="display:inline-block;background:#556894;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">
+                Unirme al grupo
+              </a>
+              <p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#8a96a3;">
+                Si el botón no funciona, copia este enlace:<br/>
+                <a href="${escapeHtml(input.groupUrl)}" style="color:#556894;word-break:break-all;">${escapeHtml(input.groupUrl)}</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 28px 28px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#8a96a3;">
+              Con cariño,<br/>Equipo GAL'S · <a href="${site}" style="color:#556894;">galswellnes.com</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+export async function sendCommunityAccessEmail(input: {
+  to: string;
+  name: string;
+  planLabel: string;
+  groupUrl: string;
+  groupName: string;
+  subject?: string;
+}): Promise<boolean> {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[resend] RESEND_API_KEY no configurada");
+    return false;
+  }
+
+  const first =
+    input.name.trim().split(/\s+/)[0] || input.name.trim() || "GAL'S";
+  const subject =
+    input.subject?.trim() ||
+    `${first}, tu acceso a la comunidad ${input.groupName}`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: getFromMarketing(),
+      to: [input.to],
+      replyTo: getReplyTo(),
+      subject,
+      html: buildCommunityAccessEmailHtml(input),
+    });
+    if (error) {
+      console.error("[resend] sendCommunityAccessEmail", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[resend] sendCommunityAccessEmail", err);
+    return false;
+  }
+}

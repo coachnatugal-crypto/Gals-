@@ -59,10 +59,12 @@ export async function POST(request: Request) {
       name?: string;
       whatsapp?: string;
       eventId?: string;
+      email?: string;
     };
     const name = body.name?.trim() ?? "";
     const whatsapp = body.whatsapp?.trim() ?? "";
     const eventId = body.eventId?.trim() ?? "";
+    const email = body.email?.trim() ?? "";
     if (name.length < 2 || !whatsapp || !eventId) {
       return NextResponse.json(
         { ok: false, error: "Datos incompletos" },
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
       eventId,
       name,
       whatsapp,
+      email: email || undefined,
       source: "admin",
       status: "nuevo",
     });

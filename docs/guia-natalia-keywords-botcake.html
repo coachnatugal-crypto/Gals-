@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GAL'S Studio — Guía de palabras clave</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --gals-blue: #8799c4;
+        --gals-blue-mid: #6b7fb0;
+        --gals-blue-deep: #556894;
+        --gals-blue-soft: #eef1f8;
+        --gals-cream: #f5f6fb;
+        --gals-green: #6fad86;
+        --gals-ink: #1a2a35;
+        --gals-muted: #5c6b78;
+        --gals-white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      @page {
+        size: A4;
+        margin: 14mm 12mm;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--gals-cream);
+        color: var(--gals-ink);
+        font-family: "Poppins", system-ui, sans-serif;
+        font-size: 11.5pt;
+        line-height: 1.45;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 28px 24px 40px;
+      }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding: 12px 0 16px;
+        background: linear-gradient(
+          to bottom,
+          var(--gals-cream) 70%,
+          transparent
+        );
+      }
+
+      .toolbar button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+        background: var(--gals-blue-deep);
+        color: white;
+      }
+
+      .toolbar button.secondary {
+        background: white;
+        color: var(--gals-blue-deep);
+        border: 1px solid color-mix(in srgb, var(--gals-blue) 45%, white);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 36px 28px 32px;
+        background:
+          radial-gradient(
+            circle at 90% 10%,
+            color-mix(in srgb, var(--gals-blue) 35%, white),
+            transparent 45%
+          ),
+          linear-gradient(145deg, var(--gals-blue-deep), var(--gals-blue-mid));
+        color: white;
+        margin-bottom: 28px;
+      }
+
+      .hero-kicker {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        opacity: 0.85;
+        margin: 0 0 10px;
+      }
+
+      .hero h1 {
+        font-family: "Archivo Black", "Poppins", sans-serif;
+        font-size: 2rem;
+        line-height: 1.05;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        max-width: 14ch;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 38ch;
+        font-size: 1rem;
+        opacity: 0.95;
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        font-family: "Archivo Black", "Poppins", sans-serif;
+        font-size: 1.15rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--gals-blue-deep);
+        margin: 28px 0 12px;
+      }
+
+      h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--gals-ink);
+        margin: 0 0 6px;
+      }
+
+      p {
+        margin: 0 0 10px;
+        color: var(--gals-ink);
+      }
+
+      .muted {
+        color: var(--gals-muted);
+      }
+
+      .card {
+        background: var(--gals-white);
+        border: 1px solid color-mix(in srgb, var(--gals-blue) 22%, white);
+        border-radius: 18px;
+        padding: 18px 18px 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 10px 30px rgba(85, 104, 148, 0.06);
+      }
+
+      .steps {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+      }
+
+      .steps li {
+        position: relative;
+        padding: 14px 14px 14px 52px;
+        background: var(--gals-white);
+        border-radius: 16px;
+        border: 1px solid color-mix(in srgb, var(--gals-blue) 18%, white);
+      }
+
+      .steps li::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--gals-blue-soft);
+        color: var(--gals-blue-deep);
+        font-weight: 700;
+        font-size: 13px;
+        display: grid;
+        place-items: center;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--gals-blue) 22%, white);
+      }
+
+      th,
+      td {
+        padding: 12px 12px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid color-mix(in srgb, var(--gals-blue) 14%, white);
+        font-size: 10.5pt;
+      }
+
+      th {
+        background: var(--gals-blue-deep);
+        color: white;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .kw {
+        display: inline-block;
+        font-family: "Archivo Black", "Poppins", sans-serif;
+        font-size: 0.95rem;
+        letter-spacing: 0.06em;
+        color: var(--gals-blue-deep);
+        background: var(--gals-blue-soft);
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+
+      .example {
+        background: var(--gals-blue-soft);
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 10.5pt;
+        white-space: pre-wrap;
+        margin: 8px 0 0;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .rule {
+        border-left: 4px solid var(--gals-green);
+        padding-left: 12px;
+      }
+
+      .footer {
+        margin-top: 28px;
+        padding-top: 16px;
+        border-top: 1px solid color-mix(in srgb, var(--gals-blue) 25%, white);
+        font-size: 10pt;
+        color: var(--gals-muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .links a {
+        color: var(--gals-blue-deep);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      @media print {
+        .toolbar {
+          display: none !important;
+        }
+
+        body {
+          background: white;
+        }
+
+        .page {
+          max-width: none;
+          padding: 0;
+        }
+
+        .hero,
+        .card,
+        .steps li,
+        table {
+          break-inside: avoid;
+        }
+
+        h2 {
+          break-after: avoid;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+
+        .hero h1 {
+          font-size: 1.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="toolbar">
+        <button class="secondary" type="button" onclick="window.print()">
+          Guardar PDF
+        </button>
+        <button type="button" onclick="window.print()">Imprimir</button>
+      </div>
+
+      <header class="hero">
+        <p class="hero-kicker">GAL'S Studio · Instagram</p>
+        <h1>Guía de palabras clave</h1>
+        <p>
+          Para Natalia: qué pedir en los comentarios de cada publicación para
+          activar la automatización correcta.
+        </p>
+        <div class="hero-meta">
+          <span class="chip">Instagram</span>
+          <span class="chip">4 keywords activas</span>
+          <span class="chip">Comentario → DM</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Cómo funciona</h2>
+        <ol class="steps">
+          <li>
+            <h3>En el caption o story</h3>
+            <p class="muted" style="margin: 0">
+              Pides una sola palabra en mayúsculas (ej.
+              <strong>EVENTOS</strong>).
+            </p>
+          </li>
+          <li>
+            <h3>La persona comenta esa palabra</h3>
+            <p class="muted" style="margin: 0">
+              Se responde en el comentario y se manda el DM con el contenido.
+            </p>
+          </li>
+          <li>
+            <h3>Ella recibe el link listo</h3>
+            <p class="muted" style="margin: 0">
+              Eventos, reto, guía o reservar — según la palabra.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Palabras activas</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Si el post habla de…</th>
+              <th>Pide que comenten</th>
+              <th>Qué reciben</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Eventos, experiencias, agenda del mes</td>
+              <td><span class="kw">EVENTOS</span></td>
+              <td>Agenda / landing de eventos</td>
+            </tr>
+            <tr>
+              <td>Reto, pilates en casa, moverse desde casa</td>
+              <td><span class="kw">RETO</span></td>
+              <td>Reto 7 días gratis</td>
+            </tr>
+            <tr>
+              <td>Alimentación, nutrición, relación con la comida</td>
+              <td><span class="kw">GUIA</span></td>
+              <td>Guía alimentaria</td>
+            </tr>
+            <tr>
+              <td>Reservar clase, horario, venir al studio</td>
+              <td><span class="kw">RESERVAR</span></td>
+              <td>Link a la web para agendar</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top: 10px; font-size: 10pt">
+          Tip: en el caption escribe la keyword en mayúsculas. El sistema también
+          reconoce minúsculas.
+        </p>
+      </section>
+
+      <section>
+        <h2>Frases listas para el caption</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>EVENTOS</h3>
+            <div class="example">
+Comenta EVENTOS y te mandamos
+la agenda al DM 🩶
+            </div>
+          </div>
+          <div class="card">
+            <h3>RETO</h3>
+            <div class="example">
+Comenta RETO y te enviamos
+el Reto 7 días gratis 🩶
+            </div>
+          </div>
+          <div class="card">
+            <h3>GUIA</h3>
+            <div class="example">
+Comenta GUIA y te compartimos
+la Guía alimentaria 🩶
+            </div>
+          </div>
+          <div class="card">
+            <h3>RESERVAR</h3>
+            <div class="example">
+Comenta RESERVAR y te pasamos
+el link para agendar tu clase 🩶
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Ejemplo de publicación</h2>
+        <div class="card">
+          <div class="example">
+Este sábado nos vemos en el mat 🩶
+
+Cupos limitados.
+Comenta EVENTOS y te mandamos
+toda la info al DM.
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Reglas simples</h2>
+        <div class="card">
+          <div class="rule" style="margin-bottom: 12px">
+            <h3>Una sola keyword por post</h3>
+            <p class="muted" style="margin: 0">
+              No pidas EVENTOS y RESERVAR en el mismo caption.
+            </p>
+          </div>
+          <div class="rule" style="margin-bottom: 12px">
+            <h3>Keyword visible</h3>
+            <p class="muted" style="margin: 0">
+              Ponla al final del caption, en mayúsculas.
+            </p>
+          </div>
+          <div class="rule" style="margin-bottom: 12px">
+            <h3>Stories</h3>
+            <p class="muted" style="margin: 0">
+              Misma lógica: “Comenta EVENTOS en el post” o “Responde RESERVAR”.
+            </p>
+          </div>
+          <div class="rule">
+            <h3>Sin keyword</h3>
+            <p class="muted" style="margin: 0">
+              Si alguien comenta cualquier cosa, igual puede llegar el mensaje
+              general de bienvenida (Reservar / Eventos / Conocer más).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>GAL'S Studio · Uso interno</span>
+        <span>Comentarios + DM</span>
+      </footer>
+    </div>
+  </body>
+</html>

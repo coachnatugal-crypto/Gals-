@@ -155,16 +155,19 @@ export async function createRegistrationAdmin(input: {
   eventId: string;
   name: string;
   whatsapp: string;
+  email?: string;
   source?: string;
   status?: string;
 }) {
   const supabase = createSupabaseAdmin();
+  const email = input.email?.trim() || null;
   const { data, error } = await supabase
     .from("registrations")
     .insert({
       event_id: input.eventId,
       name: input.name,
       whatsapp: input.whatsapp,
+      ...(email ? { email } : {}),
       source: input.source ?? "admin",
       status: input.status ?? "nuevo",
     })

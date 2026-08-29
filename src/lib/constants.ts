@@ -39,27 +39,22 @@ export const WHATSAPP_MESSAGE =
   "Hola GAL'S ✨ Quiero saber más sobre las clases / membresías. ¿Me ayudan?";
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 /**
- * Comunidades WhatsApp.
- * Free = solo CTAs públicos del sitio (no se envía con planes pagos).
- * Plus / VIP = acceso exclusivo al pagar Transformación / Unlimited.
+ * Comunidad WhatsApp pública (Free) — CTAs del sitio.
+ * Los invites Plus/VIP NO van aquí: viven solo en servidor
+ * (`src/lib/whatsapp-paid.ts` + env WHATSAPP_PLUS_INVITE_URL / WHATSAPP_VIP_INVITE_URL).
  */
-export const WHATSAPP_COMMUNITIES = {
-  free: "https://chat.whatsapp.com/H7EELRoEQvG34ac0NHuhOq", // GALS Free (sitio)
-  plus: "https://chat.whatsapp.com/IC0wC2qqQJ9Hz9mPvYG3Ij", // GAL's Plus
-  vip: "https://chat.whatsapp.com/K81XzbpTItH4I34eqtQF9a", // GAL's VIP
-} as const;
-
-/** Comunidad pública (Free) — CTAs del sitio, no ligada a planes pagos */
-export const WHATSAPP_COMMUNITY_URL = WHATSAPP_COMMUNITIES.free;
+export const WHATSAPP_COMMUNITY_URL =
+  "https://chat.whatsapp.com/H7EELRoEQvG34ac0NHuhOq";
 
 /**
- * Acceso WhatsApp exclusivo por membresía paga.
- * Ritual / Semana → sin grupo exclusivo.
- * Transformación → Plus | Unlimited → VIP
+ * Acceso WhatsApp exclusivo por membresía (solo el tier, sin URLs).
+ * Bewe: Ritual / Starter / 1 Clase / Semana → sin grupo exclusivo.
+ * Bewe Expande → Plus | Bewe Ilimitado → VIP
  */
 export const PLAN_WHATSAPP_ACCESS = {
   semana: null,
   ritual: null,
+  starter: null,
   transformacion: "plus",
   ilimitada: "vip",
 } as const;
@@ -67,13 +62,6 @@ export const PLAN_WHATSAPP_ACCESS = {
 export type PaidWhatsAppTier = NonNullable<
   (typeof PLAN_WHATSAPP_ACCESS)[keyof typeof PLAN_WHATSAPP_ACCESS]
 >;
-
-export function getPlanWhatsAppUrl(
-  planId: keyof typeof PLAN_WHATSAPP_ACCESS,
-): string | null {
-  const tier = PLAN_WHATSAPP_ACCESS[planId];
-  return tier ? WHATSAPP_COMMUNITIES[tier] : null;
-}
 export const EMAIL = "coach.natugal@gmail.com";
 export const PHONE_DISPLAY = "+57 318 786 9587";
 export const ADDRESS = "Calle 97 #10-28, Chicó Reservado, Bogotá";

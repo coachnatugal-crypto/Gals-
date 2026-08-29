@@ -15,8 +15,16 @@ import {
 } from "@/lib/admin-eventos-store";
 import type { EventKind, GalsEvent } from "@/lib/eventos";
 import { EventCoverPicker } from "@/components/admin/EventCoverPicker";
+import { AdminHelperClippy } from "@/components/admin/AdminHelperClippy";
+import { ComunidadPanel } from "@/components/admin/ComunidadPanel";
 
-type Tab = "resumen" | "eventos" | "inscritos" | "correos" | "editor";
+type Tab =
+  | "resumen"
+  | "eventos"
+  | "inscritos"
+  | "correos"
+  | "comunidad"
+  | "editor";
 
 const VENUE_STUDIO =
   "GAL'S Studio · Calle 97 #10-28, Chicó Reservado, Bogotá";
@@ -299,6 +307,7 @@ export function EventosAdminPanel() {
   const [draft, setDraft] = useState<AdminEventDraft>(() => emptyDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterKind, setFilterKind] = useState<"all" | EventKind>("all");
+  const [filterTodayOnly, setFilterTodayOnly] = useState(false);
   const [filterEventId, setFilterEventId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<
     "all" | AdminRegistration["status"]
@@ -315,6 +324,7 @@ export function EventosAdminPanel() {
   const [testEmailOpen, setTestEmailOpen] = useState(false);
   const [regForm, setRegForm] = useState({
     name: "",
+    email: "",
     whatsapp: "",
     eventId: "",
   });
@@ -485,8 +495,13 @@ export function EventosAdminPanel() {
   }, [events, nowTs, pendingPayCount]);
 
   const filteredEvents = useMemo(() => {
+    const todayKey = new Date(nowTs).toDateString();
     return events
       .filter((e) => (filterKind === "all" ? true : e.kind === filterKind))
+      .filter((e) => {
+        if (!filterTodayOnly) return true;
+        return new Date(e.startsAt).toDateString() === todayKey;
+      })
       .filter((e) => {
         if (!search.trim() || tab === "inscritos") return true;
         const q = search.toLowerCase();
@@ -500,7 +515,7 @@ export function EventosAdminPanel() {
         (a, b) =>
           new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
       );
-  }, [events, filterKind, search, tab]);
+  }, [events, filterKind, filterTodayOnly, search, tab, nowTs]);
 
   const filteredRegs = useMemo(() => {
     return regs
@@ -1065,6 +1080,7 @@ export function EventosAdminPanel() {
 
   async function addRegistration() {
     const name = regForm.name.trim();
+    const email = regForm.email.trim();
     const whatsapp = regForm.whatsapp.trim();
     const eventId = regForm.eventId || events[0]?.id;
     if (!name || name.length < 2) {
@@ -1083,7 +1099,12 @@ export function EventosAdminPanel() {
       const res = await fetch("/api/admin/eventos/registrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, whatsapp, eventId }),
+        body: JSON.stringify({
+          name,
+          whatsapp,
+          eventId,
+          email: email || undefined,
+        }),
       });
       const data = (await res.json()) as {
         ok?: boolean;
@@ -1094,7 +1115,7 @@ export function EventosAdminPanel() {
         throw new Error(data.error || "No se pudo agregar");
       }
       setRegs((prev) => [data.registration!, ...prev]);
-      setRegForm({ name: "", whatsapp: "", eventId });
+      setRegForm({ name: "", email: "", whatsapp: "", eventId });
       flash("Inscrita agregada");
     } catch (err) {
       flash(err instanceof Error ? err.message : "Error");
@@ -1200,6 +1221,7 @@ export function EventosAdminPanel() {
     { id: "eventos", label: "Eventos" },
     { id: "inscritos", label: "Inscritos" },
     { id: "correos", label: "Correos" },
+    { id: "comunidad", label: "Comunidad" },
     { id: "editor", label: editingId ? "Editar" : "Crear" },
   ];
 
@@ -1362,6 +1384,18 @@ export function EventosAdminPanel() {
         <AnimatePresence mode="wait">
           {tab === "resumen" ? (
             <motion.div key="resumen" className="mt-8 space-y-6" {...fade}>
+              <div className="rounded-2xl bg-gals-blue-soft/40 px-4 py-3 text-sm text-gals-ink ring-1 ring-gals-blue-deep/10">
+                <p className="font-semibold">Panel del equipo</p>
+                <p className="mt-1.5 leading-relaxed text-gals-muted">
+                  Resumen rápido del día: cupos, pendientes de pago y próximos
+                  eventos. En <span className="font-medium text-gals-ink">Eventos</span>{" "}
+                  usá el filtro «Hoy» el día de la clase. En{" "}
+                  <span className="font-medium text-gals-ink">Inscritos</span>{" "}
+                  filtrá por estado y revisá el precio de cada cupo. En{" "}
+                  <span className="font-medium text-gals-ink">Comunidad</span>{" "}
+                  enviá los links Plus / VIP.
+                </p>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard label="Próximos" value={upcomingCount} delay={0} />
                 <StatCard
@@ -1618,6 +1652,17 @@ export function EventosAdminPanel() {
                       {label}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setFilterTodayOnly((v) => !v)}
+                    className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition ${
+                      filterTodayOnly
+                        ? "bg-gals-blue-mid text-white"
+                        : "bg-white/80 text-gals-muted ring-1 ring-gals-blue-deep/10"
+                    }`}
+                  >
+                    Hoy
+                  </button>
                 </div>
                 <input
                   value={search}
@@ -1841,7 +1886,11 @@ export function EventosAdminPanel() {
                 <h2 className="font-display text-lg uppercase text-gals-blue-deep">
                   Agregar inscrita
                 </h2>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <p className="mt-1 text-xs text-gals-muted">
+                  Ideal con email: así después podés mandarle confirmación o
+                  cobro desde Correos.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   <div>
                     <label className={labelClass}>Nombre</label>
                     <input
@@ -1851,6 +1900,18 @@ export function EventosAdminPanel() {
                         setRegForm((f) => ({ ...f, name: e.target.value }))
                       }
                       placeholder="Nombre completo"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Email</label>
+                    <input
+                      className={inputClass}
+                      type="email"
+                      value={regForm.email}
+                      onChange={(e) =>
+                        setRegForm((f) => ({ ...f, email: e.target.value }))
+                      }
+                      placeholder="opcional"
                     />
                   </div>
                   <div>
@@ -2017,6 +2078,16 @@ export function EventosAdminPanel() {
                     <tbody>
                       {filteredRegs.map((r) => {
                         const wa = waLink(r.whatsapp);
+                        const eventName = eventTitle(r.eventId);
+                        const ev = events.find((e) => e.id === r.eventId);
+                        const priceLabel =
+                          ev?.kind === "free"
+                            ? "Gratis"
+                            : ev?.price?.trim()
+                              ? ev.price
+                              : ev?.priceAmount != null
+                                ? `$${ev.priceAmount.toLocaleString("es-CO")}`
+                                : null;
                         return (
                           <tr
                             key={r.id}
@@ -2052,7 +2123,7 @@ export function EventosAdminPanel() {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-gals-ink">
-                              {eventTitle(r.eventId)}
+                              {eventName}
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex flex-col gap-2">
@@ -2075,6 +2146,20 @@ export function EventosAdminPanel() {
                                   <option value="confirmado">Confirmado</option>
                                   <option value="cancelado">Cancelado</option>
                                 </select>
+                                {priceLabel ? (
+                                  <p className="text-[11px] font-semibold tabular-nums text-gals-ink">
+                                    {r.status === "pagado" ||
+                                    r.status === "confirmado"
+                                      ? `Pagó ${priceLabel}`
+                                      : r.status === "pendiente_pago"
+                                        ? `A pagar ${priceLabel}`
+                                        : priceLabel}
+                                  </p>
+                                ) : (
+                                  <p className="text-[11px] text-gals-muted">
+                                    Sin precio
+                                  </p>
+                                )}
                               </div>
                             </td>
                             <td className="px-4 py-3 text-xs text-gals-muted whitespace-nowrap">
@@ -2658,6 +2743,12 @@ export function EventosAdminPanel() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          ) : null}
+
+          {tab === "comunidad" ? (
+            <motion.div key="comunidad" {...fade}>
+              <ComunidadPanel flash={flash} />
             </motion.div>
           ) : null}
 
@@ -3257,7 +3348,7 @@ export function EventosAdminPanel() {
       <AnimatePresence>
         {toast ? (
           <motion.div
-            className="fixed right-4 bottom-4 z-50 max-w-sm rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-semibold tracking-wide text-white uppercase shadow-lg"
+            className="fixed right-4 top-4 z-50 max-w-sm rounded-full bg-gals-blue-deep px-4 py-2.5 text-[11px] font-semibold tracking-wide text-white uppercase shadow-lg sm:top-6"
             initial={{ opacity: 0, y: 12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8 }}
@@ -3266,6 +3357,107 @@ export function EventosAdminPanel() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      <AdminHelperClippy
+        storageKey="eventos-admin"
+        closedLabel="Guía del panel"
+        liveHint={
+          pendingPayCount > 0
+            ? `${pendingPayCount} inscrita${pendingPayCount === 1 ? "" : "s"} con pago pendiente — revisá Inscritos o Correos`
+            : upcomingCount > 0
+              ? `${upcomingCount} evento${upcomingCount === 1 ? "" : "s"} próximo${upcomingCount === 1 ? "" : "s"} en la agenda`
+              : null
+        }
+        focusIndex={
+          tab === "resumen"
+            ? 0
+            : tab === "eventos"
+              ? 1
+              : tab === "inscritos"
+                ? 2
+                : tab === "correos"
+                  ? 3
+                  : tab === "comunidad"
+                    ? 4
+                    : tab === "editor"
+                      ? 5
+                      : 0
+        }
+        onSelectTip={(i) => {
+          const map: Tab[] = [
+            "resumen",
+            "eventos",
+            "inscritos",
+            "correos",
+            "comunidad",
+            "editor",
+          ];
+          const next = map[i];
+          if (next) setTab(next);
+        }}
+        tips={[
+          {
+            chip: "Resumen",
+            title: "1 · Resumen",
+            body: "El tablero del día: qué urge y qué viene. Empezá acá antes de tocar el resto.",
+            actions: [
+              "Mirá pendientes de pago y abrí Inscritos desde la alerta",
+              "Revisá próximos eventos y cupos llenos",
+              "Si hay algo raro, la tarjeta Atención te lleva al lugar",
+            ],
+          },
+          {
+            chip: "Eventos",
+            title: "2 · Eventos",
+            body: "Acá vive el catálogo: publicar, ocultar, duplicar o editar. También el filtro «Hoy» para el día de la clase.",
+            actions: [
+              "Filtrá Pagos / Gratis o tocá «Hoy»",
+              "Publicá u ocultá un evento sin borrarlo",
+              "«+ Crear evento» o abrí uno para editarlo en Crear",
+            ],
+          },
+          {
+            chip: "Inscritos",
+            title: "3 · Inscritos",
+            body: "Quienes se anotaron a cada evento. Acá cobrás el estado y ves el precio del cupo.",
+            actions: [
+              "Filtrá por evento y estado (pendiente pago, pagado…)",
+              "Cambiá el estado en la fila; el precio sale como «Pagó…» o «A pagar…»",
+              "Agregá a mano con nombre, WhatsApp y email (el email sirve para Correos)",
+            ],
+          },
+          {
+            chip: "Correos",
+            title: "4 · Correos",
+            body: "Avisos del evento por Resend: recordatorio, cobro o info. Sirve para muchas o para una sola.",
+            actions: [
+              "Elegí evento + estado (o «Todas»)",
+              "Usá plantilla o escribí con {{nombre}}, {{evento}}, {{fecha}}…",
+              "Lista de envío = inscritos con email; también podés sumar correos extra",
+            ],
+          },
+          {
+            chip: "Comunidad",
+            title: "5 · Comunidad",
+            body: "Invitación al WhatsApp exclusivo Plus/VIP. El botón «Enviar link» manda un correo de bienvenida con el invite.",
+            actions: [
+              "Sincronizá Bewe o importá CSV (email + plan)",
+              "Filtrá Solo Plus/VIP y pendientes de mail",
+              "«Ver links» antes de enviar para no mezclar Plus con VIP",
+            ],
+          },
+          {
+            chip: "Crear",
+            title: "6 · Crear / Editar",
+            body: "Formulario del evento. Completá lo esencial, guardá y volvé a Eventos para verlo en la lista.",
+            actions: [
+              "Título, fecha/hora, lugar y cupos",
+              "Si es pago: precio visible + Monto MP (COP) para cobro online",
+              "Portada, publicación (sí/no) y Guardar",
+            ],
+          },
+        ]}
+      />
     </div>
   );
 }
