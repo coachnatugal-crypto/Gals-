@@ -3,8 +3,8 @@ import {
   APP_DOWNLOAD_URL,
   INSTAGRAM,
   PHONE_DISPLAY,
-  WHATSAPP_COMMUNITY_URL,
   WHATSAPP_NUMBER,
+  WHATSAPP_URL,
 } from "@/lib/constants";
 import { ytWatch } from "@/lib/program";
 import { BEWE_BOOK_CLASS } from "@/lib/bewe";
@@ -129,7 +129,7 @@ export const TREE_FOOTER_LINKS: TreeLink[] = [
   {
     id: "whatsapp",
     label: "WhatsApp",
-    href: WHATSAPP_COMMUNITY_URL,
+    href: WHATSAPP_URL,
     external: true,
   },
   {

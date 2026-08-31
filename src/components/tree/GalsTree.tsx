@@ -15,7 +15,7 @@ import {
   TREE_LOCATION,
   YOUTUBE_CHANNEL_URL,
 } from "@/lib/tree";
-import { WHATSAPP_COMMUNITY_URL } from "@/lib/constants";
+import { WHATSAPP_URL } from "@/lib/constants";
 import { AppQrHint } from "@/components/AppQrHint";
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
@@ -414,7 +414,7 @@ function WhatsAppIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** Ícono WA (comunidad). */
+/** Ícono WA — chat directo con el studio. */
 function ReserveWhatsRow({ className = "" }: { className?: string }) {
   const reduced = useReducedMotion();
 
@@ -427,10 +427,10 @@ function ReserveWhatsRow({ className = "" }: { className?: string }) {
       transition={{ duration: 0.45, ease: easeOut }}
     >
       <a
-        href={WHATSAPP_COMMUNITY_URL}
+        href={WHATSAPP_URL}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Unirme a la comunidad de WhatsApp"
+        aria-label="Escribir a GAL'S por WhatsApp"
         className="flex h-11 w-11 items-center justify-center rounded-full border border-white/55 text-white transition-colors hover:border-white hover:bg-white/10"
       >
         <WhatsAppIcon className="h-[18px] w-[18px]" />
