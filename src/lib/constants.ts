@@ -1,6 +1,6 @@
 /** Hero video (Cloudinary). */
 export const HERO_VIDEO_URL =
-  "https://res.cloudinary.com/fvermexb/video/upload/v1785107937/hero-cloudinary_mz6ooi.mp4";
+  "https://res.cloudinary.com/pqwn4yu6/video/upload/hero-cloudinary.mp4";
 
 /**
  * Historias reales (Cloudinary).
@@ -10,25 +10,25 @@ export const HERO_VIDEO_URL =
 export const REAL_STORIES_VIDEOS = [
   {
     id: "natalia-1",
-    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785108085/Natalia_testimonio_1_figeww.mov",
+    src: "https://res.cloudinary.com/pqwn4yu6/video/upload/f_mp4/q_auto:good/w_720/v1790092857/Natalia_testimonio_1.mov",
     poster: "/media/stories/natalia.jpg",
     label: "Natalia",
   },
   {
     id: "testimonio-1",
-    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785108041/Testimonio_1_1_vnsmes.mov",
+    src: "https://res.cloudinary.com/pqwn4yu6/video/upload/f_mp4/q_auto:good/w_720/v1790092963/Testimonio_1_1.mov",
     poster: "/media/stories/testimonio.jpg",
     label: "Testimonio",
   },
   {
     id: "img-0687",
-    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785108969/IMG_0687_vjknfd.mov",
+    src: "https://res.cloudinary.com/pqwn4yu6/video/upload/f_mp4/q_auto:good/w_720/v1790092986/IMG_0687.mov",
     poster: "/media/stories/img0687.jpg",
     label: "GAL'S",
   },
   {
     id: "testimonio-2",
-    src: "https://res.cloudinary.com/fvermexb/video/upload/f_mp4/q_auto:good/w_720/v1785110367/copy_9EB341DF-FC93-4C1A-AEE9-2D07454EE3AD_j10lex.mov",
+    src: "https://res.cloudinary.com/pqwn4yu6/video/upload/f_mp4/q_auto:good/w_720/v1790093000/copy_9EB341DF-FC93-4C1A-AEE9-2D07454EE3AD.mov",
     poster: "/media/stories/testimonio-2.jpg",
     label: "Testimonio",
   },
