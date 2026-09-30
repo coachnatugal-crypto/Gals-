@@ -36,7 +36,7 @@ function writeSeen(key: string) {
   }
 }
 
-/** Popup: invita a la Semana GAL'S y a la comunidad. */
+/** Popup: invita a la clase de cortesía y a la comunidad. */
 export function ProgramEventsPopup({
   storageKey = "gals-programa-eventos-popup-seen",
   trigger = "enter",
@@ -187,18 +187,21 @@ export function ProgramEventsPopup({
               </p>
               <p
                 id="programa-eventos-popup-title"
-                className="mt-2 pr-10 font-display text-3xl tracking-tight text-white uppercase sm:text-4xl md:text-5xl"
+                className="mt-2 pr-10 font-display text-2xl leading-[1.1] tracking-tight text-white uppercase sm:text-3xl md:text-4xl"
               >
-                Vive tu Semana GALS
+                Accede a tu clase de cortesía por $45.000
+              </p>
+              <p className="mt-3 max-w-[22rem] text-sm font-medium leading-snug text-white/90 sm:text-base">
+                y recibe 10% de descuento en cualquier paquete que elijas
               </p>
 
               <div className="mt-7 flex flex-col gap-3">
                 <Link
-                  href="/#planes"
+                  href="/#clase-prueba"
                   onClick={dismiss}
                   className="flex w-full items-center justify-center rounded-full bg-white px-5 py-3.5 text-sm font-semibold text-gals-blue-deep transition-transform hover:scale-[1.02]"
                 >
-                  Ser parte de la Semana GALS
+                  Quiero mi clase de cortesía
                 </Link>
                 <a
                   href={WHATSAPP_COMMUNITY_URL}

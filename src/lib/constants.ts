@@ -52,6 +52,7 @@ export const WHATSAPP_COMMUNITY_URL =
  * Bewe Expande → Plus | Bewe Ilimitado → VIP
  */
 export const PLAN_WHATSAPP_ACCESS = {
+  prueba: null,
   semana: null,
   ritual: null,
   starter: null,
@@ -147,15 +148,32 @@ export const ECOSYSTEM = [
 
 export const PLANS = [
   {
+    id: "prueba",
+    name: "Clase de cortesía",
+    tag: "Sábados · solo nuevas",
+    classes: "1 clase de prueba",
+    price: "$45.000",
+    description:
+      "Tu primera clase en GAL'S. Ideal para conocernos un sábado.",
+    bullets: [
+      "Pilates, barre y yin yoga en una clase",
+      "10% de descuento en cualquier paquete que elijas",
+      "Si sigues los sábados: paquete de 4 clases con 10% en el primer mes",
+    ],
+    featured: false,
+    cta: "Quiero mi clase de cortesía",
+  },
+  {
     id: "semana",
     name: "Semana GAL'S",
     tag: "Tu primer paso · solo nuevas alumnas",
     classes: "5 clases en 7 días",
-    price: "$80.000",
+    price: "$120.000",
     description:
       "Cupos limitados este mes. Solo para nuevas alumnas.",
     bullets: [
       "Tus clases son una mezcla de pilates, barre y yin yoga",
+      "10% de descuento en cualquier paquete que elijas",
       "Una vez por persona",
     ],
     featured: false,

@@ -16,8 +16,16 @@ function splitPrice(price: string) {
   return { amount: match[1].trim(), suffix: match[2].trim() };
 }
 
-const SEMANA = PLANS[0];
-const MEMBERSHIPS = PLANS.slice(1);
+const ENTRY_PLANS = PLANS.filter(
+  (plan) => plan.id === "prueba" || plan.id === "semana",
+);
+const MEMBERSHIPS = PLANS.filter(
+  (plan) => plan.id !== "prueba" && plan.id !== "semana",
+);
+
+function isPackPlan(planId: (typeof PLANS)[number]["id"]) {
+  return planId === "prueba" || planId === "semana";
+}
 
 function PlanCard({
   plan,
@@ -31,10 +39,17 @@ function PlanCard({
 }) {
   const { amount, suffix } = splitPrice(plan.price);
   const featured = plan.featured;
+  const anchorId =
+    plan.id === "prueba"
+      ? "clase-prueba"
+      : plan.id === "semana"
+        ? "semana-gals"
+        : undefined;
 
   return (
     <motion.article
-      className={`relative flex h-full flex-col border-2 border-gals-blue-deep bg-gals-cream px-6 py-8 sm:px-8 sm:py-9 ${
+      id={anchorId}
+      className={`relative flex h-full flex-col border-2 border-gals-blue-deep bg-gals-cream px-6 py-8 sm:px-8 sm:py-9 scroll-mt-28 ${
         denseOnDesktop ? "md:px-5 md:py-7" : ""
       } ${featured ? "pt-11 md:pt-10" : ""}`}
       style={{ borderRadius: "1.35rem" }}
@@ -121,7 +136,7 @@ function PlanCard({
         <button
           type="button"
           className={`${
-            plan.id === "semana" ? BEWE_PACKS_CLASS : BEWE_SUBS_CLASS
+            isPackPlan(plan.id) ? BEWE_PACKS_CLASS : BEWE_SUBS_CLASS
           } mt-7 inline-flex min-w-[220px] items-center justify-center rounded-full px-8 py-3.5 font-script text-2xl transition-transform hover:scale-[1.04] ${
             denseOnDesktop
               ? "md:min-w-0 md:w-full md:px-5 md:text-[1.35rem]"
@@ -217,15 +232,17 @@ export function Plans() {
               sin prisa, a tu ritmo
             </p>
             <p className="mx-auto mt-4 max-w-md text-base text-gals-muted md:max-w-xl md:text-lg">
-              La Semana GAL&apos;S es una forma suave de llegar. Cuando te
+              Empieza con la clase de cortesía o la Semana GAL&apos;S. Cuando te
               sientas lista, Ritual, Transformación o Unlimited te esperan.
             </p>
           </motion.div>
 
-          {/* Móvil: columna (igual). Desktop: Semana + grid 3 membresías */}
+          {/* Móvil: columna. Desktop: entrada (2) + kit + membresías (3) */}
           <div className="mt-10 flex flex-col gap-6 md:mt-12 md:gap-6">
-            <div className="md:mx-auto md:max-w-md lg:max-w-lg">
-              <PlanCard plan={SEMANA} index={0} />
+            <div className="flex flex-col gap-6 md:mx-auto md:grid md:max-w-4xl md:grid-cols-2 md:items-stretch md:gap-5">
+              {ENTRY_PLANS.map((plan, index) => (
+                <PlanCard key={plan.id} plan={plan} index={index} />
+              ))}
             </div>
 
             <WelcomeKitBanner />
@@ -236,7 +253,7 @@ export function Plans() {
                 <PlanCard
                   key={plan.id}
                   plan={plan}
-                  index={index + 1}
+                  index={index + ENTRY_PLANS.length}
                   denseOnDesktop
                 />
               ))}
